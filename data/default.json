@@ -1,0 +1,26 @@
+{
+  "id": "default",
+
+  "priority": 0,
+
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "options",
+      "text": "Options",
+      "action": "minecraft:pause_menu"
+    },
+    {
+      "slot": 1,
+      "id": "inventory",
+      "text": "Inventory",
+      "action": "minecraft:inventory"
+    },
+    {
+      "slot": 2,
+      "id": "social",
+      "text": "Social",
+      "action": "dai:social"
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 package io.github.j12h36h.dai.core;
 
+import io.github.j12h36h.dai.util.DAI_MenuCategory;
+import io.github.j12h36h.dai.util.DAI_SystemLoader;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -22,6 +26,35 @@ public class DAI {
         modEventBus.addListener(this::commonSetup);
         NeoForge.EVENT_BUS.register(this);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    @SubscribeEvent
+    public void registerReloadListeners(AddServerReloadListenersEvent event) {
+        LOGGER.info("<DAI>: Registering Reload Listeners");
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath("decisions_and_impulses", "systems"),
+                new DAI_SystemLoader(
+                        "systems",
+                        DAI_MenuCategory.SYSTEM
+                )
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath("decisions_and_impulses", "impulses"),
+                new DAI_SystemLoader(
+                        "impulses",
+                        DAI_MenuCategory.IMPULSE
+                )
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath("decisions_and_impulses", "decisions"),
+                new DAI_SystemLoader(
+                        "decisions",
+                        DAI_MenuCategory.DECISION
+                )
+        );
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "target",
+      "text": "Target",
+      "action": "target"
+    },
+    {
+      "slot": 1,
+      "id": "move",
+      "text": "Move",
+      "action": "move"
+    },
+    {
+      "slot": 2,
+      "id": "look",
+      "text": "Look",
+      "action": "look"
+    }
+  ]
+}

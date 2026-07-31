@@ -6,8 +6,15 @@ public class DAI_Layout {
     public static final int DEFAULT_MARGIN = 8;
     public static final int HUD_BOTTOM_MARGIN = 2;
     public static final int HOTBAR_HALF_WIDTH = 91;
+    public static final int DEFAULT_SPACING = 2;
 
-    public record Layout(int x, int y, int width, int height) {}
+    public record Layout(
+            DAI_Position position,
+            int x,
+            int y,
+            int width,
+            int height
+    ) {}
 
     public static Layout getLayout(
             DAI_Position position,
@@ -45,13 +52,9 @@ public class DAI_Layout {
 
             case BOT_LEFT -> {
 
-                // Space available between screen edge and hotbar
                 int available = hotbarLeft - leftMargin;
 
-                // Shrink if necessary
                 width = Math.min(width, available);
-
-                // Never become unusably small
                 width = Math.max(width, 80);
 
                 x = hotbarLeft - width - leftMargin + 3;
@@ -70,16 +73,11 @@ public class DAI_Layout {
 
             case TOP_RIGHT -> {
 
-                // Space available between hotbar and right screen edge
                 int available = screenWidth - hotbarRight - rightMargin;
 
-                // Shrink if necessary
                 width = Math.min(width, available);
-
-                // Never become unusably small
                 width = Math.max(width, 80);
 
-                // Align with the right-side hotbar edge
                 x = hotbarRight + rightMargin - 3;
                 y = topMargin;
             }
@@ -106,6 +104,45 @@ public class DAI_Layout {
             }
         }
 
-        return new Layout(x, y, width, height);
+        return new Layout(position, x, y, width, height);
+    }
+
+    public static Layout getSubLayout(Layout parent, int index) {
+
+        int spacing = parent.height() + DEFAULT_SPACING;
+
+        int x = parent.x();
+        int y = parent.y();
+
+        switch (parent.position()) {
+
+            case TOP_LEFT,
+                 TOP_CENTER,
+                 TOP_RIGHT -> {
+                y += spacing * (index + 1);
+            }
+
+            case BOT_LEFT,
+                 BOT_CENTER,
+                 BOT_RIGHT -> {
+                y -= spacing * (index + 1);
+            }
+
+            case MID_LEFT -> {
+                x += parent.width() + DEFAULT_SPACING;
+            }
+
+            case MID_RIGHT -> {
+                x -= parent.width() + DEFAULT_SPACING;
+            }
+        }
+
+        return new Layout(
+                parent.position(),
+                x,
+                y,
+                parent.width(),
+                parent.height()
+        );
     }
 }
