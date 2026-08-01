@@ -1,7 +1,10 @@
 package io.github.j12h36h.dai.input;
 
 import io.github.j12h36h.dai.core.Config;
+import io.github.j12h36h.dai.ui.DAI_ScreenManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec2;

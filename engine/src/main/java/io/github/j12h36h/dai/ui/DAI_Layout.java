@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.ui;
 
 import java.awt.*;
+
 public class DAI_Layout {
 
     public static final int DEFAULT_MARGIN = 8;

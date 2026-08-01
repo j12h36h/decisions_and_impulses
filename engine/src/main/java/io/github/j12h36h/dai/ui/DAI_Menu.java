@@ -1,17 +1,15 @@
 package io.github.j12h36h.dai.ui;
 
+import io.github.j12h36h.dai.action.DAI_ActionExecutor;
 import io.github.j12h36h.dai.core.Config;
 import io.github.j12h36h.dai.core.DAI;
 import io.github.j12h36h.dai.util.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
-import java.awt.*;
 import java.util.List;
 import java.util.EnumMap;
 
@@ -109,26 +107,28 @@ public class DAI_Menu extends Screen {
             return;
         }
 
-        switch (type) {
-
-            case SYSTEM ->
-                    openDatapackMenu(type, DAI_MenuCategory.SYSTEM);
-
-            case IMPULSE ->
-                    openDatapackMenu(type, DAI_MenuCategory.IMPULSE);
-
-            case DECISION ->
-                    openDatapackMenu(type, DAI_MenuCategory.DECISION);
-        }
+        updateMenu(type.name(), "default");
     }
 
-    private void openDatapackMenu(MenuType type, DAI_MenuCategory category) {
+    private void openDatapackMenu(
+            MenuType type,
+            DAI_MenuCategory category,
+            String id
+    ) {
 
-        List<DAI_SystemDefinition> systems =
-                DAI_SystemManager.get(category);
+        closeMenu(type);
 
-        if (systems.isEmpty()) {
-            DAI.LOGGER.warn("<DAI>: No definitions loaded for {}", category);
+        DAI_SystemDefinition system =
+                DAI_SystemManager.get(category, id);
+
+        if (system == null) {
+
+            DAI.LOGGER.warn(
+                    "<DAI>: Unknown {} menu '{}'",
+                    category,
+                    id
+            );
+
             return;
         }
 
@@ -137,38 +137,38 @@ public class DAI_Menu extends Screen {
         Button[] buttons = subButtons.get(type);
         DAI_Layout.Layout layout = layouts.get(type);
 
-        for (DAI_SystemDefinition system : systems) {
+        for (DAI_SystemButton definition : system.buttons()) {
 
-            for (DAI_SystemButton definition : system.buttons()) {
+            int slot = definition.slot();
 
-                int slot = definition.slot();
+            if (slot < 0 || slot >= buttons.length) {
 
-                if (slot < 0 || slot >= buttons.length) {
-                    DAI.LOGGER.warn(
-                            "<DAI>: Invalid slot {} in {}",
-                            slot,
-                            category
-                    );
-                    continue;
-                }
+                DAI.LOGGER.warn(
+                        "<DAI>: Invalid slot {} in {}:{}",
+                        slot,
+                        category,
+                        id
+                );
 
-                DAI_Layout.Layout subLayout =
-                        DAI_Layout.getSubLayout(layout, slot);
-
-                buttons[slot] = Button.builder(
-                                Component.literal(definition.text()),
-                                b -> runAction(definition.action())
-                        )
-                        .bounds(
-                                subLayout.x(),
-                                subLayout.y(),
-                                subLayout.width(),
-                                subLayout.height()
-                        )
-                        .build();
-
-                addRenderableWidget(buttons[slot]);
+                continue;
             }
+
+            DAI_Layout.Layout subLayout =
+                    DAI_Layout.getSubLayout(layout, slot);
+
+            buttons[slot] = Button.builder(
+                            Component.literal(definition.text()),
+                            b -> runAction(definition.action())
+                    )
+                    .bounds(
+                            subLayout.x(),
+                            subLayout.y(),
+                            subLayout.width(),
+                            subLayout.height()
+                    )
+                    .build();
+
+            addRenderableWidget(buttons[slot]);
         }
     }
 
@@ -227,5 +227,34 @@ public class DAI_Menu extends Screen {
     @Override
     public boolean shouldCloseOnEsc() {
         return false;
+    }
+
+    public void updateMenu(String menu, String open) {
+
+        MenuType type;
+
+        try {
+            type = MenuType.valueOf(menu.toUpperCase());
+        } catch (IllegalArgumentException exception) {
+
+            DAI.LOGGER.warn(
+                    "<DAI>: Unknown menu '{}'",
+                    menu
+            );
+
+            return;
+        }
+
+        DAI_MenuCategory category = switch (type) {
+            case SYSTEM -> DAI_MenuCategory.SYSTEM;
+            case IMPULSE -> DAI_MenuCategory.IMPULSE;
+            case DECISION -> DAI_MenuCategory.DECISION;
+        };
+
+        openDatapackMenu(
+                type,
+                category,
+                open
+        );
     }
 }

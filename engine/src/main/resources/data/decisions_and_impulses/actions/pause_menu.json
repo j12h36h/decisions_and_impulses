@@ -1,5 +1,5 @@
 {
-  "type": "open_inventory",
+  "type": "pause_menu",
   "conditions": [
     {
       "type": "always"

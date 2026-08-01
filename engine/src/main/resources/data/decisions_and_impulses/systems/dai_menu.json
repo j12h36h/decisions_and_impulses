@@ -4,20 +4,20 @@
     {
       "slot": 0,
       "id": "options",
-      "text": "Options",
+      "text": "Dora's Map",
       "action": "decisions_and_impulses:pause_menu"
     },
     {
       "slot": 1,
       "id": "inventory",
-      "text": "Inventory",
+      "text": "Backpack",
       "action": "decisions_and_impulses:inventory"
     },
     {
       "slot": 2,
       "id": "dai_menu",
-      "text": "Configuration",
-      "action": "decisions_and_impulses:open_menu_system"
+      "text": "Back",
+      "action": "decisions_and_impulses:open_menu_vanilla"
     }
   ]
 }

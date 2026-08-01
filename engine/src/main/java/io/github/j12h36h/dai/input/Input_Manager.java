@@ -9,36 +9,10 @@ import static io.github.j12h36h.dai.core.DAI.LOGGER;
 public final class Input_Manager {
 
     private static final Input_Movement MOVEMENT = new Input_Movement();
+    private static final Input_Action ACTION = new Input_Action();
 
     private Input_Manager() {
-    }
-
-    /**
-     * Installs the DAI keyboard if it is not already active.
-     */
-    public static void install() {
-        Minecraft mc = Minecraft.getInstance();
-
-        if (mc.player == null) {
-            return;
-        }
-
-        Minecraft.getInstance().gui.setScreen(new DAI_Menu());
-
-        if (!(mc.player.input instanceof DAI_Keyboard)) {
-            mc.player.input = new DAI_Keyboard(mc.options);
-            LOGGER.info("<DAI>: Keyboard = Active");
-        }
-
-        if (Config.TOGGLE_KEYBINDS.getAsBoolean()) {
-            if (mc.mouseHandler.isMouseGrabbed()) {
-                mc.mouseHandler.releaseMouse();
-            }
-        } else {
-            if (!mc.mouseHandler.isMouseGrabbed()) {
-                mc.mouseHandler.grabMouse();
-            }
-        }
+        // Utility class.
     }
 
     /**
@@ -49,9 +23,31 @@ public final class Input_Manager {
     }
 
     /**
+     * Returns the current action state.
+     */
+    public static Input_Action action() {
+        return ACTION;
+    }
+
+    /**
      * Clears all active movement.
      */
     public static void clearMovement() {
         MOVEMENT.clear();
+    }
+
+    /**
+     * Clears all active actions.
+     */
+    public static void clearActions() {
+        ACTION.clear();
+    }
+
+    /**
+     * Clears all DAI input.
+     */
+    public static void clear() {
+        clearMovement();
+        clearActions();
     }
 }

@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.core;
 
-import io.github.j12h36h.dai.util.DAI_MenuCategory;
+import io.github.j12h36h.dai.action.DAI_ActionLoader;
+import io.github.j12h36h.dai.ui.DAI_MenuCategory;
 import io.github.j12h36h.dai.util.DAI_SystemLoader;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -31,6 +32,13 @@ public class DAI {
     @SubscribeEvent
     public void registerReloadListeners(AddServerReloadListenersEvent event) {
         LOGGER.info("<DAI>: Registering Reload Listeners");
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath("decisions_and_impulses", "actions"),
+                new DAI_ActionLoader(
+                        "actions"
+                )
+        );
 
         event.addListener(
                 Identifier.fromNamespaceAndPath("decisions_and_impulses", "systems"),
