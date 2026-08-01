@@ -10,6 +10,7 @@ public final class Input_Manager {
 
     private static final Input_Movement MOVEMENT = new Input_Movement();
     private static final Input_Action ACTION = new Input_Action();
+    private static final Input_Look LOOK = new Input_Look();
 
     private Input_Manager() {
         // Utility class.
@@ -30,6 +31,13 @@ public final class Input_Manager {
     }
 
     /**
+     * Returns the current look state.
+     */
+    public static Input_Look look() {
+        return LOOK;
+    }
+
+    /**
      * Clears all active movement.
      */
     public static void clearMovement() {
@@ -44,10 +52,20 @@ public final class Input_Manager {
     }
 
     /**
+     * Resets the current look direction.
+     */
+    public static void clearLook() {
+        LOOK.clear();
+    }
+
+    /**
      * Clears all DAI input.
      */
     public static void clear() {
         clearMovement();
         clearActions();
+        clearLook();
     }
+
+
 }

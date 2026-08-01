@@ -73,4 +73,12 @@ public final class Input_Movement {
     private static float clamp(float value) {
         return Math.max(-1.0F, Math.min(1.0F, value));
     }
+
+    public void setForward(float forward) {
+        this.forward = forward;
+    }
+
+    public void setStrafe(float strafe) {
+        this.strafe = strafe;
+    }
 }

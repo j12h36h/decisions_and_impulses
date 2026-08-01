@@ -1,0 +1,10 @@
+{
+  "type": "update_menu",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ],
+  "menu": "impulse",
+  "open": "look_vanilla"
+}

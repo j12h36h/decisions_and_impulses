@@ -1,9 +1,14 @@
 package io.github.j12h36h.dai.core;
 
+import io.github.j12h36h.dai.action.DAI_ActionBootstrap;
 import io.github.j12h36h.dai.action.DAI_ActionLoader;
+import io.github.j12h36h.dai.action.DAI_ActionManager;
+import io.github.j12h36h.dai.input.DAI_MoveController;
 import io.github.j12h36h.dai.ui.DAI_MenuCategory;
 import io.github.j12h36h.dai.util.DAI_SystemLoader;
 import net.minecraft.resources.Identifier;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import org.slf4j.Logger;
 
@@ -25,6 +30,7 @@ public class DAI {
 
     public DAI(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::clientSetup);
         NeoForge.EVENT_BUS.register(this);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
@@ -69,7 +75,16 @@ public class DAI {
         if (Config.TOGGLE_KEYBINDS.getAsBoolean()) {
             LOGGER.info("<DAI>: TOGGLE_KEYBINDS = true");
         }
+        DAI_ActionBootstrap.init();
+
         LOGGER.info("{}{}", Config.ACTION_DELAY.get(), Config.ACTION_DELAY.getAsInt());
+    }
+
+    private void clientSetup(FMLClientSetupEvent event) {
+        NeoForge.EVENT_BUS.addListener(
+                ClientTickEvent.Post.class,
+                e -> DAI_MoveController.tick()
+        );
     }
 
     @SubscribeEvent

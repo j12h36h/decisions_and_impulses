@@ -5,19 +5,19 @@
       "slot": 0,
       "id": "target",
       "text": "Target",
-      "action": "target"
+      "action": "decisions_and_impulses:open_menu_target"
     },
     {
       "slot": 1,
-      "id": "move",
-      "text": "Move",
-      "action": "move"
+      "id": "self",
+      "text": "Self",
+      "action": "decisions_and_impulses:open_menu_self"
     },
     {
       "slot": 2,
-      "id": "look",
-      "text": "Look",
-      "action": "look"
+      "id": "world",
+      "text": "World",
+      "action": "decisions_and_impulses:open_menu_world"
     }
   ]
 }

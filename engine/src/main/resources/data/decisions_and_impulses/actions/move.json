@@ -1,0 +1,5 @@
+{
+  "type": "move",
+  "direction": "forward",
+  "ticks": 20
+}

@@ -1,0 +1,14 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "look_nearest_entity"
+    },
+    {
+      "type": "delay_100"
+    },
+    {
+      "type": "attack"
+    }
+  ]
+}

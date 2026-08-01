@@ -27,31 +27,11 @@ public final class DAI_ActionExecutor {
         }
 
         for (DAI_Condition condition : action.conditions()) {
-
             if (!DAI_ConditionLogic.evaluate(condition)) {
                 return;
             }
         }
 
-        switch (action.type()) {
-
-            case "open_inventory" ->
-                    DAI_ActionLogic.openInventory();
-
-            case "pause_menu" ->
-                    DAI_ActionLogic.openPauseMenu();
-
-            case "update_menu" ->
-                    DAI_ActionLogic.updateMenu(
-                            action.menu(),
-                            action.open()
-                    );
-
-            default ->
-                    DAI.LOGGER.warn(
-                            "<DAI>: Unknown action type '{}'",
-                            action.type()
-                    );
-        }
+        DAI_ActionQueue.enqueue(action);
     }
 }

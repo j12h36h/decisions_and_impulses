@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "break",
+      "text": "Break",
+      "action": "decisions_and_impulses:break"
+    },
+    {
+      "slot": 1,
+      "id": "place",
+      "text": "Place",
+      "action": "decisions_and_impulses:place"
+    },
+    {
+      "slot": 2,
+      "id": "interact",
+      "text": "Interact",
+      "action": "decisions_and_impulses:interact"
+    }
+  ]
+}

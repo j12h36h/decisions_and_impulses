@@ -3,9 +3,9 @@
   "buttons": [
     {
       "slot": 0,
-      "id": "goals",
-      "text": "Goals",
-      "action": "goals"
+      "id": "target",
+      "text": "Target",
+      "action": "decisions_and_impulses:attack_counter"
     },
     {
       "slot": 1,

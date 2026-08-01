@@ -1,0 +1,15 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "look",
+      "yaw": 90,
+      "pitch": 0
+    },
+    {
+      "type": "update_menu",
+      "menu": "impulse",
+      "open": "default"
+    }
+  ]
+}
