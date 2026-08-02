@@ -16,7 +16,7 @@
     {
       "slot": 2,
       "id": "dai_menu",
-      "text": "Configuration",
+      "text": "Interface",
       "action": "decisions_and_impulses:open_menu_system"
     }
   ]

@@ -1,3 +1,4 @@
 {
-  "type": "attack"
+  "type": "attack",
+  "ticks": 10
 }

@@ -3,21 +3,21 @@
   "buttons": [
     {
       "slot": 0,
-      "id": "options",
-      "text": "        Impulses",
-      "action": "decisions_and_impulses:pause_menu"
+      "id": "queue",
+      "text": "Queue",
+      "action": "decisions_and_impulses:open_menu_queue"
     },
     {
       "slot": 1,
-      "id": "inventory",
-      "text": "&",
-      "action": "decisions_and_impulses:inventory"
+      "id": "nothing",
+      "text": "nothing",
+      "action": "decisions_and_impulses:open_menu_queue"
     },
     {
       "slot": 2,
-      "id": "dai_menu",
-      "text": "Decisions        ",
-      "action": "decisions_and_impulses:open_menu_vanilla"
+      "id": "empty",
+      "text": "Empty",
+      "action": "decisions_and_impulses:open_menu_queue"
     }
   ]
 }

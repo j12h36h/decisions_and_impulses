@@ -2,13 +2,13 @@
   "type": "sequence",
   "sequence": [
     {
-      "type": "look_nearest_entity"
+      "action": "scan_nearest"
     },
     {
-      "type": "delay_100"
+      "action": "delay_20"
     },
     {
-      "type": "attack"
+      "action": "attack_basic"
     }
   ]
 }

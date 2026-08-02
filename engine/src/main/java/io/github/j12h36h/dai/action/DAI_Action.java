@@ -7,6 +7,7 @@ import io.github.j12h36h.dai.condition.DAI_Condition;
 import java.util.List;
 public record DAI_Action(
         String type,
+        String action,
         List<DAI_Condition> conditions,
         List<DAI_Action> sequence,
         String menu,
@@ -21,8 +22,11 @@ public record DAI_Action(
             RecordCodecBuilder.create(instance ->
                     instance.group(
 
-                            Codec.STRING.fieldOf("type")
+                            Codec.STRING.optionalFieldOf("type", "")
                                     .forGetter(DAI_Action::type),
+
+                            Codec.STRING.optionalFieldOf("action", "")
+                                    .forGetter(DAI_Action::action),
 
                             DAI_Condition.CODEC.listOf()
                                     .optionalFieldOf("conditions", List.of())

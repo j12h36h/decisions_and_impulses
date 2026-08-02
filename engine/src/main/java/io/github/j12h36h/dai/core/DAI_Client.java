@@ -43,6 +43,8 @@ public class DAI_Client {
             minecraft.gui.setScreen(DAI_ScreenManager.pop());
         }
 
+        DAI_ActionQueue.tick();
+
         // Apply DAI look input.
         Input_Look look = Input_Manager.look();
 
@@ -68,6 +70,5 @@ public class DAI_Client {
 
             action.attack(false);
         }
-        DAI_ActionQueue.tick();
     }
 }

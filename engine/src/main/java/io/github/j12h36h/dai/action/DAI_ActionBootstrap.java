@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.action;
 
 import io.github.j12h36h.dai.input.Input_Manager;
+import io.github.j12h36h.dai.util.DAI_ScanLogic;
 import io.github.j12h36h.dai.util.DAI_Targeting;
 import net.minecraft.world.entity.Entity;
 
@@ -42,24 +43,13 @@ public final class DAI_ActionBootstrap {
         );
 
         DAI_ActionRegistry.register(
-                "look_nearest_entity",
-                action -> {
-                    Entity entity = DAI_Targeting.nearestEntity();
-
-                    if (entity == null) {
-                        return;
-                    }
-
-                    Input_Manager.look().setRotation(
-                            DAI_Targeting.yawTo(entity),
-                            DAI_Targeting.pitchTo(entity)
-                    );
-                }
+                "scan",
+                DAI_ScanLogic::execute
         );
 
         DAI_ActionRegistry.register(
                 "attack",
-                action -> Input_Manager.action().attack(true)
+                DAI_ActionLogic::attack
         );
 
         DAI_ActionRegistry.register(

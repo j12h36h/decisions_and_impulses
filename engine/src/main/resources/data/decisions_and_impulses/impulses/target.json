@@ -16,8 +16,8 @@
     {
       "slot": 2,
       "id": "target",
-      "text": "Target Nearest",
-      "action": "decisions_and_impulses:look_nearest_entity"
+      "text": "Scan Nearest",
+      "action": "decisions_and_impulses:scan_nearest"
     }
   ]
 }

@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.ui;
 
+import io.github.j12h36h.dai.action.DAI_Action;
 import io.github.j12h36h.dai.action.DAI_ActionExecutor;
+import io.github.j12h36h.dai.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.core.Config;
 import io.github.j12h36h.dai.core.DAI;
 import io.github.j12h36h.dai.util.*;
@@ -21,6 +23,12 @@ public class DAI_Menu extends Screen {
         DECISION
     }
 
+    private enum SystemMode {
+        DATAPACK,
+        QUEUE
+    }
+
+    private SystemMode systemMode = SystemMode.DATAPACK;
     private final EnumMap<MenuType, Button> rootButtons = new EnumMap<>(MenuType.class);
     private final EnumMap<MenuType, Button[]> subButtons = new EnumMap<>(MenuType.class);
     private final EnumMap<MenuType, Boolean> menuOpen = new EnumMap<>(MenuType.class);
@@ -236,13 +244,18 @@ public class DAI_Menu extends Screen {
         try {
             type = MenuType.valueOf(menu.toUpperCase());
         } catch (IllegalArgumentException exception) {
-
-            DAI.LOGGER.warn(
-                    "<DAI>: Unknown menu '{}'",
-                    menu
-            );
-
+            DAI.LOGGER.warn("<DAI>: Unknown menu '{}'", menu);
             return;
+        }
+
+        if (type == MenuType.SYSTEM && open.equals("queue")) {
+            systemMode = SystemMode.QUEUE;
+            openQueue();
+            return;
+        }
+
+        if (type == MenuType.SYSTEM) {
+            systemMode = SystemMode.DATAPACK;
         }
 
         DAI_MenuCategory category = switch (type) {
@@ -251,10 +264,113 @@ public class DAI_Menu extends Screen {
             case DECISION -> DAI_MenuCategory.DECISION;
         };
 
-        openDatapackMenu(
-                type,
-                category,
-                open
+        openDatapackMenu(type, category, open);
+    }
+
+    private void openQueue() {
+
+        closeMenu(MenuType.SYSTEM);
+
+        menuOpen.put(MenuType.SYSTEM, true);
+
+        Button[] buttons = subButtons.get(MenuType.SYSTEM);
+        DAI_Layout.Layout layout = layouts.get(MenuType.SYSTEM);
+
+        // ▲ Previous
+        DAI_Layout.Layout top = DAI_Layout.getSubLayout(layout, 0);
+
+        buttons[0] = Button.builder(
+                Component.literal("▲"),
+                b -> {
+                    DAI_ActionQueue.previous();
+                    refreshQueue();
+                }
+        ).bounds(
+                top.x(),
+                top.y(),
+                top.width(),
+                top.height()
+        ).build();
+
+        addRenderableWidget(buttons[0]);
+
+        // Selected Action
+        DAI_Layout.Layout middle = DAI_Layout.getSubLayout(layout, 1);
+
+        buttons[1] = Button.builder(
+                Component.literal(""),
+                b -> {
+                    DAI_ActionQueue.remove(
+                            DAI_ActionQueue.selectedIndex()
+                    );
+                    refreshQueue();
+                }
+        ).bounds(
+                middle.x(),
+                middle.y(),
+                middle.width(),
+                middle.height()
+        ).build();
+
+        addRenderableWidget(buttons[1]);
+
+        // ▼ Next
+        DAI_Layout.Layout bottom = DAI_Layout.getSubLayout(layout, 2);
+
+        buttons[2] = Button.builder(
+                Component.literal("▼"),
+                b -> {
+                    DAI_ActionQueue.next();
+                    refreshQueue();
+                }
+        ).bounds(
+                bottom.x(),
+                bottom.y(),
+                bottom.width(),
+                bottom.height()
+        ).build();
+
+        addRenderableWidget(buttons[2]);
+
+        refreshQueue();
+    }
+
+    private void refreshQueue() {
+
+        Button[] buttons = subButtons.get(MenuType.SYSTEM);
+
+        if (buttons == null || buttons[1] == null) {
+            return;
+        }
+
+        DAI_Action action = DAI_ActionQueue.selected();
+
+        if (action == null) {
+            buttons[1].setMessage(Component.literal("[ Empty ]"));
+            return;
+        }
+
+        double seconds = DAI_ActionQueue.delayTicks() / 20.0;
+
+        buttons[1].setMessage(
+                Component.literal(
+                        "{"
+                                + (DAI_ActionQueue.selectedIndex() + 1)
+                                + "} "
+                                + action.type()
+                                + " ("
+                                + String.format("%.1fs", seconds)
+                                + ")"
+                )
         );
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (systemMode == SystemMode.QUEUE) {
+            refreshQueue();
+        }
     }
 }
