@@ -1,0 +1,14 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "jump",
+      "direction": "backward"
+    },
+    {
+      "type": "update_menu",
+      "menu": "impulse",
+      "open": "default"
+    }
+  ]
+}

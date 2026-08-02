@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "io.github.j12h36h.dai.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "Mixin_ClientPacketListener",
+    "Mixin_Mouse"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

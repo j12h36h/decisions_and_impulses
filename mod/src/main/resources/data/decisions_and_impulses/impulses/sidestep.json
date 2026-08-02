@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "dash",
+      "text": "Dash",
+      "action": "decisions_and_impulses:open_menu_dash"
+    },
+    {
+      "slot": 1,
+      "id": "left",
+      "text": "Left",
+      "action": "decisions_and_impulses:jump_left"
+    },
+    {
+      "slot": 2,
+      "id": "right",
+      "text": "Right",
+      "action": "decisions_and_impulses:jump_right"
+    }
+  ]
+}
