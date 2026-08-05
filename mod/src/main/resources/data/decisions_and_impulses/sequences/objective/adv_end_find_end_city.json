@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "objective_execute",
+      "action": "minecraft:end/find_end_city",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/find_end_city"
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

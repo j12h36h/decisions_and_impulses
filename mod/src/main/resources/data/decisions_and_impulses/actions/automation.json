@@ -1,0 +1,59 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "locate",
+      "text": "Locate",
+      "action": "decisions_and_impulses:menu_open_locate"
+    },
+    {
+      "slot": 1,
+      "id": "build",
+      "text": "Build",
+      "action": "decisions_and_impulses:menu_open_build"
+    },
+    {
+      "slot": 2,
+      "id": "craft",
+      "text": "Craft",
+      "action": "decisions_and_impulses:menu_open_craft"
+    },
+    {
+      "slot": 3,
+      "id": "farm",
+      "text": "Farm",
+      "action": "decisions_and_impulses:menu_open_farm"
+    },
+    {
+      "slot": 4,
+      "id": "mine",
+      "text": "Mine",
+      "action": "decisions_and_impulses:menu_open_mine"
+    },
+    {
+      "slot": 5,
+      "id": "combat",
+      "text": "Combat",
+      "action": "decisions_and_impulses:menu_open_combat"
+    },
+    {
+      "slot": 6,
+      "id": "travel",
+      "text": "Travel",
+      "action": "decisions_and_impulses:menu_open_travel"
+    },
+    {
+      "slot": 7,
+      "id": "harvest",
+      "text": "Harvest",
+      "action": "decisions_and_impulses:menu_open_harvest"
+    },
+    {
+      "slot": 8,
+      "id": "manage",
+      "text": "Manage",
+      "action": "decisions_and_impulses:menu_open_manage"
+    }
+  ]
+}

@@ -5,14 +5,19 @@ import net.minecraft.client.gui.components.Button;
 
 import java.util.Arrays;
 import java.util.EnumMap;
-
 public final class DAI_MenuState {
 
     public static final int SUBMENU_SLOT_COUNT = 3;
 
     public enum SystemMode {
         DATAPACK,
-        QUEUE
+        QUEUE,
+        HOTBAR
+    }
+
+    public enum ActionMode {
+        DATAPACK,
+        AUTOMATION
     }
 
     private final EnumMap<DAI_MenuCategory, Button> rootButtons =
@@ -26,6 +31,9 @@ public final class DAI_MenuState {
 
     private SystemMode systemMode =
             SystemMode.DATAPACK;
+
+    private ActionMode actionMode =
+            ActionMode.DATAPACK;
 
     public DAI_MenuState() {
 
@@ -73,6 +81,34 @@ public final class DAI_MenuState {
         );
 
         this.systemMode = systemMode;
+    }
+
+    public ActionMode actionMode() {
+        return actionMode;
+    }
+
+    public void setActionMode(
+            ActionMode actionMode
+    ) {
+
+        if (actionMode == null) {
+
+            throw new IllegalArgumentException(
+                    "Action menu mode cannot be null."
+            );
+        }
+
+        if (this.actionMode == actionMode) {
+            return;
+        }
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Action menu mode changed from {} to {}.",
+                this.actionMode,
+                actionMode
+        );
+
+        this.actionMode = actionMode;
     }
 
     public Button rootButton(
@@ -205,7 +241,11 @@ public final class DAI_MenuState {
             );
         }
 
-        systemMode = SystemMode.DATAPACK;
+        systemMode =
+                SystemMode.DATAPACK;
+
+        actionMode =
+                ActionMode.DATAPACK;
 
         DAI_Core.LOGGER.debug(
                 "<DAI>: Menu state reset."

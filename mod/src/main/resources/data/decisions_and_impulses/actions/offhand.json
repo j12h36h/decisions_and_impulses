@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "block",
+      "text": "Block",
+      "action": "decisions_and_impulses:offhand_block"
+    },
+    {
+      "slot": 1,
+      "id": "use",
+      "text": "Use",
+      "action": "decisions_and_impulses:offhand_use"
+    },
+    {
+      "slot": 2,
+      "id": "swap",
+      "text": "Swap",
+      "action": "decisions_and_impulses:swap"
+    }
+  ]
+}

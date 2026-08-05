@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "crouch",
+      "text": "Crouch",
+      "action": "decisions_and_impulses:stance_toggle_crouch"
+    },
+    {
+      "slot": 1,
+      "id": "sprint",
+      "text": "Sprint",
+      "action": "decisions_and_impulses:stance_toggle_sprint"
+    },
+    {
+      "slot": 2,
+      "id": "swim",
+      "text": "Swim",
+      "action": "decisions_and_impulses:stance_toggle_swim"
+    }
+  ]
+}

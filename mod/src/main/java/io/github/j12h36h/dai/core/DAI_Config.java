@@ -34,20 +34,12 @@ public final class DAI_Config {
                             DAI_Position.BOT_LEFT
                     );
 
-    public static final ModConfigSpec.EnumValue<DAI_Position> IMPULSE_MENU_POSITION =
+    public static final ModConfigSpec.EnumValue<DAI_Position> ACTION_MENU_POSITION =
             BUILDER
-                    .comment("Impulse menu position")
+                    .comment("Action menu position")
                     .defineEnum(
-                            "impulseMenuPosition",
+                            "actionMenuPosition",
                             DAI_Position.BOT_RIGHT
-                    );
-
-    public static final ModConfigSpec.EnumValue<DAI_Position> DECISION_MENU_POSITION =
-            BUILDER
-                    .comment("Decision menu position")
-                    .defineEnum(
-                            "decisionMenuPosition",
-                            DAI_Position.TOP_LEFT
                     );
 
     public static final ModConfigSpec SPEC =

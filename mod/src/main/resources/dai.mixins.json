@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "Mixin_ClientPacketListener",
-    "Mixin_Mouse"
+    "Mixin_Mouse",
+    "Mixin_Advancements"
   ],
   "injectors": {
     "defaultRequire": 1

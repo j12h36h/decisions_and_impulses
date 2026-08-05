@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:deepslate",
+    "minecraft:cobbled_deepslate",
+    "minecraft:reinforced_deepslate"
+  ]
+}

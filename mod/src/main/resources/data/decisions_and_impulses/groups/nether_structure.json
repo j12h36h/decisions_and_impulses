@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "entries": [
+    "@nether_bricks",
+    "@blackstone",
+    "minecraft:obsidian",
+    "minecraft:crying_obsidian",
+    "minecraft:lodestone",
+    "minecraft:gilded_blackstone"
+  ]
+}

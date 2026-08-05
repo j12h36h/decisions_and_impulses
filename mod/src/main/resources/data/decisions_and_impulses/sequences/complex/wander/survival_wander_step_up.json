@@ -1,0 +1,42 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "jump",
+      "direction": "forward",
+      "ticks": 7,
+      "conditions": [
+        {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "player_on_ground"
+            },
+            {
+              "type": "path_forward_step_up"
+            },
+            {
+              "type": "player_has_jump_headroom"
+            },
+            {
+              "type": "path_forward_lava",
+              "operator": "is_false"
+            },
+            {
+              "type": "path_forward_water",
+              "operator": "is_false"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 7
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:survival_wander_cycle"
+    }
+  ]
+}

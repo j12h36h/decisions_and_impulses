@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.core;
 
 import io.github.j12h36h.dai.action.DAI_ActionController;
 import io.github.j12h36h.dai.action.DAI_ActionQueue;
+import io.github.j12h36h.dai.condition.DAI_ConditionMemory;
+import io.github.j12h36h.dai.input.DAI_ApproachController;
 import io.github.j12h36h.dai.input.DAI_LookController;
 import io.github.j12h36h.dai.input.DAI_MoveController;
 import io.github.j12h36h.dai.system.DAI_ClientRuntime;
@@ -18,7 +20,9 @@ public final class DAI_ClientTick {
         DAI_ScreenManager.tick();
         DAI_MoveController.tick();
         DAI_ActionController.tick();
+        DAI_ConditionMemory.clear();
         DAI_ActionQueue.tick();
         DAI_LookController.tick();
+        DAI_ApproachController.tick();
     }
 }

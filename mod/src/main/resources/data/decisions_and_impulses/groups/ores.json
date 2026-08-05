@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "entries": [
+    "@ore_coal",
+    "@ore_iron",
+    "@ore_copper",
+    "@ore_gold",
+    "@ore_redstone",
+    "@ore_lapis",
+    "@ore_diamond",
+    "@ore_emerald",
+    "@ore_quartz",
+    "@ore_ancient_debris"
+  ]
+}

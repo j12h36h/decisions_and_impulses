@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "entries": [
+    "@buttons",
+    "@pressure_plates",
+    "@levers",
+    "@repeaters",
+    "@comparators",
+    "@redstone_wire",
+    "@redstone_power",
+    "@pistons",
+    "@hoppers",
+    "@dispensers",
+    "@droppers",
+    "@observers",
+    "minecraft:tripwire",
+    "minecraft:tripwire_hook",
+    "minecraft:note_block",
+    "minecraft:tnt",
+    "minecraft:lightning_rod",
+    "minecraft:crafter"
+  ]
+}

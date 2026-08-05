@@ -25,9 +25,9 @@ public record DAI_SystemButton(
         text = normalize(text);
         action = normalize(action);
 
-        if (slot < 0 || slot >= 3) {
+        if (slot < 0) {
             throw new IllegalArgumentException(
-                    "Menu button slot must be between 0 and 2."
+                    "Menu button slot cannot be negative."
             );
         }
 

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "entries": [
+    "@purpur",
+    "@end_stone",
+    "minecraft:end_rod",
+    "minecraft:dragon_head",
+    "minecraft:chest",
+    "minecraft:shulker_box"
+  ]
+}

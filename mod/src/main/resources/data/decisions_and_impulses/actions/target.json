@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "nearest",
+      "text": "Nearest",
+      "action": "decisions_and_impulses:target_scan_nearest"
+    },
+    {
+      "slot": 1,
+      "id": "attack",
+      "text": "Attack",
+      "action": "decisions_and_impulses:attack_target"
+    },
+    {
+      "slot": 2,
+      "id": "counter",
+      "text": "Counter",
+      "action": "decisions_and_impulses:attack_counter"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.core.DAI_Core;
 import io.github.j12h36h.dai.ui.DAI_MenuCategory;
 
 import java.util.*;
+
 public final class DAI_SystemManager {
 
     private static final EnumMap<

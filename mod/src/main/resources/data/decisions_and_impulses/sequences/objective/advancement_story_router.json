@@ -1,0 +1,185 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_root",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/root"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_mine_stone",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/mine_stone"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_upgrade_tools",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/upgrade_tools"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_smelt_iron",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/smelt_iron"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_obtain_armor",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/obtain_armor"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_lava_bucket",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/lava_bucket"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_iron_tools",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/iron_tools"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_deflect_arrow",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/deflect_arrow"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_form_obsidian",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/form_obsidian"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_mine_diamond",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/mine_diamond"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_enter_nether",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/enter_the_nether"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_shiny_gear",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/shiny_gear"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_enchant_item",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/enchant_item"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_cure_zombie_villager",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/cure_zombie_villager"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_follow_ender_eye",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/follow_ender_eye"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_story_enter_end",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:story/enter_the_end"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

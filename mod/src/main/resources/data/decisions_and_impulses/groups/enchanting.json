@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:enchanting_table",
+    "minecraft:bookshelf",
+    "minecraft:chiseled_bookshelf"
+  ]
+}

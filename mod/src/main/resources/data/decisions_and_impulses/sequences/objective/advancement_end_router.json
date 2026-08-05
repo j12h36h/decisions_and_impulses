@@ -1,0 +1,108 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_root",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/root"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_kill_dragon",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/kill_dragon"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_dragon_egg",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/dragon_egg"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_enter_end_gateway",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/enter_end_gateway"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_respawn_dragon",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/respawn_dragon"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_dragon_breath",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/dragon_breath"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_find_end_city",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/find_end_city"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_elytra",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/elytra"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_end_levitate",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/levitate"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

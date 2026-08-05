@@ -1,0 +1,8 @@
+{
+  "type": "open_inventory",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

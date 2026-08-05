@@ -10,12 +10,7 @@ public enum DAI_MenuCategory {
     SYSTEM,
 
     /**
-     * Manual impulses and player actions.
+     * All executable actions (formerly impulses and decisions).
      */
-    IMPULSE,
-
-    /**
-     * AI decisions and behaviors.
-     */
-    DECISION
+    ACTION
 }

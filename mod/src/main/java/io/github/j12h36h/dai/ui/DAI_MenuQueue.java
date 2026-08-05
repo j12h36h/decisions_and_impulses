@@ -38,33 +38,36 @@ public final class DAI_MenuQueue {
                 true
         );
 
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Opening action queue menu."
-        );
-
-        createPreviousButton(
+        DAI_MenuSelector.create(
                 menu,
                 state,
-                layout
-        );
+                layout,
+                category,
+                button -> {
+                    DAI_ActionQueue.previous();
+                    refresh(state);
+                },
+                button -> {
+                    int selectedIndex =
+                            DAI_ActionQueue.selectedIndex();
 
-        createSelectedButton(
-                menu,
-                state,
-                layout
-        );
+                    if (DAI_ActionQueue.selected() == null) {
+                        return;
+                    }
 
-        createNextButton(
-                menu,
-                state,
-                layout
+                    DAI_ActionQueue.remove(
+                            selectedIndex
+                    );
+
+                    refresh(state);
+                },
+                button -> {
+                    DAI_ActionQueue.next();
+                    refresh(state);
+                }
         );
 
         refresh(state);
-
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Action queue menu opened."
-        );
     }
 
     public void refresh(

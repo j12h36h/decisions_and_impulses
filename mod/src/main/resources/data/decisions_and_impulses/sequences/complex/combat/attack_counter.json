@@ -1,0 +1,14 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "scan_nearest"
+    },
+    {
+      "action": "delay_20"
+    },
+    {
+      "action": "attack_basic"
+    }
+  ]
+}

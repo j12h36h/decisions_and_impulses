@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "entries": [
+    "@crafting_blocks",
+    "@furnaces",
+    "@enchanting",
+    "@brewing",
+    "@anvils",
+    "minecraft:beacon",
+    "minecraft:jukebox",
+    "minecraft:lectern",
+    "minecraft:composter",
+    "minecraft:respawn_anchor",
+    "minecraft:lodestone"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:stone",
+    "minecraft:granite",
+    "minecraft:diorite",
+    "minecraft:andesite",
+    "minecraft:calcite",
+    "minecraft:tuff",
+    "minecraft:dripstone_block",
+    "minecraft:cinnabar",
+    "minecraft:sulfur"
+  ]
+}

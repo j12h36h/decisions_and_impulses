@@ -7,6 +7,9 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public final class DAI_ActionLoader
@@ -14,7 +17,9 @@ public final class DAI_ActionLoader
 
     private final String folder;
 
-    public DAI_ActionLoader(String folder) {
+    public DAI_ActionLoader(
+            String folder
+    ) {
 
         super(
                 DAI_ActionCore.CODEC,
@@ -36,9 +41,45 @@ public final class DAI_ActionLoader
                 folder
         );
 
+        Map<Identifier, DAI_ActionCore> flattenedDefinitions =
+                new LinkedHashMap<>();
+
+        Map<Identifier, Identifier> sourceIdentifiers =
+                new HashMap<>();
+
+        definitions.forEach((sourceIdentifier, action) -> {
+
+            Identifier actionIdentifier =
+                    flattenIdentifier(sourceIdentifier);
+
+            Identifier previousSource =
+                    sourceIdentifiers.putIfAbsent(
+                            actionIdentifier,
+                            sourceIdentifier
+                    );
+
+            if (previousSource != null) {
+
+                throw new IllegalStateException(
+                        String.format(
+                                Locale.ROOT,
+                                "Duplicate action filename '%s' found at '%s' and '%s'.",
+                                actionIdentifier,
+                                previousSource,
+                                sourceIdentifier
+                        )
+                );
+            }
+
+            flattenedDefinitions.put(
+                    actionIdentifier,
+                    action
+            );
+        });
+
         DAI_ActionManager.clear();
 
-        definitions.forEach((identifier, action) -> {
+        flattenedDefinitions.forEach((identifier, action) -> {
 
             DAI_Core.LOGGER.debug(
                     "<DAI>: Registering action '{}' with type='{}', reference='{}', conditions={}, sequence={}, ticks={}.",
@@ -57,8 +98,30 @@ public final class DAI_ActionLoader
         });
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Loaded {} action definition(s).",
+                "<DAI>: Loaded {} action definition(s) from {} source file(s).",
+                flattenedDefinitions.size(),
                 definitions.size()
+        );
+    }
+
+    private static Identifier flattenIdentifier(
+            Identifier identifier
+    ) {
+
+        String path =
+                identifier.getPath();
+
+        int lastSeparator =
+                path.lastIndexOf('/');
+
+        String fileName =
+                lastSeparator >= 0
+                        ? path.substring(lastSeparator + 1)
+                        : path;
+
+        return Identifier.fromNamespaceAndPath(
+                identifier.getNamespace(),
+                fileName
         );
     }
 }

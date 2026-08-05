@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "drop",
+      "text": "Drop",
+      "action": "decisions_and_impulses:item_drop"
+    },
+    {
+      "slot": 1,
+      "id": "use",
+      "text": "Use",
+      "action": "decisions_and_impulses:item_use"
+    },
+    {
+      "slot": 2,
+      "id": "pick",
+      "text": "Pick",
+      "action": "decisions_and_impulses:world_block_pick"
+    }
+  ]
+}

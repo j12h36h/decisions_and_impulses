@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:pointed_dripstone",
+    "minecraft:dripstone_block",
+    "minecraft:sulfur_spike",
+    "minecraft:sulfur"
+  ]
+}

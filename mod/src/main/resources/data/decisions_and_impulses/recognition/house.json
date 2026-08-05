@@ -1,0 +1,95 @@
+{
+  "type": "structure",
+  "scan": {
+    "mode": "bounded_region",
+    "origin": "nearest_match",
+    "max_blocks": 4096,
+    "max_radius": 16,
+    "horizontal_radius": 10,
+    "upward_range": 10,
+    "downward_range": 3
+  },
+  "groups": {
+    "building": {
+      "registry": "decisions_and_impulses:building_blocks",
+      "minimum": 20,
+      "maximum": 4096
+    },
+    "doors": {
+      "registry": "decisions_and_impulses:doors",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "beds": {
+      "registry": "decisions_and_impulses:beds",
+      "minimum": 1,
+      "maximum": 8
+    },
+    "glass": {
+      "registry": "decisions_and_impulses:glass",
+      "minimum": 0,
+      "maximum": 128
+    },
+    "lighting": {
+      "registry": "decisions_and_impulses:lighting",
+      "minimum": 0,
+      "maximum": 64
+    },
+    "utility": {
+      "registry": "decisions_and_impulses:utility",
+      "minimum": 0,
+      "maximum": 64
+    }
+  },
+  "requirements": [
+    {
+      "type": "dimensions",
+      "parameters": {
+        "minimum_width": 4,
+        "minimum_height": 3,
+        "minimum_depth": 4,
+        "maximum_width": 24,
+        "maximum_height": 16,
+        "maximum_depth": 24
+      }
+    },
+    {
+      "type": "contains_group",
+      "group": "building",
+      "parameters": {
+        "minimum": 20
+      }
+    },
+    {
+      "type": "contains_group",
+      "group": "doors",
+      "parameters": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "type": "contains_group",
+      "group": "beds",
+      "parameters": {
+        "minimum": 1,
+        "maximum": 8
+      }
+    },
+    {
+      "type": "touches_ground",
+      "group": "building"
+    },
+    {
+      "type": "group_ratio",
+      "group": "building",
+      "parameters": {
+        "minimum_ratio": 0.5,
+        "maximum_ratio": 1.0
+      }
+    }
+  ],
+  "result": {
+    "id": "decisions_and_impulses:house"
+  }
+}

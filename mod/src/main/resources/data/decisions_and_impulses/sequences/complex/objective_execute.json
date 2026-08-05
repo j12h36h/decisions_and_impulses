@@ -1,0 +1,4 @@
+{
+  "type": "objective_execute",
+  "action": "decisions_and_impulses:story_mine_stone"
+}

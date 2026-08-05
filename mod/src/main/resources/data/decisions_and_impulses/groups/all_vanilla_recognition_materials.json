@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "entries": [
+    "@natural_blocks",
+    "@building_blocks",
+    "@functional",
+    "@nether_structure",
+    "@end_structure"
+  ]
+}

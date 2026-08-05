@@ -1,0 +1,8 @@
+{
+  "type": "interact",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

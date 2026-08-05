@@ -9,8 +9,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Arrays;
 import java.util.Locale;
-
+import java.util.stream.Collectors;
 public class DAI_MenuCore extends Screen {
 
     private final DAI_MenuState state =
@@ -24,6 +25,12 @@ public class DAI_MenuCore extends Screen {
 
     private final DAI_MenuQueue queueMenu =
             new DAI_MenuQueue();
+
+    private final DAI_MenuHotbar hotbarMenu =
+            new DAI_MenuHotbar();
+
+    private final DAI_MenuAutomation automationMenu =
+            new DAI_MenuAutomation();
 
     private long lastQueueRevision = -1L;
 
@@ -48,14 +55,12 @@ public class DAI_MenuCore extends Screen {
         );
 
         createRootButton(
-                DAI_MenuCategory.IMPULSE,
-                "Impulses"
+                DAI_MenuCategory.ACTION,
+                "Actions"
         );
 
-        createRootButton(
-                DAI_MenuCategory.DECISION,
-                "Decisions"
-        );
+        updateSystemRootButton();
+        updateActionRootButton("default");
 
         DAI_Core.LOGGER.debug(
                 "<DAI>: Menu core initialized."
@@ -170,6 +175,42 @@ public class DAI_MenuCore extends Screen {
                     layout
             );
 
+            updateSystemRootButton();
+
+            return;
+        }
+
+        if (
+                category == DAI_MenuCategory.SYSTEM
+                        && normalizedOpen.equals("hotbar")
+        ) {
+
+            hotbarMenu.open(
+                    this,
+                    state,
+                    layout
+            );
+
+            updateSystemRootButton();
+
+            return;
+        }
+
+        if (
+                category == DAI_MenuCategory.ACTION
+                        && normalizedOpen.equals("automation")
+        ) {
+
+            automationMenu.open(
+                    this,
+                    state,
+                    layout
+            );
+
+            updateActionRootButton(
+                    normalizedOpen
+            );
+
             return;
         }
 
@@ -177,6 +218,15 @@ public class DAI_MenuCore extends Screen {
 
             state.setSystemMode(
                     DAI_MenuState.SystemMode.DATAPACK
+            );
+
+            updateSystemRootButton();
+        }
+
+        if (category == DAI_MenuCategory.ACTION) {
+
+            state.setActionMode(
+                    DAI_MenuState.ActionMode.DATAPACK
             );
         }
 
@@ -187,9 +237,18 @@ public class DAI_MenuCore extends Screen {
                 category,
                 normalizedOpen
         );
+
+        if (category == DAI_MenuCategory.ACTION) {
+
+            updateActionRootButton(
+                    normalizedOpen
+            );
+        }
     }
 
-    void addMenuWidget(Button button) {
+    void addMenuWidget(
+            Button button
+    ) {
 
         if (button == null) {
             return;
@@ -198,7 +257,9 @@ public class DAI_MenuCore extends Screen {
         addRenderableWidget(button);
     }
 
-    void removeMenuWidget(Button button) {
+    void removeMenuWidget(
+            Button button
+    ) {
 
         if (button == null) {
             return;
@@ -207,12 +268,16 @@ public class DAI_MenuCore extends Screen {
         removeWidget(button);
     }
 
-    void runAction(String action) {
+    void runAction(
+            String action
+    ) {
 
         if (action == null || action.isBlank()) {
+
             DAI_Core.LOGGER.warn(
                     "<DAI>: Cannot run an empty menu action."
             );
+
             return;
         }
 
@@ -221,7 +286,9 @@ public class DAI_MenuCore extends Screen {
                 action
         );
 
-        DAI_ActionExecutor.execute(action.trim());
+        DAI_ActionExecutor.execute(
+                action.trim()
+        );
     }
 
     void closeMenu(
@@ -255,6 +322,19 @@ public class DAI_MenuCore extends Screen {
             state.setSystemMode(
                     DAI_MenuState.SystemMode.DATAPACK
             );
+
+            updateSystemRootButton();
+        }
+
+        if (category == DAI_MenuCategory.ACTION) {
+
+            state.setActionMode(
+                    DAI_MenuState.ActionMode.DATAPACK
+            );
+
+            updateActionRootButton(
+                    "default"
+            );
         }
     }
 
@@ -262,11 +342,97 @@ public class DAI_MenuCore extends Screen {
     public void tick() {
         super.tick();
 
-        if (state.systemMode() == DAI_MenuState.SystemMode.QUEUE
-                && lastQueueRevision != DAI_ActionQueue.revision()) {
-            lastQueueRevision = DAI_ActionQueue.revision();
+        if (
+                state.systemMode() == DAI_MenuState.SystemMode.QUEUE
+                        && lastQueueRevision != DAI_ActionQueue.revision()
+        ) {
+
+            lastQueueRevision =
+                    DAI_ActionQueue.revision();
+
             queueMenu.refresh(state);
         }
+
+        if (
+                state.systemMode() == DAI_MenuState.SystemMode.HOTBAR
+        ) {
+
+            hotbarMenu.refresh(state);
+        }
+    }
+
+    private void updateSystemRootButton() {
+
+        Button button =
+                state.rootButton(
+                        DAI_MenuCategory.SYSTEM
+                );
+
+        if (button == null) {
+            return;
+        }
+
+        Component text =
+                switch (state.systemMode()) {
+
+                    case QUEUE ->
+                            Component.literal("Queue");
+
+                    case HOTBAR ->
+                            Component.literal("Hotbar");
+
+                    default ->
+                            Component.literal("System");
+                };
+
+        button.setMessage(text);
+    }
+
+    private void updateActionRootButton(
+            String menuName
+    ) {
+
+        Button button =
+                state.rootButton(
+                        DAI_MenuCategory.ACTION
+                );
+
+        if (button == null) {
+            return;
+        }
+
+        if (
+                menuName == null
+                        || menuName.isBlank()
+                        || menuName.equalsIgnoreCase("default")
+        ) {
+
+            button.setMessage(
+                    Component.literal("Actions")
+            );
+
+            return;
+        }
+
+        String formattedName =
+                Arrays.stream(
+                                menuName
+                                        .trim()
+                                        .toLowerCase(Locale.ROOT)
+                                        .split("_")
+                        )
+                        .filter(part -> !part.isBlank())
+                        .map(part ->
+                                Character.toUpperCase(part.charAt(0))
+                                        + part.substring(1)
+                        )
+                        .collect(
+                                Collectors.joining(" ")
+                        );
+
+        button.setMessage(
+                Component.literal(formattedName)
+        );
     }
 
     @Override

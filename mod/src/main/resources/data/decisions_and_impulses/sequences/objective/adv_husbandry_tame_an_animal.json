@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "objective_execute",
+      "action": "minecraft:husbandry/tame_an_animal",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:husbandry/tame_an_animal"
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

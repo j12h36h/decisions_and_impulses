@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "table",
+      "text": "Table",
+      "action": "decisions_and_impulses:menu_open_table"
+    },
+    {
+      "slot": 1,
+      "id": "furnace",
+      "text": "Furnace",
+      "action": "decisions_and_impulses:menu_open_furnace"
+    },
+    {
+      "slot": 2,
+      "id": "brew",
+      "text": "Brew",
+      "action": "decisions_and_impulses:menu_open_brew"
+    }
+  ]
+}

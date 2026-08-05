@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "craft",
+      "text": "Craft Planks",
+      "action": "decisions_and_impulses:craft_planks"
+    },
+    {
+      "slot": 1,
+      "id": "pause",
+      "text": "Pause Playing",
+      "action": "decisions_and_impulses:advancement_pause"
+    },
+    {
+      "slot": 2,
+      "id": "stop",
+      "text": "Stop Playing",
+      "action": "decisions_and_impulses:advancement_stop"
+    }
+  ]
+}

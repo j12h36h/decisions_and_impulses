@@ -35,15 +35,8 @@ public final class DAI_MenuLayout {
         );
 
         register(
-                DAI_MenuCategory.IMPULSE,
-                DAI_Config.IMPULSE_MENU_POSITION.get(),
-                screenWidth,
-                screenHeight
-        );
-
-        register(
-                DAI_MenuCategory.DECISION,
-                DAI_Config.DECISION_MENU_POSITION.get(),
+                DAI_MenuCategory.ACTION,
+                DAI_Config.ACTION_MENU_POSITION.get(),
                 screenWidth,
                 screenHeight
         );

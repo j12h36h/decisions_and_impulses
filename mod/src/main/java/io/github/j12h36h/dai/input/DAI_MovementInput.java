@@ -5,6 +5,7 @@ import net.minecraft.client.Options;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec2;
+
 public final class DAI_MovementInput extends KeyboardInput {
 
     private float lastForward;

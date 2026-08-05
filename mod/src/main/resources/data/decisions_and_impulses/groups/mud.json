@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:mud",
+    "minecraft:packed_mud",
+    "minecraft:muddy_mangrove_roots"
+  ]
+}

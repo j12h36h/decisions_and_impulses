@@ -1,0 +1,32 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "queue_clear"
+    },
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "use_stop"
+    },
+    {
+      "type": "attack_stop"
+    },
+    {
+      "type": "break_stop"
+    },
+    {
+      "type": "crouch_set",
+      "state": false
+    },
+    {
+      "type": "sprint_set",
+      "state": false
+    },
+    {
+      "type": "swim_set",
+      "state": false
+    }
+  ]
+}

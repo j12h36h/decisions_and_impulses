@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "vertical",
+      "text": "Vertical",
+      "action": "decisions_and_impulses:menu_open_vertical"
+    },
+    {
+      "slot": 1,
+      "id": "horizontal",
+      "text": "Horizontal",
+      "action": "decisions_and_impulses:menu_open_horizontal"
+    },
+    {
+      "slot": 2,
+      "id": "target",
+      "text": "Target",
+      "action": "decisions_and_impulses:menu_open_target"
+    }
+  ]
+}

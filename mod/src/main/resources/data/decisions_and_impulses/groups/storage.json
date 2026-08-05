@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "entries": [
+    "@chests",
+    "@barrels",
+    "@shulker_boxes",
+    "minecraft:decorated_pot",
+    "minecraft:bundle_shelf"
+  ]
+}

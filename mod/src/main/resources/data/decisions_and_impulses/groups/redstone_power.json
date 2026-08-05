@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:redstone_block",
+    "minecraft:redstone_torch",
+    "minecraft:redstone_wall_torch",
+    "minecraft:target",
+    "minecraft:daylight_detector"
+  ]
+}

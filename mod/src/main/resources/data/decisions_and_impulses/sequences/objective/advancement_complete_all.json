@@ -1,0 +1,12 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "delay",
+      "ticks": 100
+    }
+  ]
+}

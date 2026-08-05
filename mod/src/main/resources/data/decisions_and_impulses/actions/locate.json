@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "block",
+      "text": "Block",
+      "action": "decisions_and_impulses:menu_open_block"
+    },
+    {
+      "slot": 1,
+      "id": "entity",
+      "text": "Entity",
+      "action": "decisions_and_impulses:menu_open_entity"
+    },
+    {
+      "slot": 2,
+      "id": "generation",
+      "text": "Generation",
+      "action": "decisions_and_impulses:menu_open_generation"
+    }
+  ]
+}

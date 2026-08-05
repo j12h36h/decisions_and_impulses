@@ -1,0 +1,5 @@
+{
+      "type": "jump",
+      "direction": "backward",
+  "ticks": 5
+    }

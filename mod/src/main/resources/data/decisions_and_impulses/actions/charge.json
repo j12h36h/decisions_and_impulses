@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "draw",
+      "text": "Draw",
+      "action": "decisions_and_impulses:use_start"
+    },
+    {
+      "slot": 1,
+      "id": "sheath",
+      "text": "Sheath",
+      "action": "decisions_and_impulses:input_stop_all"
+    },
+    {
+      "slot": 2,
+      "id": "release",
+      "text": "Release",
+      "action": "decisions_and_impulses:use_stop"
+    }
+  ]
+}

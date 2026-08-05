@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "offhand",
+      "text": "Off-Hand",
+      "action": "decisions_and_impulses:menu_open_offhand"
+    },
+    {
+      "slot": 1,
+      "id": "charge",
+      "text": "Charge",
+      "action": "decisions_and_impulses:menu_open_charge"
+    },
+    {
+      "slot": 2,
+      "id": "swing",
+      "text": "Swing",
+      "action": "decisions_and_impulses:attack_basic"
+    }
+  ]
+}

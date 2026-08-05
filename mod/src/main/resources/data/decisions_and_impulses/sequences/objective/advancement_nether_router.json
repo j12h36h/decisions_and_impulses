@@ -1,0 +1,273 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_root",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/root"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_return_to_sender",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/return_to_sender"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_find_bastion",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/find_bastion"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_obtain_ancient_debris",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/obtain_ancient_debris"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_fast_travel",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/fast_travel"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_find_fortress",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/find_fortress"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_obtain_crying_obsidian",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/obtain_crying_obsidian"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_distract_piglin",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/distract_piglin"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_ride_strider",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/ride_strider"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_uneasy_alliance",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/uneasy_alliance"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_loot_bastion",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/loot_bastion"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_use_lodestone",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/use_lodestone"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_netherite_armor",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/netherite_armor"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_get_wither_skull",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/get_wither_skull"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_obtain_blaze_rod",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/obtain_blaze_rod"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_charge_respawn_anchor",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/charge_respawn_anchor"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_ride_strider_in_overworld_lava",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/ride_strider_in_overworld_lava"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_explore_nether",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/explore_nether"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_summon_wither",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/summon_wither"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_brew_potion",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/brew_potion"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_create_beacon",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/create_beacon"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_all_potions",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/all_potions"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_create_full_beacon",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/create_full_beacon"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:adv_nether_all_effects",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:nether/all_effects"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "recognize_target",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

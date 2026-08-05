@@ -43,12 +43,20 @@ public final class DAI_ActionQueue {
     }
 
     public static void tick() {
+
         if (delayTicks > 0) {
+
             delayTicks--;
+
             if (delayTicks == 0) {
+
                 mutate();
-                DAI_Core.LOGGER.debug("<DAI>: Action queue delay completed.");
+
+                DAI_Core.LOGGER.debug(
+                        "<DAI>: Action queue delay completed."
+                );
             }
+
             return;
         }
 
@@ -56,19 +64,82 @@ public final class DAI_ActionQueue {
             return;
         }
 
-        DAI_ActionCore action = ACTIONS.getFirst();
+        DAI_ActionCore action =
+                ACTIONS.removeFirst();
+
+        mutate();
+
         try {
-            DAI_ActionLogic.execute(action);
+
+            DAI_ActionLogic.execute(
+                    action
+            );
+
         } catch (RuntimeException exception) {
-            DAI_Core.LOGGER.error("<DAI>: Queued action type '{}' failed.", action.type(), exception);
-        } finally {
-            ACTIONS.removeFirst();
-            mutate();
+
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Queued action type '{}' failed.",
+                    action.type(),
+                    exception
+            );
         }
+    }
+
+    public static void enqueueFirstAll(
+            List<DAI_ActionCore> actions
+    ) {
+
+        if (actions == null || actions.isEmpty()) {
+            return;
+        }
+
+        int available =
+                MAX_QUEUE_SIZE - ACTIONS.size();
+
+        if (available <= 0) {
+
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Action queue is full (max={}).",
+                    MAX_QUEUE_SIZE
+            );
+
+            return;
+        }
+
+        List<DAI_ActionCore> accepted =
+                actions.size() > available
+                        ? actions.subList(0, available)
+                        : actions;
+
+        ACTIONS.addAll(
+                0,
+                accepted
+        );
+
+        mutate();
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Prepended {} atomic action(s) (size={}).",
+                accepted.size(),
+                ACTIONS.size()
+        );
     }
 
     public static List<DAI_ActionCore> actions() {
         return List.copyOf(ACTIONS);
+    }
+
+    public static void enqueueFirst(
+            DAI_ActionCore action
+    ) {
+
+        if (action == null) {
+            return;
+        }
+
+        enqueueFirstAll(
+                List.of(action)
+        );
     }
 
     public static void clear() {

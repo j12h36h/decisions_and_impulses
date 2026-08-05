@@ -17,30 +17,84 @@ public final class DAI_KeyController {
         set(key, false);
     }
 
+    public static void click(String key) {
+
+        KeyMapping mapping = get(key);
+
+        if (mapping == null) {
+            return;
+        }
+
+        KeyMapping.click(
+                mapping.getKey()
+        );
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Clicking key '{}'.",
+                key
+        );
+    }
+
     public static void toggle(String key) {
+
         KeyMapping mapping = get(key);
+
         if (mapping == null) {
             return;
         }
-        boolean down = !mapping.isDown();
-        mapping.setDown(down);
-        DAI_Core.LOGGER.debug("<DAI>: Setting key '{}' to {}.", key, down ? "DOWN" : "UP");
+
+        boolean down =
+                !mapping.isDown();
+
+        mapping.setDown(
+                down
+        );
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Setting key '{}' to {}.",
+                key,
+                down ? "DOWN" : "UP"
+        );
     }
 
-    private static void set(String key, boolean down) {
-        KeyMapping mapping = get(key);
+    private static void set(
+            String key,
+            boolean down
+    ) {
+
+        KeyMapping mapping =
+                get(key);
+
         if (mapping == null) {
             return;
         }
-        mapping.setDown(down);
-        DAI_Core.LOGGER.debug("<DAI>: Setting key '{}' to {}.", key, down ? "DOWN" : "UP");
+
+        mapping.setDown(
+                down
+        );
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Setting key '{}' to {}.",
+                key,
+                down ? "DOWN" : "UP"
+        );
     }
 
-    private static KeyMapping get(String key) {
-        KeyMapping mapping = DAI_KeyMappings.get(key);
+    private static KeyMapping get(
+            String key
+    ) {
+
+        KeyMapping mapping =
+                DAI_KeyMappings.get(key);
+
         if (mapping == null) {
-            DAI_Core.LOGGER.warn("<DAI>: Unknown key '{}'.", key);
+
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Unknown key '{}'.",
+                    key
+            );
         }
+
         return mapping;
     }
 }

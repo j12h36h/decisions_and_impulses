@@ -17,4 +17,15 @@ public final class DAI_InputLook {
     public float pitch() {
         return pitch;
     }
+
+    public void addRotation(
+            float yaw,
+            float pitch
+    ) {
+
+        setRotation(
+                this.yaw + yaw,
+                this.pitch + pitch
+        );
+    }
 }

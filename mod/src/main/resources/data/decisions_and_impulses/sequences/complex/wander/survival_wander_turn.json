@@ -1,0 +1,33 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "random_action",
+      "sequence": [
+        {
+          "type": "add_look",
+          "yaw": -90.0,
+          "pitch": 0.0
+        },
+        {
+          "type": "add_look",
+          "yaw": 90.0,
+          "pitch": 0.0
+        },
+        {
+          "type": "add_look",
+          "yaw": 180.0,
+          "pitch": 0.0
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:survival_wander_cycle"
+    }
+  ]
+}

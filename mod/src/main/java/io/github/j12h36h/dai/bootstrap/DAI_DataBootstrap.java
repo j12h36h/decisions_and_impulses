@@ -4,6 +4,8 @@ import io.github.j12h36h.dai.action.DAI_ActionBootstrap;
 import io.github.j12h36h.dai.condition.DAI_ConditionBootstrap;
 import io.github.j12h36h.dai.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.core.DAI_Core;
+import io.github.j12h36h.dai.recognition.DAI_RecogGroupLoader;
+import io.github.j12h36h.dai.recognition.DAI_RecogLoader;
 import io.github.j12h36h.dai.system.DAI_SystemLoader;
 import io.github.j12h36h.dai.ui.DAI_MenuCategory;
 import net.minecraft.resources.Identifier;
@@ -24,6 +26,7 @@ public final class DAI_DataBootstrap {
 
         DAI_ConditionBootstrap.initialize();
         DAI_ActionBootstrap.initialize();
+        DAI_RecogBootstrap.initialize();
 
         NeoForge.EVENT_BUS.addListener(
                 DAI_DataBootstrap::registerReloadListeners
@@ -38,20 +41,24 @@ public final class DAI_DataBootstrap {
         );
     }
 
-    private static void registerReloadListeners(
+    public static void registerReloadListeners(
             AddServerReloadListenersEvent event
     ) {
 
-        DAI_Core.LOGGER.info(
-                "<DAI>: Registering datapack reload listeners..."
+        event.addListener(
+                Identifier.fromNamespaceAndPath(
+                        DAI_Core.MODID,
+                        "recognition_groups"
+                ),
+                new DAI_RecogGroupLoader()
         );
 
         event.addListener(
                 Identifier.fromNamespaceAndPath(
                         DAI_Core.MODID,
-                        "actions"
+                        "sequences"
                 ),
-                new DAI_ActionLoader("actions")
+                new DAI_ActionLoader("sequences")
         );
 
         event.addListener(
@@ -68,23 +75,20 @@ public final class DAI_DataBootstrap {
         event.addListener(
                 Identifier.fromNamespaceAndPath(
                         DAI_Core.MODID,
-                        "impulses"
+                        "actions"
                 ),
                 new DAI_SystemLoader(
-                        "impulses",
-                        DAI_MenuCategory.IMPULSE
+                        "actions",
+                        DAI_MenuCategory.ACTION
                 )
         );
 
         event.addListener(
                 Identifier.fromNamespaceAndPath(
                         DAI_Core.MODID,
-                        "decisions"
+                        "recognition"
                 ),
-                new DAI_SystemLoader(
-                        "decisions",
-                        DAI_MenuCategory.DECISION
-                )
+                new DAI_RecogLoader()
         );
 
         DAI_Core.LOGGER.info(

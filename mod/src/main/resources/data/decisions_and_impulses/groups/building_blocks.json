@@ -1,0 +1,27 @@
+{
+  "replace": false,
+  "entries": [
+    "@wood_family",
+    "@stairs",
+    "@slabs",
+    "@walls",
+    "@fences",
+    "@fence_gates",
+    "@doors",
+    "@trapdoors",
+    "@glass",
+    "@glass_panes",
+    "@bricks",
+    "@stone_bricks",
+    "@deepslate_bricks",
+    "@tuff_blocks",
+    "@terracotta",
+    "@glazed_terracotta",
+    "@concrete",
+    "@concrete_powder",
+    "@wool",
+    "@carpets",
+    "@cinnabar_blocks",
+    "@sulfur_blocks"
+  ]
+}

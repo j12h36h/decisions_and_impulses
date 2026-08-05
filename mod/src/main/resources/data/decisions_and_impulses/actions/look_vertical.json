@@ -1,15 +1,23 @@
 {
-  "type": "sequence",
-  "sequence": [
+  "priority": 0,
+  "buttons": [
     {
-      "type": "look",
-      "yaw": 0,
-      "pitch": 90
+      "slot": 0,
+      "id": "up",
+      "text": "Up",
+      "action": "decisions_and_impulses:look_add_up"
     },
     {
-      "type": "update_menu",
-      "menu": "impulse",
-      "open": "default"
+      "slot": 1,
+      "id": "down",
+      "text": "Down",
+      "action": "decisions_and_impulses:look_add_down"
+    },
+    {
+      "slot": 2,
+      "id": "center",
+      "text": "Center",
+      "action": "decisions_and_impulses:look_vertical_center"
     }
   ]
 }

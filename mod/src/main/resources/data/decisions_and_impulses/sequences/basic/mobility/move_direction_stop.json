@@ -1,0 +1,10 @@
+{
+  "type": "move",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ],
+  "direction": "stop",
+  "ticks": 1
+}

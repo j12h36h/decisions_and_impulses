@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "objective_execute",
+      "action": "minecraft:adventure/whos_the_pillager_now",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:adventure/whos_the_pillager_now"
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

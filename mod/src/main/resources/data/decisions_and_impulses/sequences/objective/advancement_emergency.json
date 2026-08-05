@@ -1,0 +1,43 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:survival_wander_water_escape",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "player_in_water"
+            },
+            {
+              "type": "player_underwater"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "move",
+      "direction": "backward",
+      "ticks": 4,
+      "conditions": [
+        {
+          "type": "player_in_lava"
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

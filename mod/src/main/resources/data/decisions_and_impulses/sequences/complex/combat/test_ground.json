@@ -1,0 +1,8 @@
+{
+  "type": "attack_basic",
+  "conditions": [
+    {
+      "type": "player_on_ground"
+    }
+  ]
+}

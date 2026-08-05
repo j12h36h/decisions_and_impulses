@@ -1,15 +1,23 @@
 {
-  "type": "sequence",
-  "sequence": [
+  "priority": 0,
+  "buttons": [
     {
-      "type": "look",
-      "yaw": 90,
-      "pitch": 0
+      "slot": 0,
+      "id": "left",
+      "text": "Left",
+      "action": "decisions_and_impulses:look_add_left"
     },
     {
-      "type": "update_menu",
-      "menu": "impulse",
-      "open": "default"
+      "slot": 1,
+      "id": "right",
+      "text": "Right",
+      "action": "decisions_and_impulses:look_add_right"
+    },
+    {
+      "slot": 2,
+      "id": "center",
+      "text": "Center",
+      "action": "decisions_and_impulses:look_horizontal_center"
     }
   ]
 }

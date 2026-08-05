@@ -3,21 +3,21 @@
   "buttons": [
     {
       "slot": 0,
-      "id": "options",
-      "text": "Options",
-      "action": "decisions_and_impulses:pause_menu"
+      "id": "queue",
+      "text": "Queue",
+      "action": "decisions_and_impulses:menu_open_queue"
     },
     {
       "slot": 1,
-      "id": "inventory",
-      "text": "Inventory",
-      "action": "decisions_and_impulses:inventory"
+      "id": "testing",
+      "text": "TESTING",
+      "action": "decisions_and_impulses:menu_open_testing"
     },
     {
       "slot": 2,
-      "id": "dai_menu",
-      "text": "Interface",
-      "action": "decisions_and_impulses:open_menu_system"
+      "id": "vanilla",
+      "text": "Vanilla",
+      "action": "decisions_and_impulses:menu_open_system"
     }
   ]
 }

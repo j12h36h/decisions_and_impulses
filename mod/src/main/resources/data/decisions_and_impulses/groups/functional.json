@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "entries": [
+    "@storage",
+    "@utility",
+    "@redstone",
+    "@rails",
+    "@portals",
+    "@spawners"
+  ]
+}

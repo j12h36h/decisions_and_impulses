@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:tall_grass",
+    "minecraft:large_fern",
+    "minecraft:sunflower",
+    "minecraft:lilac",
+    "minecraft:rose_bush",
+    "minecraft:peony",
+    "minecraft:pitcher_plant",
+    "minecraft:big_dripleaf",
+    "minecraft:big_dripleaf_stem"
+  ]
+}

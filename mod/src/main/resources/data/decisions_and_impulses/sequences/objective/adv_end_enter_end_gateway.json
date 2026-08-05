@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "objective_execute",
+      "action": "minecraft:end/enter_end_gateway",
+      "conditions": [
+        {
+          "type": "advancement_complete",
+          "operator": "is_false",
+          "parameter": "minecraft:end/enter_end_gateway"
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:advancement_master"
+    }
+  ]
+}

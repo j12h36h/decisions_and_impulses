@@ -5,11 +5,10 @@ import io.github.j12h36h.dai.core.DAI_Core;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
 
 public final class DAI_ConditionRegistry {
 
-    private static final Map<String, BooleanSupplier> CONDITIONS =
+    private static final Map<String, DAI_ConditionProvider> CONDITIONS =
             new HashMap<>();
 
     private DAI_ConditionRegistry() {
@@ -18,49 +17,158 @@ public final class DAI_ConditionRegistry {
 
     public static void register(
             String id,
-            BooleanSupplier evaluator
+            DAI_ConditionProvider provider
     ) {
+
         if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("Condition id cannot be null or blank.");
-        }
-        if (evaluator == null) {
-            throw new IllegalArgumentException("Condition evaluator cannot be null.");
+            throw new IllegalArgumentException(
+                    "Condition id cannot be null or blank."
+            );
         }
 
-        String normalizedId = normalize(id);
-        BooleanSupplier previous = CONDITIONS.put(normalizedId, evaluator);
+        if (provider == null) {
+            throw new IllegalArgumentException(
+                    "Condition provider cannot be null."
+            );
+        }
+
+        String normalizedId =
+                normalize(id);
+
+        DAI_ConditionProvider previous =
+                CONDITIONS.put(
+                        normalizedId,
+                        provider
+                );
 
         if (previous == null) {
-            DAI_Core.LOGGER.debug("<DAI>: Registered condition '{}'.", normalizedId);
+
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Registered condition '{}'.",
+                    normalizedId
+            );
+
         } else {
-            DAI_Core.LOGGER.warn("<DAI>: Replaced condition '{}'.", normalizedId);
+
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Replaced condition '{}'.",
+                    normalizedId
+            );
         }
     }
 
-    public static boolean evaluate(DAI_Condition condition) {
+    public static DAI_ConditionValue read(
+            DAI_ConditionContext context,
+            DAI_ConditionCore condition
+    ) {
+
         if (condition == null) {
-            DAI_Core.LOGGER.warn("<DAI>: Cannot evaluate a null condition.");
-            return false;
+
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Cannot read a null condition."
+            );
+
+            return DAI_ConditionValue.missing();
         }
 
-        String type = normalize(condition.type());
-        BooleanSupplier evaluator = CONDITIONS.get(type);
+        if (context == null) {
 
-        if (evaluator == null) {
-            DAI_Core.LOGGER.warn("<DAI>: Unknown condition '{}'.", type);
-            return false;
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Cannot read condition '{}' with a null context.",
+                    condition.type()
+            );
+
+            return DAI_ConditionValue.missing();
         }
 
-        boolean result = evaluator.getAsBoolean();
-        DAI_Core.LOGGER.debug("<DAI>: Condition '{}' = {}.", type, result);
-        return result;
+        String type =
+                normalize(
+                        condition.type()
+                );
+
+        DAI_ConditionProvider provider =
+                CONDITIONS.get(type);
+
+        if (provider == null) {
+
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Unknown condition '{}'.",
+                    type
+            );
+
+            return DAI_ConditionValue.missing();
+        }
+
+        try {
+
+            DAI_ConditionValue value =
+                    provider.read(
+                            context,
+                            condition
+                    );
+
+            if (value == null) {
+
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Condition provider '{}' returned null.",
+                        type
+                );
+
+                return DAI_ConditionValue.missing();
+            }
+
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Read condition '{}' as {}.",
+                    type,
+                    value
+            );
+
+            return value;
+
+        } catch (RuntimeException exception) {
+
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Condition provider '{}' failed.",
+                    type,
+                    exception
+            );
+
+            return DAI_ConditionValue.missing();
+        }
     }
 
-    public static boolean contains(String id) {
-        return id != null && CONDITIONS.containsKey(normalize(id));
+    public static boolean contains(
+            String id
+    ) {
+
+        return id != null
+                && CONDITIONS.containsKey(
+                normalize(id)
+        );
     }
 
-    private static String normalize(String value) {
-        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    public static void clear() {
+
+        int removed =
+                CONDITIONS.size();
+
+        CONDITIONS.clear();
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Cleared condition registry (removed {}).",
+                removed
+        );
+    }
+
+    private static String normalize(
+            String value
+    ) {
+
+        return value == null
+                ? ""
+                : value.trim()
+                .toLowerCase(
+                        Locale.ROOT
+                );
     }
 }

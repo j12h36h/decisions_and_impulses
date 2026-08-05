@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "entries": [
+    "@logs",
+    "@planks",
+    "@wood_stairs",
+    "@wood_slabs",
+    "@wood_fences",
+    "@wood_fence_gates",
+    "@wood_doors",
+    "@wood_trapdoors",
+    "@wood_buttons",
+    "@wood_pressure_plates",
+    "@wood_signs"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "add_look",
+      "yaw": 0.0,
+      "pitch": -35.0
+    },
+    {
+      "type": "swim_set",
+      "state": true
+    },
+    {
+      "type": "jump",
+      "direction": "forward",
+      "ticks": 5
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "swim_set",
+      "state": false
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:survival_wander_cycle"
+    }
+  ]
+}

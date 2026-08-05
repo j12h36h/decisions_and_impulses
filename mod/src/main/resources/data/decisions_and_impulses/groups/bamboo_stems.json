@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:bamboo_block",
+    "minecraft:stripped_bamboo_block"
+  ]
+}
