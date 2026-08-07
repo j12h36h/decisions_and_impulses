@@ -1,0 +1,20 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:mine_nearest_coal"
+    },
+    {
+      "type": "run_if_failure",
+      "action": "decisions_and_impulses:explore_for_coal"
+    }
+  ],
+  "conditions": [
+    {
+      "type": "inventory_item_count",
+      "operator": "less_than",
+      "parameter": "minecraft:coal",
+      "number_value": 12.0
+    }
+  ]
+}

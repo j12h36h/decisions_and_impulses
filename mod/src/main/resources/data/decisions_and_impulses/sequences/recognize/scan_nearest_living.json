@@ -1,0 +1,8 @@
+{
+  "type": "scan",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

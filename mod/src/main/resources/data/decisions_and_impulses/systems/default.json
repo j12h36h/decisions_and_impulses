@@ -9,9 +9,9 @@
     },
     {
       "slot": 1,
-      "id": "testing",
-      "text": "TESTING",
-      "action": "decisions_and_impulses:menu_open_testing"
+      "id": "gamemode",
+      "text": "Game Mode",
+      "action": "decisions_and_impulses:menu_open_gamemode"
     },
     {
       "slot": 2,

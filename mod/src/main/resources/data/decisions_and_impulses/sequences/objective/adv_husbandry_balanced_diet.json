@@ -11,14 +11,6 @@
           "parameter": "minecraft:husbandry/balanced_diet"
         }
       ]
-    },
-    {
-      "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
     }
   ]
 }

@@ -1,13 +1,12 @@
 package io.github.j12h36h.dai.bootstrap;
 
-import io.github.j12h36h.dai.action.DAI_ActionBootstrap;
-import io.github.j12h36h.dai.condition.DAI_ConditionBootstrap;
 import io.github.j12h36h.dai.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.core.DAI_Core;
 import io.github.j12h36h.dai.recognition.DAI_RecogGroupLoader;
 import io.github.j12h36h.dai.recognition.DAI_RecogLoader;
 import io.github.j12h36h.dai.system.DAI_SystemLoader;
 import io.github.j12h36h.dai.ui.DAI_MenuCategory;
+import io.github.j12h36h.dai.validation.DAI_ValidationListener;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -24,16 +23,8 @@ public final class DAI_DataBootstrap {
                 "<DAI>: Initializing data bootstrap..."
         );
 
-        DAI_ConditionBootstrap.initialize();
-        DAI_ActionBootstrap.initialize();
-        DAI_RecogBootstrap.initialize();
-
         NeoForge.EVENT_BUS.addListener(
                 DAI_DataBootstrap::registerReloadListeners
-        );
-
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Registered server reload-listener handler."
         );
 
         DAI_Core.LOGGER.info(
@@ -41,7 +32,7 @@ public final class DAI_DataBootstrap {
         );
     }
 
-    public static void registerReloadListeners(
+    private static void registerReloadListeners(
             AddServerReloadListenersEvent event
     ) {
 
@@ -58,7 +49,9 @@ public final class DAI_DataBootstrap {
                         DAI_Core.MODID,
                         "sequences"
                 ),
-                new DAI_ActionLoader("sequences")
+                new DAI_ActionLoader(
+                        "sequences"
+                )
         );
 
         event.addListener(
@@ -91,8 +84,20 @@ public final class DAI_DataBootstrap {
                 new DAI_RecogLoader()
         );
 
+        /*
+         * This must remain last. It validates the final state created
+         * by every preceding datapack reload listener.
+         */
+        event.addListener(
+                Identifier.fromNamespaceAndPath(
+                        DAI_Core.MODID,
+                        "validation"
+                ),
+                new DAI_ValidationListener()
+        );
+
         DAI_Core.LOGGER.info(
-                "<DAI>: Registered 4 datapack reload listeners."
+                "<DAI>: Datapack reload listeners registered."
         );
     }
 }

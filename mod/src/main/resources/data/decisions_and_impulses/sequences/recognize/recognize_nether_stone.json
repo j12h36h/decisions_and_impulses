@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "#minecraft:base_stone_nether",
+  "value": 16.0
+}

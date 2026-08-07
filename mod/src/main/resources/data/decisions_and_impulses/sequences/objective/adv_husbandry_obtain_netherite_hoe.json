@@ -1,24 +1,16 @@
 {
   "type": "sequence",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:husbandry/obtain_netherite_hoe"
+    }
+  ],
   "sequence": [
     {
-      "type": "objective_execute",
-      "action": "minecraft:husbandry/obtain_netherite_hoe",
-      "conditions": [
-        {
-          "type": "advancement_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:husbandry/obtain_netherite_hoe"
-        }
-      ]
-    },
-    {
       "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
+      "ticks": 1
     }
   ]
 }

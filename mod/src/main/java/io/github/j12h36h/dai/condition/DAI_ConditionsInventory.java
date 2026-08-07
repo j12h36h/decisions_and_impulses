@@ -1,6 +1,6 @@
 package io.github.j12h36h.dai.condition;
 
-import io.github.j12h36h.dai.action.DAI_RecipeResolver;
+import io.github.j12h36h.dai.system.DAI_RecipeResolver;
 import io.github.j12h36h.dai.core.DAI_Core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;

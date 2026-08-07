@@ -2,9 +2,6 @@
   "type": "sequence",
   "sequence": [
     {
-      "type": "input_stop_all"
-    },
-    {
       "type": "enqueue_action",
       "action": "decisions_and_impulses:advancement_emergency",
       "conditions": [
@@ -36,89 +33,15 @@
     },
     {
       "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_story_router",
-      "conditions": [
-        {
-          "type": "advancement_category_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:story"
-        }
-      ]
+      "action": "decisions_and_impulses:advancement_story_router"
     },
     {
       "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_nether_router",
-      "conditions": [
-        {
-          "type": "advancement_category_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:nether"
-        }
-      ]
+      "action": "decisions_and_impulses:advancement_adventure_router"
     },
     {
       "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_end_router",
-      "conditions": [
-        {
-          "type": "advancement_category_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:end"
-        }
-      ]
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_adventure_router",
-      "conditions": [
-        {
-          "type": "advancement_category_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:adventure"
-        }
-      ]
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_husbandry_router",
-      "conditions": [
-        {
-          "type": "advancement_category_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:husbandry"
-        }
-      ]
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_complete_all",
-      "conditions": [
-        {
-          "type": "all",
-          "conditions": [
-            {
-              "type": "advancement_category_complete",
-              "parameter": "minecraft:story"
-            },
-            {
-              "type": "advancement_category_complete",
-              "parameter": "minecraft:nether"
-            },
-            {
-              "type": "advancement_category_complete",
-              "parameter": "minecraft:end"
-            },
-            {
-              "type": "advancement_category_complete",
-              "parameter": "minecraft:adventure"
-            },
-            {
-              "type": "advancement_category_complete",
-              "parameter": "minecraft:husbandry"
-            }
-          ]
-        }
-      ]
+      "action": "decisions_and_impulses:advancement_husbandry_router"
     }
   ]
 }

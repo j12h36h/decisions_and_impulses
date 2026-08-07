@@ -1,0 +1,23 @@
+{
+  "priority": 1,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "survival",
+      "text": "Survival",
+      "action": "decisions_and_impulses:gamemode_survival"
+    },
+    {
+      "slot": 1,
+      "id": "creative",
+      "text": "Creative",
+      "action": "decisions_and_impulses:gamemode_creative"
+    },
+    {
+      "slot": 2,
+      "id": "adventure",
+      "text": "Adventure",
+      "action": "decisions_and_impulses:gamemode_adventure"
+    }
+  ]
+}

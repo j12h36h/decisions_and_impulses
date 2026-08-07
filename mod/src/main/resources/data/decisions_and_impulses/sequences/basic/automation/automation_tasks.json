@@ -1,9 +1,0 @@
-{
-  "type": "delay",
-  "conditions": [
-    {
-      "type": "never"
-    }
-  ],
-  "ticks": 0
-}

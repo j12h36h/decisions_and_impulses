@@ -1,0 +1,16 @@
+{
+  "type": "sequence",
+  "conditions": [
+    {
+      "type": "player_hunger",
+      "operator": "less_than",
+      "number_value": 18.0
+    }
+  ],
+  "sequence": [
+    {
+      "type": "eat_best_food",
+      "ticks": 40
+    }
+  ]
+}

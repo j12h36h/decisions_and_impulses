@@ -5,9 +5,11 @@ import net.minecraft.client.gui.components.Button;
 
 import java.util.Arrays;
 import java.util.EnumMap;
+
 public final class DAI_MenuState {
 
-    public static final int SUBMENU_SLOT_COUNT = 3;
+    public static final int SUBMENU_SLOT_COUNT =
+            3;
 
     public enum SystemMode {
         DATAPACK,
@@ -20,14 +22,42 @@ public final class DAI_MenuState {
         AUTOMATION
     }
 
-    private final EnumMap<DAI_MenuCategory, Button> rootButtons =
-            new EnumMap<>(DAI_MenuCategory.class);
+    private final EnumMap<
+            DAI_MenuCategory,
+            Button
+            > rootButtons =
+            new EnumMap<>(
+                    DAI_MenuCategory.class
+            );
 
-    private final EnumMap<DAI_MenuCategory, Button[]> subButtons =
-            new EnumMap<>(DAI_MenuCategory.class);
+    private final EnumMap<
+            DAI_MenuCategory,
+            Button[]
+            > subButtons =
+            new EnumMap<>(
+                    DAI_MenuCategory.class
+            );
 
-    private final EnumMap<DAI_MenuCategory, Boolean> menuOpen =
-            new EnumMap<>(DAI_MenuCategory.class);
+    private final EnumMap<
+            DAI_MenuCategory,
+            Boolean
+            > menuOpen =
+            new EnumMap<>(
+                    DAI_MenuCategory.class
+            );
+
+    /*
+     * Logical menu selection state.
+     *
+     * These values survive recreation of the interactive menu screen.
+     */
+    private final EnumMap<
+            DAI_MenuCategory,
+            String
+            > activeMenu =
+            new EnumMap<>(
+                    DAI_MenuCategory.class
+            );
 
     private SystemMode systemMode =
             SystemMode.DATAPACK;
@@ -37,7 +67,10 @@ public final class DAI_MenuState {
 
     public DAI_MenuState() {
 
-        for (DAI_MenuCategory category : DAI_MenuCategory.values()) {
+        for (
+                DAI_MenuCategory category
+                : DAI_MenuCategory.values()
+        ) {
 
             subButtons.put(
                     category,
@@ -47,6 +80,11 @@ public final class DAI_MenuState {
             menuOpen.put(
                     category,
                     false
+            );
+
+            activeMenu.put(
+                    category,
+                    "default"
             );
         }
 
@@ -80,7 +118,8 @@ public final class DAI_MenuState {
                 systemMode
         );
 
-        this.systemMode = systemMode;
+        this.systemMode =
+                systemMode;
     }
 
     public ActionMode actionMode() {
@@ -108,7 +147,41 @@ public final class DAI_MenuState {
                 actionMode
         );
 
-        this.actionMode = actionMode;
+        this.actionMode =
+                actionMode;
+    }
+
+    public String activeMenu(
+            DAI_MenuCategory category
+    ) {
+
+        return activeMenu.get(
+                requireCategory(
+                        category
+                )
+        );
+    }
+
+    public void setActiveMenu(
+            DAI_MenuCategory category,
+            String menu
+    ) {
+
+        requireCategory(
+                category
+        );
+
+        String normalized =
+                menu == null
+                        || menu.isBlank()
+                        ? "default"
+                        : menu.trim()
+                        .toLowerCase();
+
+        activeMenu.put(
+                category,
+                normalized
+        );
     }
 
     public Button rootButton(
@@ -116,7 +189,9 @@ public final class DAI_MenuState {
     ) {
 
         return rootButtons.get(
-                requireCategory(category)
+                requireCategory(
+                        category
+                )
         );
     }
 
@@ -125,7 +200,9 @@ public final class DAI_MenuState {
             Button button
     ) {
 
-        requireCategory(category);
+        requireCategory(
+                category
+        );
 
         if (button == null) {
 
@@ -145,10 +222,16 @@ public final class DAI_MenuState {
             int slot
     ) {
 
-        validateSlot(slot);
+        validateSlot(
+                slot
+        );
 
         return subButtons
-                .get(requireCategory(category))[slot];
+                .get(
+                        requireCategory(
+                                category
+                        )
+                )[slot];
     }
 
     public void setSubButton(
@@ -157,10 +240,17 @@ public final class DAI_MenuState {
             Button button
     ) {
 
-        validateSlot(slot);
+        validateSlot(
+                slot
+        );
 
         subButtons
-                .get(requireCategory(category))[slot] = button;
+                .get(
+                        requireCategory(
+                                category
+                        )
+                )[slot] =
+                button;
     }
 
     public Button removeSubButton(
@@ -168,14 +258,22 @@ public final class DAI_MenuState {
             int slot
     ) {
 
-        validateSlot(slot);
+        validateSlot(
+                slot
+        );
 
         Button[] buttons =
-                subButtons.get(requireCategory(category));
+                subButtons.get(
+                        requireCategory(
+                                category
+                        )
+                );
 
-        Button button = buttons[slot];
+        Button button =
+                buttons[slot];
 
-        buttons[slot] = null;
+        buttons[slot] =
+                null;
 
         return button;
     }
@@ -185,7 +283,9 @@ public final class DAI_MenuState {
     ) {
 
         return subButtons.get(
-                requireCategory(category)
+                requireCategory(
+                        category
+                )
         );
     }
 
@@ -194,7 +294,11 @@ public final class DAI_MenuState {
     ) {
 
         return Boolean.TRUE.equals(
-                menuOpen.get(requireCategory(category))
+                menuOpen.get(
+                        requireCategory(
+                                category
+                        )
+                )
         );
     }
 
@@ -203,10 +307,16 @@ public final class DAI_MenuState {
             boolean open
     ) {
 
-        requireCategory(category);
+        requireCategory(
+                category
+        );
 
         boolean previous =
-                Boolean.TRUE.equals(menuOpen.get(category));
+                Boolean.TRUE.equals(
+                        menuOpen.get(
+                                category
+                        )
+                );
 
         if (previous == open) {
             return;
@@ -220,24 +330,58 @@ public final class DAI_MenuState {
         DAI_Core.LOGGER.debug(
                 "<DAI>: {} menu {}.",
                 category,
-                open ? "opened" : "closed"
+                open
+                        ? "opened"
+                        : "closed"
         );
     }
 
-    public void reset() {
+    /**
+     * Clears only widget references.
+     *
+     * Logical menu state is preserved so a newly created interactive
+     * screen can reconstruct the same visible menu.
+     */
+    public void clearWidgets() {
 
-        for (DAI_MenuCategory category : DAI_MenuCategory.values()) {
+        for (
+                DAI_MenuCategory category
+                : DAI_MenuCategory.values()
+        ) {
 
-            rootButtons.remove(category);
+            rootButtons.remove(
+                    category
+            );
 
             Arrays.fill(
-                    subButtons.get(category),
+                    subButtons.get(
+                            category
+                    ),
                     null
             );
+        }
+    }
+
+    /**
+     * Performs a complete menu-state reset.
+     */
+    public void reset() {
+
+        clearWidgets();
+
+        for (
+                DAI_MenuCategory category
+                : DAI_MenuCategory.values()
+        ) {
 
             menuOpen.put(
                     category,
                     false
+            );
+
+            activeMenu.put(
+                    category,
+                    "default"
             );
         }
 
@@ -270,11 +414,17 @@ public final class DAI_MenuState {
             int slot
     ) {
 
-        if (slot < 0 || slot >= SUBMENU_SLOT_COUNT) {
+        if (
+                slot < 0
+                        || slot >= SUBMENU_SLOT_COUNT
+        ) {
 
             throw new IndexOutOfBoundsException(
                     "Menu slot must be between 0 and "
-                            + (SUBMENU_SLOT_COUNT - 1)
+                            + (
+                            SUBMENU_SLOT_COUNT
+                                    - 1
+                    )
                             + ": "
                             + slot
             );

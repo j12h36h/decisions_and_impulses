@@ -1,7 +1,7 @@
 package io.github.j12h36h.dai.ui;
 
 import io.github.j12h36h.dai.core.DAI_Core;
-import io.github.j12h36h.dai.action.DAI_ActionCore;
+import io.github.j12h36h.dai.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.action.DAI_ActionQueue;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -86,7 +86,7 @@ public final class DAI_MenuQueue {
             return;
         }
 
-        DAI_ActionCore action =
+        DAI_ActionDefinition action =
                 DAI_ActionQueue.selected();
 
         if (action == null) {
@@ -154,7 +154,7 @@ public final class DAI_MenuQueue {
                     int selectedIndex =
                             DAI_ActionQueue.selectedIndex();
 
-                    DAI_ActionCore selectedAction =
+                    DAI_ActionDefinition selectedAction =
                             DAI_ActionQueue.selected();
 
                     if (selectedAction == null) {

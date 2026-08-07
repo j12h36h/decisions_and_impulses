@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:lava",
+  "value": 16.0
+}

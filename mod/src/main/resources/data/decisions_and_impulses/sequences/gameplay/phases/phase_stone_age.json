@@ -1,0 +1,34 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:acquire_stone"
+    },
+    {
+      "action": "decisions_and_impulses:craft_stone_pickaxe_objective"
+    },
+    {
+      "action": "decisions_and_impulses:craft_stone_axe_objective"
+    },
+    {
+      "action": "decisions_and_impulses:craft_stone_sword_objective"
+    },
+    {
+      "action": "decisions_and_impulses:craft_furnace_objective"
+    }
+  ],
+  "conditions": [
+    {
+      "type": "inventory_item_count",
+      "operator": "greater_than_or_equal",
+      "parameter": "minecraft:wooden_pickaxe",
+      "number_value": 1.0
+    },
+    {
+      "type": "inventory_item_count",
+      "operator": "less_than",
+      "parameter": "minecraft:cobblestone",
+      "number_value": 8.0
+    }
+  ]
+}

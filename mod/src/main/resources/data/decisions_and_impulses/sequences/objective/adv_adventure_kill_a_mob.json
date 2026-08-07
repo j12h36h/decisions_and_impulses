@@ -11,14 +11,6 @@
           "parameter": "minecraft:adventure/kill_a_mob"
         }
       ]
-    },
-    {
-      "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
     }
   ]
 }

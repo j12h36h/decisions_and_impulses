@@ -1,24 +1,16 @@
 {
   "type": "sequence",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:adventure/trade_at_world_height"
+    }
+  ],
   "sequence": [
     {
-      "type": "objective_execute",
-      "action": "minecraft:adventure/trade_at_world_height",
-      "conditions": [
-        {
-          "type": "advancement_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:adventure/trade_at_world_height"
-        }
-      ]
-    },
-    {
       "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
+      "ticks": 1
     }
   ]
 }

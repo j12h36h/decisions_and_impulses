@@ -20,7 +20,7 @@ public final class DAI_ConditionsItem {
 
                     String expectedItemId =
                             normalize(
-                                    condition.stringValue()
+                                    condition.parameter()
                             );
 
                     if (expectedItemId.isEmpty()) {

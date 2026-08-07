@@ -23,7 +23,7 @@ public final class DAI_Config {
                     .comment("Disable vanilla keybinds")
                     .define(
                             "toggleKeybinds",
-                            true
+                            false
                     );
 
     public static final ModConfigSpec.EnumValue<DAI_Position> SYSTEM_MENU_POSITION =

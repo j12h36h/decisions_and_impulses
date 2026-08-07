@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class DAI_ActionLoader
-        extends SimpleJsonResourceReloadListener<DAI_ActionCore> {
+        extends SimpleJsonResourceReloadListener<DAI_ActionDefinition> {
 
     private final String folder;
 
@@ -22,7 +22,7 @@ public final class DAI_ActionLoader
     ) {
 
         super(
-                DAI_ActionCore.CODEC,
+                DAI_ActionDefinition.CODEC,
                 FileToIdConverter.json(folder)
         );
 
@@ -31,7 +31,7 @@ public final class DAI_ActionLoader
 
     @Override
     protected void apply(
-            Map<Identifier, DAI_ActionCore> definitions,
+            Map<Identifier, DAI_ActionDefinition> definitions,
             ResourceManager resourceManager,
             ProfilerFiller profiler
     ) {
@@ -41,7 +41,7 @@ public final class DAI_ActionLoader
                 folder
         );
 
-        Map<Identifier, DAI_ActionCore> flattenedDefinitions =
+        Map<Identifier, DAI_ActionDefinition> flattenedDefinitions =
                 new LinkedHashMap<>();
 
         Map<Identifier, Identifier> sourceIdentifiers =
@@ -77,7 +77,7 @@ public final class DAI_ActionLoader
             );
         });
 
-        DAI_ActionManager.clear();
+        DAI_ActionLibrary.clear();
 
         flattenedDefinitions.forEach((identifier, action) -> {
 
@@ -91,7 +91,7 @@ public final class DAI_ActionLoader
                     action.ticks()
             );
 
-            DAI_ActionManager.register(
+            DAI_ActionLibrary.register(
                     identifier,
                     action
             );

@@ -59,7 +59,7 @@ public final class DAI_ConditionRegistry {
 
     public static DAI_ConditionValue read(
             DAI_ConditionContext context,
-            DAI_ConditionCore condition
+            DAI_ConditionDefinition condition
     ) {
 
         if (condition == null) {

@@ -1,24 +1,16 @@
 {
   "type": "sequence",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:husbandry/plant_any_sniffer_seed"
+    }
+  ],
   "sequence": [
     {
-      "type": "objective_execute",
-      "action": "minecraft:husbandry/plant_any_sniffer_seed",
-      "conditions": [
-        {
-          "type": "advancement_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:husbandry/plant_any_sniffer_seed"
-        }
-      ]
-    },
-    {
       "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
+      "ticks": 1
     }
   ]
 }

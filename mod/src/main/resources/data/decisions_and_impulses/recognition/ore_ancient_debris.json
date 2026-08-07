@@ -1,0 +1,27 @@
+{
+  "type": "structure",
+  "scan": {
+    "mode": "connected",
+    "origin": "targeted_block",
+    "max_blocks": 512,
+    "max_radius": 12
+  },
+  "groups": {
+    "primary": {
+      "registry": "decisions_and_impulses:ore_ancient_debris",
+      "minimum": 1,
+      "maximum": 512
+    }
+  },
+  "requirements": [
+    {
+      "type": "connected",
+      "groups": [
+        "primary"
+      ]
+    }
+  ],
+  "result": {
+    "id": "decisions_and_impulses:ore_ancient_debris"
+  }
+}

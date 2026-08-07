@@ -1,6 +1,6 @@
 package io.github.j12h36h.dai.action;
 
-import io.github.j12h36h.dai.condition.DAI_ConditionEval;
+import io.github.j12h36h.dai.condition.DAI_ConditionEvaluator;
 import io.github.j12h36h.dai.core.DAI_Core;
 import net.minecraft.resources.Identifier;
 
@@ -11,18 +11,67 @@ import java.util.Set;
 
 public final class DAI_ActionResolver {
 
-    private static final int MAX_DEPTH = 64;
-    private static final int MAX_EXPANDED_ACTIONS = 1024;
+    private static final int MAX_DEPTH =
+            64;
+
+    private static final int MAX_EXPANDED_ACTIONS =
+            1024;
 
     private DAI_ActionResolver() {
         // Utility class.
     }
 
-    public static List<DAI_ActionCore> resolve(
-            DAI_ActionCore action
+    /**
+     * Resolves a registered action by identifier into its executable
+     * atomic actions.
+     */
+    public static List<DAI_ActionDefinition> resolve(
+            String actionId
     ) {
 
-        List<DAI_ActionCore> resolved =
+        Identifier id =
+                parseReference(
+                        actionId
+                );
+
+        if (id == null) {
+
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Invalid action id '{}'.",
+                    actionId
+            );
+
+            return List.of();
+        }
+
+        DAI_ActionDefinition action =
+                DAI_ActionLibrary.get(
+                        id
+                );
+
+        if (action == null) {
+
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Unknown action '{}'.",
+                    id
+            );
+
+            return List.of();
+        }
+
+        return resolve(
+                action
+        );
+    }
+
+    /**
+     * Resolves an action definition into its executable atomic actions.
+     */
+    public static List<DAI_ActionDefinition> resolve(
+            DAI_ActionDefinition action
+    ) {
+
+        List<DAI_ActionDefinition> resolved =
                 new ArrayList<>();
 
         resolve(
@@ -38,8 +87,8 @@ public final class DAI_ActionResolver {
     }
 
     private static void resolve(
-            DAI_ActionCore action,
-            List<DAI_ActionCore> output,
+            DAI_ActionDefinition action,
+            List<DAI_ActionDefinition> output,
             Set<Identifier> resolving,
             int depth
     ) {
@@ -73,30 +122,35 @@ public final class DAI_ActionResolver {
             return;
         }
 
-        if (
-                !DAI_ConditionEval.evaluateAll(
-                        action.conditions()
-                )
-        ) {
-            return;
-        }
-
         /*
-         * Only true sequence containers are expanded immediately.
+         * Sequence-container conditions are evaluated during
+         * resolution because they determine whether the entire
+         * sequence should be expanded.
          *
-         * Typed runtime actions such as random_action may also carry
-         * a sequence, but must remain atomic until execution.
+         * Typed runtime actions that also carry a sequence, such as
+         * random_action, remain atomic and keep their conditions for
+         * queue-time evaluation.
          */
         if (
-                "sequence".equals(action.type())
+                "sequence".equals(
+                        action.type()
+                )
                         || (
                         !action.hasType()
                                 && action.hasSequence()
                 )
         ) {
 
+            if (
+                    !DAI_ConditionEvaluator.evaluateAll(
+                            action.conditions()
+                    )
+            ) {
+                return;
+            }
+
             for (
-                    DAI_ActionCore child
+                    DAI_ActionDefinition child
                     : action.sequence()
             ) {
 
@@ -125,28 +179,25 @@ public final class DAI_ActionResolver {
         }
 
         /*
-         * Only a pure reference node is resolved immediately.
+         * Pure reference-node conditions are evaluated during
+         * resolution because they determine whether the referenced
+         * action or sequence should be expanded.
          *
-         * Example:
-         *
-         * {
-         *   "action": "decisions_and_impulses:attack_basic"
-         * }
-         *
-         * An atomic action may also carry an action id as payload:
-         *
-         * {
-         *   "type": "enqueue_action",
-         *   "action": "decisions_and_impulses:survival_wander_b"
-         * }
-         *
-         * Because that node has a type, it must remain atomic and reach
-         * DAI_ActionLogic.enqueueAction at runtime.
+         * A typed runtime action may also use the action field as
+         * payload. Those nodes remain atomic.
          */
         if (
                 !action.hasType()
                         && action.hasAction()
         ) {
+
+            if (
+                    !DAI_ConditionEvaluator.evaluateAll(
+                            action.conditions()
+                    )
+            ) {
+                return;
+            }
 
             Identifier id =
                     parseReference(
@@ -175,8 +226,10 @@ public final class DAI_ActionResolver {
 
             try {
 
-                DAI_ActionCore referenced =
-                        DAI_ActionManager.get(id);
+                DAI_ActionDefinition referenced =
+                        DAI_ActionLibrary.get(
+                                id
+                        );
 
                 if (referenced == null) {
 
@@ -197,14 +250,16 @@ public final class DAI_ActionResolver {
 
             } finally {
 
-                resolving.remove(id);
+                resolving.remove(
+                        id
+                );
             }
 
             return;
         }
 
         /*
-         * A node without either a type, sequence, or action reference
+         * A node without a type, sequence, or action reference
          * cannot be executed.
          */
         if (!action.hasType()) {
@@ -216,6 +271,15 @@ public final class DAI_ActionResolver {
             return;
         }
 
+        /*
+         * Atomic-action conditions are intentionally not evaluated
+         * here. They stay attached to the definition and are checked
+         * by DAI_ActionQueue immediately before execution.
+         *
+         * This allows runtime conditions such as last_action_success
+         * and last_action_failure to observe the result of the action
+         * that executed immediately before this one.
+         */
         output.add(
                 action
         );

@@ -1,24 +1,16 @@
 {
   "type": "sequence",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:husbandry/ride_a_boat_with_a_goat"
+    }
+  ],
   "sequence": [
     {
-      "type": "objective_execute",
-      "action": "minecraft:husbandry/ride_a_boat_with_a_goat",
-      "conditions": [
-        {
-          "type": "advancement_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:husbandry/ride_a_boat_with_a_goat"
-        }
-      ]
-    },
-    {
       "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
+      "ticks": 1
     }
   ]
 }

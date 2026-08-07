@@ -1,0 +1,18 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:furnace",
+      "state": false
+    }
+  ],
+  "conditions": [
+    {
+      "type": "inventory_item_count",
+      "operator": "less_than",
+      "parameter": "minecraft:furnace",
+      "number_value": 1.0
+    }
+  ]
+}

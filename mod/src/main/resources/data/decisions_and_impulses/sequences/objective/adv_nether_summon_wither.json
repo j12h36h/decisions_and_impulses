@@ -1,24 +1,16 @@
 {
   "type": "sequence",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:nether/summon_wither"
+    }
+  ],
   "sequence": [
     {
-      "type": "objective_execute",
-      "action": "minecraft:nether/summon_wither",
-      "conditions": [
-        {
-          "type": "advancement_complete",
-          "operator": "is_false",
-          "parameter": "minecraft:nether/summon_wither"
-        }
-      ]
-    },
-    {
       "type": "delay",
-      "ticks": 10
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:advancement_master"
+      "ticks": 1
     }
   ]
 }

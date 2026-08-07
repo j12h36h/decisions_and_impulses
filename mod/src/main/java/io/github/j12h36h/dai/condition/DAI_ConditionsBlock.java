@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.condition;
 
+import io.github.j12h36h.dai.system.DAI_TargetState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -192,6 +193,15 @@ public final class DAI_ConditionsBlock {
 
                     return blockId(state);
                 }
+        );
+
+        DAI_ConditionRegistry.register(
+                "target_block_selected",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_TargetState.selectedBlock()
+                                        != null
+                        )
         );
     }
 

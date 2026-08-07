@@ -1,17 +1,22 @@
 package io.github.j12h36h.dai.ui;
 
 import io.github.j12h36h.dai.action.DAI_ActionQueue;
+import io.github.j12h36h.dai.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.core.DAI_Core;
-import io.github.j12h36h.dai.action.DAI_ActionExecutor;
+import io.github.j12h36h.dai.input.DAI_InputState;
+import io.github.j12h36h.dai.logic.DAI_ActionLogic;
+import io.github.j12h36h.dai.system.DAI_ClientRuntime;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
 public class DAI_MenuCore extends Screen {
 
     private final DAI_MenuState state =
@@ -286,8 +291,10 @@ public class DAI_MenuCore extends Screen {
                 action
         );
 
-        DAI_ActionExecutor.execute(
-                action.trim()
+        DAI_ActionQueue.enqueueAll(
+                DAI_ActionResolver.resolve(
+                        action.trim()
+                )
         );
     }
 
@@ -475,4 +482,5 @@ public class DAI_MenuCore extends Screen {
     public boolean shouldCloseOnEsc() {
         return false;
     }
+
 }

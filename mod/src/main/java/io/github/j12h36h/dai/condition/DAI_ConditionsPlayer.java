@@ -94,5 +94,81 @@ public final class DAI_ConditionsPlayer {
                     );
                 }
         );
+
+        DAI_ConditionRegistry.register(
+                "player_hunger",
+                (context, condition) -> {
+
+                    if (!context.hasPlayer()) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    return DAI_ConditionValue.number(
+                            context.player()
+                                    .getFoodData()
+                                    .getFoodLevel()
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "player_air",
+                (context, condition) -> {
+
+                    if (!context.hasPlayer()) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    return DAI_ConditionValue.number(
+                            context.player()
+                                    .getAirSupply()
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "player_in_water",
+                (context, condition) -> {
+
+                    if (!context.hasPlayer()) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    return DAI_ConditionValue.bool(
+                            context.player()
+                                    .isInWater()
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "player_in_lava",
+                (context, condition) -> {
+
+                    if (!context.hasPlayer()) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    return DAI_ConditionValue.bool(
+                            context.player()
+                                    .isInLava()
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "player_on_fire",
+                (context, condition) -> {
+
+                    if (!context.hasPlayer()) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    return DAI_ConditionValue.bool(
+                            context.player()
+                                    .isOnFire()
+                    );
+                }
+        );
     }
 }

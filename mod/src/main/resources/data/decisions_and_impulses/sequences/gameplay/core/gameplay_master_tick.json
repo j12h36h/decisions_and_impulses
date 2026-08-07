@@ -1,0 +1,98 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:gameplay_emergency"
+    },
+    {
+      "action": "decisions_and_impulses:phase_spawn",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:phase_wood_tools",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:phase_stone_age",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:phase_iron_age",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:iron_pickaxe",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:phase_diamond_age",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:iron_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:diamond_pickaxe",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:gameplay_advancement_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond_pickaxe",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

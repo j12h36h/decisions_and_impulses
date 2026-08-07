@@ -139,7 +139,7 @@ public final class DAI_RecogLoader extends
             ProfilerFiller profiler
     ) {
 
-        DAI_RecogManager.clear();
+        DAI_RecognitionLibrary.clear();
 
         for (LoadedRecog loadedRecognition : loadedRecognitions) {
 
@@ -155,7 +155,7 @@ public final class DAI_RecogLoader extends
                     definition.requirements().size()
             );
 
-            DAI_RecogManager.register(
+            DAI_RecognitionLibrary.register(
                     loadedRecognition.id(),
                     definition
             );
@@ -163,7 +163,7 @@ public final class DAI_RecogLoader extends
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Loaded {} recognition definition(s).",
-                DAI_RecogManager.size()
+                DAI_RecognitionLibrary.size()
         );
     }
 

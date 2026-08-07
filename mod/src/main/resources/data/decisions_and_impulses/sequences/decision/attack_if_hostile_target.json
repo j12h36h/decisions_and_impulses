@@ -1,0 +1,25 @@
+{
+  "type": "sequence",
+  "conditions": [
+    {
+      "type": "target_exists",
+      "operator": "is_true"
+    },
+    {
+      "type": "target_is_hostile",
+      "operator": "is_true"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "equip_best_weapon"
+    },
+    {
+      "type": "delay",
+      "ticks": 2
+    },
+    {
+      "type": "attack_target"
+    }
+  ]
+}

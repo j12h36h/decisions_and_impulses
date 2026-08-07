@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:carrots",
+  "value": 16.0
+}

@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.ui;
 
+import io.github.j12h36h.dai.logic.DAI_HotbarLogic;
 import io.github.j12h36h.dai.core.DAI_Core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -24,7 +25,7 @@ public final class DAI_MenuHotbar {
         requireState(state);
         requireLayout(layout);
 
-        DAI_HotbarController.open();
+        DAI_HotbarLogic.open();
 
         DAI_MenuCategory category =
                 DAI_MenuCategory.SYSTEM;
@@ -51,19 +52,19 @@ public final class DAI_MenuHotbar {
                 category,
                 button -> {
 
-                    DAI_HotbarController.previous();
+                    DAI_HotbarLogic.previous();
 
                     refresh(state);
                 },
                 button -> {
 
-                    DAI_HotbarController.select();
+                    DAI_HotbarLogic.select();
 
                     refresh(state);
                 },
                 button -> {
 
-                    DAI_HotbarController.next();
+                    DAI_HotbarLogic.next();
 
                     refresh(state);
                 }
@@ -105,7 +106,7 @@ public final class DAI_MenuHotbar {
         }
 
         int slot =
-                DAI_HotbarController.selectedSlot();
+                DAI_HotbarLogic.selectedSlot();
 
         int activeSlot =
                 minecraft.player

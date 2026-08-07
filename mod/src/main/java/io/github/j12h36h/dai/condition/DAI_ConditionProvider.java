@@ -5,6 +5,6 @@ public interface DAI_ConditionProvider {
 
     DAI_ConditionValue read(
             DAI_ConditionContext context,
-            DAI_ConditionCore condition
+            DAI_ConditionDefinition condition
     );
 }

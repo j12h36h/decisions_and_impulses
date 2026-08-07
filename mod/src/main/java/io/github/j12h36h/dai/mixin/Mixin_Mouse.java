@@ -1,6 +1,6 @@
 package io.github.j12h36h.dai.mixin;
 
-import io.github.j12h36h.dai.input.DAI_InputController;
+import io.github.j12h36h.dai.input.DAI_InputState;
 import net.minecraft.client.MouseHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +19,7 @@ public abstract class Mixin_Mouse {
             CallbackInfo callbackInfo
     ) {
 
-        if (!DAI_InputController.isOverrideEnabled()) {
+        if (!DAI_InputState.isOverrideEnabled()) {
             return;
         }
 

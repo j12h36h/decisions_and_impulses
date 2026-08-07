@@ -1,0 +1,15 @@
+{
+  "type": "eat_best_food",
+  "conditions": [
+    {
+      "type": "advancement_complete",
+      "operator": "is_false",
+      "parameter": "minecraft:husbandry/balanced_diet"
+    },
+    {
+      "type": "player_hunger",
+      "operator": "less_than",
+      "number_value": 20
+    }
+  ]
+}

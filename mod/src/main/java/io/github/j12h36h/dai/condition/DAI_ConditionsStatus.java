@@ -1,5 +1,8 @@
 package io.github.j12h36h.dai.condition;
 
+import io.github.j12h36h.dai.action.DAI_ActionResult;
+import io.github.j12h36h.dai.action.DAI_ActionStatus;
+
 public final class DAI_ConditionsStatus {
 
     private DAI_ConditionsStatus() {
@@ -9,215 +12,46 @@ public final class DAI_ConditionsStatus {
     public static void registerAll() {
 
         DAI_ConditionRegistry.register(
-                "player_hunger",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getFoodData()
-                                    .getFoodLevel()
-                    );
-                }
+                "last_action_running",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_ActionStatus.get()
+                                        == DAI_ActionResult.RUNNING
+                        )
         );
 
         DAI_ConditionRegistry.register(
-                "player_saturation",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getFoodData()
-                                    .getSaturationLevel()
-                    );
-                }
+                "last_action_success",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_ActionStatus.succeeded()
+                        )
         );
 
         DAI_ConditionRegistry.register(
-                "player_air",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getAirSupply()
-                    );
-                }
+                "last_action_failure",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_ActionStatus.failed()
+                        )
         );
 
         DAI_ConditionRegistry.register(
-                "player_max_air",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getMaxAirSupply()
-                    );
-                }
+                "last_action_cancelled",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_ActionStatus.get()
+                                        == DAI_ActionResult.CANCELLED
+                        )
         );
 
         DAI_ConditionRegistry.register(
-                "player_absorption",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getAbsorptionAmount()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_in_water",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isInWater()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_in_lava",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isInLava()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_on_fire",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isOnFire()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_fire_ticks",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getRemainingFireTicks()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_freezing",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isFreezing()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_frozen_ticks",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.number(
-                            context.player()
-                                    .getTicksFrozen()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_wet",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isInWaterOrRain()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_sleeping",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isSleeping()
-                    );
-                }
-        );
-
-        DAI_ConditionRegistry.register(
-                "player_riding",
-                (context, condition) -> {
-
-                    if (!context.hasPlayer()) {
-                        return DAI_ConditionValue.missing();
-                    }
-
-                    return DAI_ConditionValue.bool(
-                            context.player()
-                                    .isPassenger()
-                    );
-                }
+                "last_action_timed_out",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                DAI_ActionStatus.get()
+                                        == DAI_ActionResult.TIMED_OUT
+                        )
         );
     }
 }

@@ -1,0 +1,18 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:wooden_pickaxe",
+      "state": false
+    }
+  ],
+  "conditions": [
+    {
+      "type": "inventory_item_count",
+      "operator": "less_than",
+      "parameter": "minecraft:wooden_pickaxe",
+      "number_value": 1.0
+    }
+  ]
+}

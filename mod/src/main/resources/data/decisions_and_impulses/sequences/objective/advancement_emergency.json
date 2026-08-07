@@ -6,7 +6,7 @@
     },
     {
       "type": "enqueue_action",
-      "action": "decisions_and_impulses:survival_wander_water_escape",
+      "action": "decisions_and_impulses:gameplay_emergency",
       "conditions": [
         {
           "type": "any",

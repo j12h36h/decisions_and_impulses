@@ -1,11 +1,11 @@
 package io.github.j12h36h.dai.bootstrap;
 
-import io.github.j12h36h.dai.action.DAI_ActionBootstrap;
-import io.github.j12h36h.dai.condition.DAI_ConditionBootstrap;
+import io.github.j12h36h.dai.action.DAI_ActionHandler;
+import io.github.j12h36h.dai.condition.DAI_ConditionHandler;
 import io.github.j12h36h.dai.core.DAI_Core;
+import io.github.j12h36h.dai.recognition.DAI_RecognitionHandler;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.neoforge.common.NeoForge;
 
 public final class DAI_Bootstrap {
 
@@ -22,31 +22,19 @@ public final class DAI_Bootstrap {
                 "<DAI>: Initializing DAI..."
         );
 
-        DAI_Core.LOGGER.info(
-                "<DAI>: Bootstrapping configuration..."
-        );
-
         DAI_ConfigBootstrap.initialize(
                 container
         );
 
-        DAI_Core.LOGGER.info(
-                "<DAI>: Bootstrapping data..."
-        );
+        DAI_ConditionHandler.initialize();
+        DAI_ActionHandler.initialize();
+        DAI_RecognitionHandler.initialize();
 
         DAI_DataBootstrap.initialize();
-
-        DAI_Core.LOGGER.info(
-                "<DAI>: Bootstrapping client..."
-        );
 
         DAI_ClientBootstrap.initialize(
                 modBus,
                 container
-        );
-
-        DAI_Core.LOGGER.info(
-                "<DAI>: Bootstrapping server..."
         );
 
         DAI_Core.LOGGER.info(

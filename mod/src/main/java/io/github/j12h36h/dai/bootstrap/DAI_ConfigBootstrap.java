@@ -11,23 +11,17 @@ public final class DAI_ConfigBootstrap {
         // Utility class.
     }
 
-    public static void initialize(ModContainer container) {
-
-        DAI_Core.LOGGER.info(
-                "<DAI>: Initializing configuration..."
-        );
+    public static void initialize(
+            ModContainer container
+    ) {
 
         container.registerConfig(
                 ModConfig.Type.COMMON,
                 DAI_Config.SPEC
         );
 
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Registered common configuration."
-        );
-
         DAI_Core.LOGGER.info(
-                "<DAI>: Configuration initialized."
+                "<DAI>: Registered common configuration."
         );
     }
 }

@@ -44,22 +44,31 @@ public final class DAI_ConditionsAdvancement {
                         return DAI_ConditionValue.missing();
                     }
 
+                    Map<AdvancementHolder, AdvancementProgress> progressMap =
+                            progressMap(
+                                    advancements
+                            );
+
                     AdvancementHolder holder =
-                            advancements.get(id);
+                            progressMap.keySet()
+                                    .stream()
+                                    .filter(candidate ->
+                                            candidate.id()
+                                                    .equals(id)
+                                    )
+                                    .findFirst()
+                                    .orElse(null);
 
                     if (holder == null) {
-
-                        DAI_Core.LOGGER.warn(
-                                "<DAI>: Unknown advancement '{}'.",
-                                id
+                        return DAI_ConditionValue.bool(
+                                false
                         );
-
-                        return DAI_ConditionValue.missing();
                     }
 
                     AdvancementProgress progress =
-                            progressMap(advancements)
-                                    .get(holder);
+                            progressMap.get(
+                                    holder
+                            );
 
                     return DAI_ConditionValue.bool(
                             progress != null
@@ -94,7 +103,9 @@ public final class DAI_ConditionsAdvancement {
                     }
 
                     Map<AdvancementHolder, AdvancementProgress> progressMap =
-                            progressMap(advancements);
+                            progressMap(
+                                    advancements
+                            );
 
                     boolean found =
                             false;
@@ -107,7 +118,12 @@ public final class DAI_ConditionsAdvancement {
                         Identifier id =
                                 holder.id();
 
-                        if (!matchesCategory(id, category)) {
+                        if (
+                                !matchesCategory(
+                                        id,
+                                        category
+                                )
+                        ) {
                             continue;
                         }
 
@@ -115,7 +131,9 @@ public final class DAI_ConditionsAdvancement {
                                 true;
 
                         AdvancementProgress progress =
-                                progressMap.get(holder);
+                                progressMap.get(
+                                        holder
+                                );
 
                         if (
                                 progress == null
@@ -128,7 +146,9 @@ public final class DAI_ConditionsAdvancement {
                     }
 
                     return found
-                            ? DAI_ConditionValue.bool(true)
+                            ? DAI_ConditionValue.bool(
+                            true
+                    )
                             : DAI_ConditionValue.missing();
                 }
         );
@@ -139,7 +159,10 @@ public final class DAI_ConditionsAdvancement {
         Minecraft minecraft =
                 Minecraft.getInstance();
 
-        if (minecraft.getConnection() == null) {
+        if (
+                minecraft.getConnection()
+                        == null
+        ) {
             return null;
         }
 
@@ -170,7 +193,11 @@ public final class DAI_ConditionsAdvancement {
         String normalized =
                 value.trim();
 
-        if (!normalized.contains(":")) {
+        if (
+                !normalized.contains(
+                        ":"
+                )
+        ) {
             normalized =
                     "minecraft:"
                             + normalized;
@@ -191,14 +218,20 @@ public final class DAI_ConditionsAdvancement {
                         + ":"
                         + id.getPath();
 
-        if (category.contains(":")) {
+        if (
+                category.contains(
+                        ":"
+                )
+        ) {
             return fullId.startsWith(
                     category + "/"
             );
         }
 
         return id.getNamespace()
-                .equals("minecraft")
+                .equals(
+                        "minecraft"
+                )
                 && id.getPath()
                 .startsWith(
                         category + "/"
@@ -219,7 +252,11 @@ public final class DAI_ConditionsAdvancement {
                                 Locale.ROOT
                         );
 
-        while (normalized.endsWith("/")) {
+        while (
+                normalized.endsWith(
+                        "/"
+                )
+        ) {
             normalized =
                     normalized.substring(
                             0,

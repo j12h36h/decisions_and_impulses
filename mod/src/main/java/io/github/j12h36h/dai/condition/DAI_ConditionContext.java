@@ -1,6 +1,6 @@
 package io.github.j12h36h.dai.condition;
 
-import io.github.j12h36h.dai.input.DAI_TargetController;
+import io.github.j12h36h.dai.system.DAI_TargetState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -36,7 +36,7 @@ public record DAI_ConditionContext(
                 minecraft.player,
                 minecraft.level,
                 minecraft.gameMode,
-                DAI_TargetController.selected(),
+                DAI_TargetState.selected(),
                 minecraft.hitResult
         );
     }

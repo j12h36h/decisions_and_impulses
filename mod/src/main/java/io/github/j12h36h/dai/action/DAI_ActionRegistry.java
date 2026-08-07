@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+
 public final class DAI_ActionRegistry {
 
     private static final Map<
             String,
-            Consumer<DAI_ActionCore>
+            Consumer<DAI_ActionDefinition>
             > ACTIONS =
             new HashMap<>();
 
@@ -20,10 +21,13 @@ public final class DAI_ActionRegistry {
 
     public static void register(
             String id,
-            Consumer<DAI_ActionCore> executor
+            Consumer<DAI_ActionDefinition> executor
     ) {
 
-        if (id == null || id.isBlank()) {
+        if (
+                id == null
+                        || id.isBlank()
+        ) {
 
             throw new IllegalArgumentException(
                     "Action type id cannot be null or blank."
@@ -38,9 +42,11 @@ public final class DAI_ActionRegistry {
         }
 
         String normalizedId =
-                normalize(id);
+                normalize(
+                        id
+                );
 
-        Consumer<DAI_ActionCore> previous =
+        Consumer<DAI_ActionDefinition> previous =
                 ACTIONS.put(
                         normalizedId,
                         executor
@@ -63,10 +69,14 @@ public final class DAI_ActionRegistry {
     }
 
     public static void execute(
-            DAI_ActionCore action
+            DAI_ActionDefinition action
     ) {
 
         if (action == null) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.FAILURE
+            );
 
             DAI_Core.LOGGER.error(
                     "<DAI>: Cannot execute a null action."
@@ -76,9 +86,15 @@ public final class DAI_ActionRegistry {
         }
 
         String type =
-                normalize(action.type());
+                normalize(
+                        action.type()
+                );
 
         if (type.isEmpty()) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.FAILURE
+            );
 
             DAI_Core.LOGGER.warn(
                     "<DAI>: Cannot execute an action with an empty type."
@@ -87,10 +103,16 @@ public final class DAI_ActionRegistry {
             return;
         }
 
-        Consumer<DAI_ActionCore> executor =
-                ACTIONS.get(type);
+        Consumer<DAI_ActionDefinition> executor =
+                ACTIONS.get(
+                        type
+                );
 
         if (executor == null) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.FAILURE
+            );
 
             DAI_Core.LOGGER.warn(
                     "<DAI>: Unknown action type '{}'.",
@@ -100,6 +122,18 @@ public final class DAI_ActionRegistry {
             return;
         }
 
+        /*
+         * Preserve the result from the action that ran immediately
+         * before this one, then initialize the new current action as
+         * successful.
+         *
+         * Flow actions and last_action_* conditions inspect the
+         * previous result. The current handler may replace the new
+         * current result with RUNNING, FAILURE, CANCELLED, or
+         * TIMED_OUT.
+         */
+        DAI_ActionStatus.begin();
+
         DAI_Core.LOGGER.debug(
                 "<DAI>: Executing registered action type '{}'.",
                 type
@@ -107,30 +141,46 @@ public final class DAI_ActionRegistry {
 
         try {
 
-            executor.accept(action);
+            executor.accept(
+                    action
+            );
 
         } catch (RuntimeException exception) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.FAILURE
+            );
 
             DAI_Core.LOGGER.error(
                     "<DAI>: Action type '{}' failed during execution.",
                     type,
                     exception
             );
-
-            throw exception;
         }
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Registered action type '{}' completed dispatch with currentResult={} and previousResult={}.",
+                type,
+                DAI_ActionStatus.get(),
+                DAI_ActionStatus.previous()
+        );
     }
 
     public static boolean contains(
             String id
     ) {
 
-        if (id == null || id.isBlank()) {
+        if (
+                id == null
+                        || id.isBlank()
+        ) {
             return false;
         }
 
         return ACTIONS.containsKey(
-                normalize(id)
+                normalize(
+                        id
+                )
         );
     }
 
@@ -140,7 +190,8 @@ public final class DAI_ActionRegistry {
 
     public static void clear() {
 
-        int removed = ACTIONS.size();
+        int removed =
+                ACTIONS.size();
 
         ACTIONS.clear();
 
@@ -156,6 +207,9 @@ public final class DAI_ActionRegistry {
 
         return value == null
                 ? ""
-                : value.trim().toLowerCase(Locale.ROOT);
+                : value.trim()
+                .toLowerCase(
+                        Locale.ROOT
+                );
     }
 }

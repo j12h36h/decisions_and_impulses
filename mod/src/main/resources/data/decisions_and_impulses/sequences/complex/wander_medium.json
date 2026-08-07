@@ -1,0 +1,37 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "sprint_set",
+      "state": true
+    },
+    {
+      "type": "random_action",
+      "sequence": [
+        {
+          "type": "move",
+          "direction": "forward",
+          "ticks": 80
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "ticks": 50
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "ticks": 50
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "sprint_set",
+      "state": false
+    }
+  ]
+}

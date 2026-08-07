@@ -1,0 +1,38 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:craft_available_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 16.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:acquire_logs",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:craft_available_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 16.0
+        }
+      ]
+    }
+  ]
+}

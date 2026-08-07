@@ -12,12 +12,6 @@
       "id": "attack",
       "text": "Attack",
       "action": "decisions_and_impulses:attack_target"
-    },
-    {
-      "slot": 2,
-      "id": "counter",
-      "text": "Counter",
-      "action": "decisions_and_impulses:attack_counter"
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "type": "sequence",
+  "conditions": [
+    {
+      "type": "targeted_block_exists",
+      "operator": "is_true"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "equip_best_block"
+    },
+    {
+      "type": "delay",
+      "ticks": 2
+    },
+    {
+      "type": "place_targeted_block"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:target_clear"
+    },
+    {
+      "action": "decisions_and_impulses:recognize_logs"
+    },
+    {
+      "type": "recognize_block",
+      "action": "#minecraft:base_stone_overworld",
+      "value": 16.0,
+      "conditions": [
+        {
+          "type": "target_block_selected",
+          "operator": "is_false"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "#minecraft:coal_ores",
+      "value": 16.0,
+      "conditions": [
+        {
+          "type": "target_block_selected",
+          "operator": "is_false"
+        }
+      ]
+    }
+  ]
+}
