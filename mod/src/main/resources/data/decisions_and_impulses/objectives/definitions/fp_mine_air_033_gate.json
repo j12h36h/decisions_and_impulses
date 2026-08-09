@@ -1,0 +1,62 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_mine_air_034_gate",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:void_air"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_mine_air_033_clear",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|3,2,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

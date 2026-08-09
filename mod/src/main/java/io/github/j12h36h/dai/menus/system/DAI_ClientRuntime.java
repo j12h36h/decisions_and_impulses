@@ -18,6 +18,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.logics.DAI_ItemCollectionLogic;
+import io.github.j12h36h.dai.logics.DAI_ExactPlacementLogic;
 import io.github.j12h36h.dai.logics.navigation.DAI_ExplorationMemory;
 import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
 import io.github.j12h36h.dai.logics.input.DAI_KeyboardInput;
@@ -174,6 +175,7 @@ public final class DAI_ClientRuntime {
          * controller. A world/session reset must cancel it as well.
          */
         DAI_ItemCollectionLogic.reset();
+        DAI_ExactPlacementLogic.reset();
 
         /*
          * Exploration owns resource-search state and may currently own
@@ -221,6 +223,7 @@ public final class DAI_ClientRuntime {
         DAI_ExplorationMemory.clear();
         DAI_FailedTargetMemory.clear();
         DAI_WaypointMemory.clear();
+        DAI_SpatialState.clear();
 
         DAI_ConditionMemory.clear();
         DAI_ScreenManager.clear();

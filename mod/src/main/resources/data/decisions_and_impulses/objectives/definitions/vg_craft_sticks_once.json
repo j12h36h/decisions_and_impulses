@@ -2,62 +2,7 @@
   "type": "sequence",
   "sequence": [
     {
-      "type": "craft_recipe",
-      "action": "minecraft:stick",
-      "conditions": [
-        {
-          "type": "inventory_item_count",
-          "operator": "less_than",
-          "parameter": "minecraft:stick",
-          "number_value": 2.0
-        },
-        {
-          "type": "inventory_item_tag_count",
-          "operator": "greater_than_or_equal",
-          "parameter": "minecraft:planks",
-          "number_value": 2.0
-        }
-      ]
-    },
-    {
-      "type": "craft_recipe",
-      "action": "minecraft:stick",
-      "conditions": [
-        {
-          "type": "inventory_item_count",
-          "operator": "less_than",
-          "parameter": "minecraft:stick",
-          "number_value": 2.0
-        },
-        {
-          "type": "inventory_item_tag_count",
-          "operator": "greater_than_or_equal",
-          "parameter": "minecraft:planks",
-          "number_value": 2.0
-        }
-      ]
-    },
-    {
-      "type": "craft_recipe",
-      "action": "minecraft:stick",
-      "conditions": [
-        {
-          "type": "inventory_item_count",
-          "operator": "less_than",
-          "parameter": "minecraft:stick",
-          "number_value": 2.0
-        },
-        {
-          "type": "inventory_item_tag_count",
-          "operator": "greater_than_or_equal",
-          "parameter": "minecraft:planks",
-          "number_value": 2.0
-        }
-      ]
-    },
-    {
-      "type": "enqueue_action",
-      "action": "decisions_and_impulses:vg_decide"
+      "action": "decisions_and_impulses:fp_craft_sticks_once"
     }
   ]
 }

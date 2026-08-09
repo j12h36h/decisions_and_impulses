@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.logics;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
 import io.github.j12h36h.dai.menus.system.DAI_WaypointMemory;
 import net.minecraft.client.Minecraft;
@@ -154,6 +155,13 @@ public final class DAI_WaypointLogic {
 
             return;
         }
+
+        /*
+         * A waypoint selection is a new authoritative target. Drop any
+         * completed/active approach ownership from the previous block first
+         * so camera/interact logic immediately resolves to this waypoint.
+         */
+        DAI_ApproachController.discardTargetOwnership();
 
         DAI_TargetState.selectBlock(
                 waypoint.position()

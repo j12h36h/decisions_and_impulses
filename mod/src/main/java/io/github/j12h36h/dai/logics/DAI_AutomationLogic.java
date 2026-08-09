@@ -19,6 +19,7 @@ import io.github.j12h36h.dai.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
+import io.github.j12h36h.dai.menus.system.DAI_SpatialState;
 
 import java.util.List;
 
@@ -233,6 +234,7 @@ public final class DAI_AutomationLogic {
          * must obey the same lifecycle boundary.
          */
         DAI_ItemCollectionLogic.reset();
+        DAI_ExactPlacementLogic.reset();
 
         /*
          * A new gameplay lifecycle also requires a clean queue. Keep the
@@ -267,6 +269,7 @@ public final class DAI_AutomationLogic {
          * overwrite the neutral ActionStatus established above.
          */
         DAI_TargetState.clear();
+        DAI_SpatialState.clear();
 
         DAI_Core.LOGGER.debug(
                 "<DAI>: Automation runtime state cleared (requestedClearQueue={}).",

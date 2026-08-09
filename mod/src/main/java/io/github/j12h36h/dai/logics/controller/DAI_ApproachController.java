@@ -672,6 +672,45 @@ public final class DAI_ApproachController {
         );
     }
 
+    /**
+     * Discards all block-approach target ownership without changing the
+     * current semantic action result.
+     *
+     * This is used by target-selection/clear actions. A target_clear must
+     * stop movement toward the old target, and a newly selected waypoint
+     * must not be shadowed by completedTarget from the previous approach.
+     */
+    public static void discardTargetOwnership() {
+
+        boolean wasActive =
+                DAI_ApproachState.active();
+
+        int generation =
+                DAI_ApproachState.generation();
+
+        if (wasActive) {
+
+            DAI_ApproachState.rememberResult(
+                    generation,
+                    DAI_ActionResult.CANCELLED
+            );
+        }
+
+        DAI_ApproachState.setCompletedTarget(
+                null
+        );
+
+        clearState();
+
+        if (wasActive) {
+
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Discarded stale block-approach ownership for generation={}.",
+                    generation
+            );
+        }
+    }
+
     /*
      * ------------------------------------------------------------
      * PUBLIC STATE

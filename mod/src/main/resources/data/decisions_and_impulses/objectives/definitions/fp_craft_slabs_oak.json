@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_oak_attempt_1"
+    }
+  ]
+}

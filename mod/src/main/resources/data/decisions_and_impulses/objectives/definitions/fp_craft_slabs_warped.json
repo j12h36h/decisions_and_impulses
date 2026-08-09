@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_warped_attempt_1"
+    }
+  ]
+}

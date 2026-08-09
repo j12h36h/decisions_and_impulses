@@ -1,0 +1,44 @@
+DAI FAIL-PROOF HOUSE + MINE DATAPACK PATCH
+
+This patch preserves the uploaded support layers and replaces the active gameplay objective graph.
+
+Execution rules enforced:
+- evaluate actual inventory/world/waypoint state before each next objective
+- only one unsatisfied objective owns progression
+- no dangerous action continues after a failed approach/alignment prerequisite
+- bounded local retries (3) for crafting, clearing, exact placement, resource searches, and workstation access
+- after each bounded operation, verify actual state and re-enter the evaluator
+- impossible look-up/look-down signal only after the local bounded recovery is exhausted
+- crafting table is placed once at its final house coordinate and remembered; later crafting reuses that waypoint
+- table access always does select -> approach -> wait -> ray-alignment -> open -> craft -> close
+- exact blueprint placement uses place_block_at_selected_position, never the old crosshair-dependent placement primitive
+- blueprint movement/interaction preflights use wait_for_target_block, whose Java visibility path ray-traces and clears safe replaceable vegetation/leaves (vines/grass included by canBeReplaced)
+- resource collectors describe the real drop item (stone -> cobblestone, iron ore -> raw iron, diamond ore -> diamond) so filtered collection cannot strand progression
+
+Starter house schematic:
+- 5x5 footprint
+- floor + two-block walls + roof (79 required plank nodes plus optional plank beneath an adopted crafting table)
+- two-block doorway
+- crafting table at home_origin + (1,1,3)
+- chest at home_origin + (3,1,3)
+- reserved furnace at home_origin + (2,1,3)
+- final home waypoint at home_origin + (2,1,2)
+- recognition definition decisions_and_impulses:starter_house
+
+Starter mine schematic:
+- begins immediately beside the house, with 4 site-direction fallbacks
+- six consecutive 3x3x1 excavation slices
+- exact-air clearing removes vines, grass, leaves, dirt, stone, etc. occupying required air cells
+- six wooden slabs form the center path
+- cobblestone drops from excavation are explicitly collected
+- recognition definition decisions_and_impulses:starter_mine_path
+
+Clearable-space recognition vocabulary added:
+- clearable_vegetation
+- clearable_terrain
+- clearable_wood
+- clearable_space
+
+Later furnace/iron/diamond/flint/obsidian progression remains connected. Furnace placement is now deterministic inside the house. Shared later crafting/smelting/resource helpers were patched to use the same safe sequencing and real-drop collector rules.
+
+Portal frame construction was not guessed here because deterministic flint-and-steel face use still lacks a face-specific targeted-use primitive; existing active-portal discovery/entry remains preserved.

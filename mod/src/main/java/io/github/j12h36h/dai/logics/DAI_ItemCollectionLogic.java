@@ -7,10 +7,15 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.logics.navigation.DAI_Path;
-import io.github.j12h36h.dai.logics.navigation.DAI_PathFinder;
+import io.github.j12h36h.dai.logics.navigation.DAI_ItemPickupPlanner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,8 +37,8 @@ public final class DAI_ItemCollectionLogic {
             0.45D;
 
     /*
-     * Once this close, path nodes are no longer important.
-     * Move directly into the ItemEntity until Minecraft picks it up.
+     * Once the safe pickup stance is reached, allow only a short sneaking
+     * horizontal nudge toward the entity.
      */
     private static final double DIRECT_PICKUP_DISTANCE =
             2.0D;
@@ -48,6 +53,12 @@ public final class DAI_ItemCollectionLogic {
             -1;
 
     private static BlockPos trackedItemBlock;
+
+    private static BlockPos pickupStance;
+
+    /* Optional item id/tag filter supplied through action.action(). */
+    private static String itemFilter =
+            "";
 
     private static double searchRadius =
             DEFAULT_SEARCH_RADIUS;
@@ -109,6 +120,15 @@ public final class DAI_ItemCollectionLogic {
 
             trackedItemBlock =
                     null;
+
+            pickupStance =
+                    null;
+
+            itemFilter =
+                    action != null
+                            && action.hasAction()
+                            ? action.action()
+                            : "";
 
             active =
                     true;
@@ -199,6 +219,9 @@ public final class DAI_ItemCollectionLogic {
 
             pathIndex =
                     0;
+
+            pickupStance =
+                    null;
         }
 
         double distance =
@@ -208,34 +231,13 @@ public final class DAI_ItemCollectionLogic {
                         );
 
         /*
-         * Near the item, do not stop and hope collision reaches it.
+         * Do not drive directly at the ItemEntity here.
          *
-         * Move directly toward the actual ItemEntity position until it
-         * disappears from the world.
+         * A drop may be sitting in the shaft that was just mined. The pickup
+         * planner first chooses a safe stance and proves any descent has an
+         * exit route. Only once that stance is reached may we make a small
+         * sneaking pickup nudge toward the entity.
          */
-        if (
-                distance
-                        <= DIRECT_PICKUP_DISTANCE
-        ) {
-
-            moveToward(
-                    minecraft,
-                    target.position()
-            );
-
-            DAI_InputState
-                    .movement()
-                    .setJump(
-                            shouldJumpTowardItem(
-                                    minecraft,
-                                    target
-                            )
-                    );
-
-            continueCollection();
-
-            return;
-        }
 
         /*
          * Build/rebuild a world path when necessary.
@@ -284,19 +286,50 @@ public final class DAI_ItemCollectionLogic {
          */
         if (!following) {
 
-            moveToward(
-                    minecraft,
-                    target.position()
-            );
+            DAI_InputState
+                    .movement()
+                    .setJump(false);
+
+            /*
+             * Edge pickup is intentionally sneaking. Vanilla sneak prevents
+             * walking off a ledge, so a drop below the rim cannot pull DAI
+             * into the hole merely because its entity center is lower.
+             */
+            DAI_InputState
+                    .movement()
+                    .setSneak(true);
+
+            if (
+                    distance
+                            <= DIRECT_PICKUP_DISTANCE
+            ) {
+
+                Vec3 safeNudgeTarget =
+                        new Vec3(
+                                target.getX(),
+                                minecraft.player.getY(),
+                                target.getZ()
+                        );
+
+                moveToward(
+                        minecraft,
+                        safeNudgeTarget
+                );
+
+            } else {
+
+                DAI_InputState
+                        .movement()
+                        .setMovement(
+                                0.0F,
+                                0.0F
+                        );
+            }
+        } else {
 
             DAI_InputState
                     .movement()
-                    .setJump(
-                            shouldJumpTowardItem(
-                                    minecraft,
-                                    target
-                            )
-                    );
+                    .setSneak(false);
         }
 
         continueCollection();
@@ -395,6 +428,7 @@ public final class DAI_ItemCollectionLogic {
                         item ->
                                 item.isAlive()
                                         && !item.hasPickUpDelay()
+                                        && matchesRequestedItem(item)
                 )
                 .stream()
                 .filter(
@@ -421,40 +455,9 @@ public final class DAI_ItemCollectionLogic {
             ItemEntity item
     ) {
 
-        if (
-                minecraft.level == null
-                        || minecraft.player == null
-                        || item == null
-        ) {
-            return false;
-        }
-
-        BlockPos destination =
-                findTraversableDestination(
-                        minecraft,
-                        item.blockPosition()
-                );
-
-        if (destination == null) {
-            return false;
-        }
-
-        /*
-         * The player may already occupy the destination neighborhood.
-         * In that case direct pickup movement is sufficient.
-         */
-        if (
-                destination.equals(
-                        minecraft.player.blockPosition()
-                )
-        ) {
-            return true;
-        }
-
-        return DAI_PathFinder.find(
-                minecraft.level,
-                minecraft.player.blockPosition(),
-                destination
+        return DAI_ItemPickupPlanner.plan(
+                minecraft,
+                item
         ) != null;
     }
 
@@ -475,6 +478,9 @@ public final class DAI_ItemCollectionLogic {
 
         pathIndex =
                 0;
+
+        pickupStance =
+                null;
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Tracking dropped item {} at {}.",
@@ -501,6 +507,65 @@ public final class DAI_ItemCollectionLogic {
 
         pathIndex =
                 0;
+
+        pickupStance =
+                null;
+    }
+
+    private static boolean matchesRequestedItem(
+            ItemEntity itemEntity
+    ) {
+
+        if (
+                itemEntity == null
+                        || itemFilter == null
+                        || itemFilter.isBlank()
+        ) {
+            return itemEntity != null;
+        }
+
+        String normalized =
+                itemFilter.trim()
+                        .toLowerCase();
+
+        if (normalized.startsWith("#")) {
+
+            Identifier tagId =
+                    Identifier.tryParse(
+                            normalized.substring(1)
+                    );
+
+            if (tagId == null) {
+                return false;
+            }
+
+            TagKey<Item> tag =
+                    TagKey.create(
+                            Registries.ITEM,
+                            tagId
+                    );
+
+            return itemEntity.getItem()
+                    .is(tag);
+        }
+
+        Identifier itemId =
+                Identifier.tryParse(
+                        normalized.contains(":")
+                                ? normalized
+                                : "minecraft:" + normalized
+                );
+
+        if (itemId == null) {
+            return false;
+        }
+
+        return itemId.equals(
+                BuiltInRegistries.ITEM.getKey(
+                        itemEntity.getItem()
+                                .getItem()
+                )
+        );
     }
 
     /*
@@ -522,50 +587,21 @@ public final class DAI_ItemCollectionLogic {
             return false;
         }
 
-        BlockPos destination =
-                findTraversableDestination(
+        DAI_ItemPickupPlanner.PickupPlan plan =
+                DAI_ItemPickupPlanner.plan(
                         minecraft,
-                        item.blockPosition()
+                        item
                 );
 
-        if (destination == null) {
+        if (plan == null) {
             return false;
         }
 
-        BlockPos start =
-                minecraft.player.blockPosition();
-
-        if (
-                destination.equals(
-                        start
-                )
-        ) {
-
-            path =
-                    null;
-
-            pathIndex =
-                    0;
-
-            return true;
-        }
-
-        DAI_Path newPath =
-                DAI_PathFinder.find(
-                        minecraft.level,
-                        start,
-                        destination
-                );
-
-        if (
-                newPath == null
-                        || newPath.nodes().isEmpty()
-        ) {
-            return false;
-        }
+        pickupStance =
+                plan.stance();
 
         path =
-                newPath;
+                plan.path();
 
         pathIndex =
                 path.nodes().size() > 1
@@ -573,62 +609,13 @@ public final class DAI_ItemCollectionLogic {
                         : path.nodes().size();
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Collecting dropped item {} via {} path node(s).",
+                "<DAI>: Collecting dropped item {} via safe pickup stance {} using {} path node(s).",
                 item.getItem(),
+                pickupStance,
                 path.nodes().size()
         );
 
         return true;
-    }
-
-    private static BlockPos findTraversableDestination(
-            Minecraft minecraft,
-            BlockPos itemPosition
-    ) {
-
-        if (
-                minecraft.level == null
-                        || itemPosition == null
-        ) {
-            return null;
-        }
-
-        if (
-                DAI_PathFinder.isTraversablePosition(
-                        minecraft.level,
-                        itemPosition
-                )
-        ) {
-
-            return itemPosition.immutable();
-        }
-
-        BlockPos[] candidates = {
-                itemPosition.below(),
-                itemPosition.north(),
-                itemPosition.south(),
-                itemPosition.east(),
-                itemPosition.west(),
-                itemPosition.north().below(),
-                itemPosition.south().below(),
-                itemPosition.east().below(),
-                itemPosition.west().below()
-        };
-
-        for (BlockPos candidate : candidates) {
-
-            if (
-                    DAI_PathFinder.isTraversablePosition(
-                            minecraft.level,
-                            candidate
-                    )
-            ) {
-
-                return candidate.immutable();
-            }
-        }
-
-        return null;
     }
 
     private static boolean followPath(
@@ -808,23 +795,6 @@ public final class DAI_ItemCollectionLogic {
                 );
     }
 
-    private static boolean shouldJumpTowardItem(
-            Minecraft minecraft,
-            ItemEntity item
-    ) {
-
-        if (
-                minecraft.player == null
-                        || item == null
-        ) {
-            return false;
-        }
-
-        return item.getY()
-                > minecraft.player.getY()
-                + 0.6D;
-    }
-
     private static double horizontalDistance(
             Vec3 first,
             Vec3 second
@@ -866,7 +836,7 @@ public final class DAI_ItemCollectionLogic {
 
         return new DAI_ActionDefinition(
                 "collect_nearby_items",
-                "",
+                itemFilter,
                 List.of(),
                 List.of(),
                 "",
@@ -929,6 +899,12 @@ public final class DAI_ItemCollectionLogic {
                         false
                 );
 
+        DAI_InputState
+                .movement()
+                .setSneak(
+                        false
+                );
+
         DAI_InputState.setManagedOverride(
                 false
         );
@@ -947,6 +923,12 @@ public final class DAI_ItemCollectionLogic {
 
         trackedItemBlock =
                 null;
+
+        pickupStance =
+                null;
+
+        itemFilter =
+                "";
 
         searchRadius =
                 DEFAULT_SEARCH_RADIUS;

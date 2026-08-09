@@ -1,0 +1,550 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_oak",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_spruce",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_birch",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_jungle",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_acacia",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_dark_oak",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_mangrove",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:mangrove_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_cherry",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cherry_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_pale_oak",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:pale_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_crimson",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crimson_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_warped",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:warped_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crimson_planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_slabs_unhandled",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:oak_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:spruce_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:birch_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:jungle_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:acacia_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:dark_oak_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:mangrove_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:cherry_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:pale_oak_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:crimson_planks",
+              "number_value": 3.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:warped_planks",
+              "number_value": 3.0
+            }
+          ],
+          "negate": true
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        }
+      ]
+    }
+  ]
+}

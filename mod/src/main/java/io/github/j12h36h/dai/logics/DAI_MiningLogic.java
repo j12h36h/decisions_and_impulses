@@ -90,45 +90,80 @@ public final class DAI_MiningLogic {
                         ? action.ticks()
                         : DEFAULT_APPROACH_TIMEOUT;
 
-        DAI_ActionQueue.enqueueFirstAll(
-                List.of(
-                        createAction(
-                                "recognize_block",
-                                action.action(),
-                                0,
-                                searchRadius
-                        ),
-                        createSuccessAction(
-                                "approach_target_block",
-                                "",
-                                timeoutTicks,
-                                DEFAULT_STOP_DISTANCE
-                        ),
-                        createSuccessAction(
-                                "wait_for_approach",
-                                "",
-                                timeoutTicks,
-                                0.0D
-                        ),
-                        createSuccessAction(
-                                "wait_for_target_block",
-                                "",
-                                DEFAULT_ALIGNMENT_RETRIES,
-                                0.0D
-                        ),
-                        createSuccessAction(
-                                "mine_targeted_block",
-                                "",
-                                DEFAULT_ALIGNMENT_RETRIES,
-                                0.0D
-                        ),
-                        createSuccessAction(
-                                "collect_nearby_items",
-                                "",
-                                120,
-                                6.0D
-                        )
+        /*
+         * Many datapack objectives already place collect_nearby_items
+         * immediately after mine_nearest_block. Reuse that continuation
+         * rather than inserting a second collection pass. If the caller's
+         * collector is generic, specialize it to the resource being mined so
+         * unrelated drops cannot attract the player.
+         */
+        boolean callerAlreadyCollects =
+                specializeQueuedCollector(
+                        action.action()
+                );
+
+        List<DAI_ActionDefinition> miningSequence =
+                new java.util.ArrayList<>();
+
+        miningSequence.add(
+                createAction(
+                        "recognize_block",
+                        action.action(),
+                        0,
+                        searchRadius
                 )
+        );
+
+        miningSequence.add(
+                createSuccessAction(
+                        "approach_target_block",
+                        "",
+                        timeoutTicks,
+                        DEFAULT_STOP_DISTANCE
+                )
+        );
+
+        miningSequence.add(
+                createSuccessAction(
+                        "wait_for_approach",
+                        "",
+                        timeoutTicks,
+                        0.0D
+                )
+        );
+
+        miningSequence.add(
+                createSuccessAction(
+                        "wait_for_target_block",
+                        "",
+                        DEFAULT_ALIGNMENT_RETRIES,
+                        0.0D
+                )
+        );
+
+        miningSequence.add(
+                createSuccessAction(
+                        "mine_targeted_block",
+                        "",
+                        DEFAULT_ALIGNMENT_RETRIES,
+                        0.0D
+                )
+        );
+
+        if (!callerAlreadyCollects) {
+
+            miningSequence.add(
+                    createSuccessAction(
+                            "collect_nearby_items",
+                            action.action(),
+                            120,
+                            6.0D
+                    )
+            );
+        }
+
+        DAI_ActionQueue.enqueueFirstAll(
+                miningSequence
         );
 
         DAI_ActionStatus.set(
@@ -139,6 +174,48 @@ public final class DAI_MiningLogic {
                 "<DAI>: Queued nearest-block mining for '{}' within radius {}.",
                 action.action(),
                 searchRadius
+        );
+    }
+
+    private static boolean specializeQueuedCollector(
+            String requestedItem
+    ) {
+
+        DAI_ActionDefinition next =
+                DAI_ActionQueue.peek();
+
+        if (
+                next == null
+                        || !"collect_nearby_items".equals(
+                        next.type()
+                )
+        ) {
+            return false;
+        }
+
+        if (next.hasAction()) {
+            return true;
+        }
+
+        DAI_ActionDefinition filtered =
+                new DAI_ActionDefinition(
+                        next.type(),
+                        requestedItem,
+                        next.conditions(),
+                        next.sequence(),
+                        next.menu(),
+                        next.open(),
+                        next.yaw(),
+                        next.pitch(),
+                        next.direction(),
+                        next.ticks(),
+                        next.slot(),
+                        next.state(),
+                        next.value()
+                );
+
+        return DAI_ActionQueue.replaceHead(
+                filtered
         );
     }
 

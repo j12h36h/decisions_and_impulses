@@ -1,0 +1,133 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_establish_home_site",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_origin"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_table_floor_gate",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "home_origin"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_table",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_planks_once",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_acquire_log",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

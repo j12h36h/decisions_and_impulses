@@ -1,0 +1,13 @@
+DAI evaluation hotfix
+
+- fp_cycle now performs one deferred fp_decide only; the full eat/scan/combat cleanup shell no longer runs between every objective.
+- lava remains a zero-overhead conditional emergency branch.
+- 76 high-level enqueue fanout dispatchers converted to direct mutually-exclusive references.
+- 160 acquire/craft/smelt attempt tails now use a single fresh-state continuation dispatcher.
+- 61 proven duplicate success+unconditional-cycle continuations fixed.
+- 317 recoverable impossible-camera signals removed; site-exhausted/unsupported-state signals remain.
+- crafting-table waypoint forgets after attempt exhaustion are guarded by actual table-block verification.
+- house no longer pre-gathers ~90 planks; construction is incremental and chest materials are gathered only when the chest is next.
+- 158 house/mine blueprint gates skip correct nodes directly, with a resolver barrier every 16 nodes.
+- no Java changes.
+- all JSON/action/condition/reference validation passed against the current Java hotfix contract.

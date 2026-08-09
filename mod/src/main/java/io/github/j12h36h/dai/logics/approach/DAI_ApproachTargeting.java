@@ -54,15 +54,20 @@ public final class DAI_ApproachTargeting {
             return DAI_ApproachState.target();
         }
 
-        if (
-                DAI_ApproachState.completedTarget()
-                        != null
-        ) {
+        /*
+         * A newly selected block is authoritative once no approach is
+         * active. completedTarget exists only to bridge the short handoff
+         * after a successful approach; it must never shadow a later
+         * recognition/waypoint selection.
+         */
+        BlockPos selected =
+                DAI_TargetState.selectedBlock();
 
-            return DAI_ApproachState.completedTarget();
+        if (selected != null) {
+            return selected;
         }
 
-        return DAI_TargetState.selectedBlock();
+        return DAI_ApproachState.completedTarget();
     }
 
     /*

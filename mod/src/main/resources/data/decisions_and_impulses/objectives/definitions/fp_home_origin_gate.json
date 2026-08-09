@@ -1,0 +1,26 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "remember_offset_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_origin"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ],
+      "direction": "-1,-1,-3",
+      "open": "home_origin"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_cycle"
+    }
+  ]
+}

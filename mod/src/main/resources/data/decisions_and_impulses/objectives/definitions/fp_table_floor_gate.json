@@ -1,0 +1,100 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_table_block_gate",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "home_origin|1,0,3"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_table_floor_place",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,0,3"
+        },
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "home_origin|1,-1,3"
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_planks_once",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,0,3"
+        },
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "home_origin|1,-1,3"
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_acquire_log",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,0,3"
+        },
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "home_origin|1,-1,3"
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_home_site_relocate",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,0,3"
+        },
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,-1,3"
+        }
+      ]
+    }
+  ]
+}

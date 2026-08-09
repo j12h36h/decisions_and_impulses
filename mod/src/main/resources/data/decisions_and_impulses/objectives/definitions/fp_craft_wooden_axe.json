@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_craft_wooden_axe_attempt_1"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "select_waypoint_offset",
+      "action": "home_origin",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        }
+      ],
+      "direction": "3,0,2"
+    },
+    {
+      "type": "approach_target_block",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 90,
+      "value": 3.1
+    },
+    {
+      "type": "wait_for_approach",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 90
+    },
+    {
+      "type": "wait_for_target_block",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 24
+    },
+    {
+      "type": "mine_targeted_block",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        },
+        {
+          "type": "targeted_block_breakable"
+        }
+      ],
+      "ticks": 24
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_house_plank_014_gate",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_house_plank_014_clear_attempt_2",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "home_origin|3,0,2",
+              "string_value": "minecraft:void_air"
+            }
+          ],
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

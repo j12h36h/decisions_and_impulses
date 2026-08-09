@@ -1,0 +1,179 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_craft_sticks_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_planks_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_acquire_log",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_planks_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_acquire_log",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_craft_wooden_pickaxe",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

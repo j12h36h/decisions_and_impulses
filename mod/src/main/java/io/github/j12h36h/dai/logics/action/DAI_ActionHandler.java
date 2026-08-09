@@ -29,6 +29,7 @@ public final class DAI_ActionHandler {
         registerBlockActions();
         registerNavigationActions();
         registerWaypointActions();
+        registerSpatialActions();
         registerFoodActions();
         registerContainerActions();
         registerQueueActions();
@@ -351,6 +352,17 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "place_block_at_selected_position",
+                DAI_ExactPlacementLogic::placeAtSelectedPosition
+        );
+
+        /* Internal continuation used by deterministic blueprint placement. */
+        register(
+                "exact_place_finish",
+                DAI_ExactPlacementLogic::finishPlacement
+        );
+
+        register(
                 "harvest_crop",
                 DAI_BlockLogic::harvestCrop
         );
@@ -416,6 +428,34 @@ public final class DAI_ActionHandler {
                         DAI_WaypointLogic.forgetWaypoint(
                                 action.action()
                         )
+        );
+    }
+
+    private static void registerSpatialActions() {
+
+        register(
+                "select_waypoint_offset",
+                DAI_SpatialLogic::selectWaypointOffset
+        );
+
+        register(
+                "remember_offset_waypoint",
+                DAI_SpatialLogic::rememberOffsetWaypoint
+        );
+
+        register(
+                "scan_adjacent_blocks",
+                DAI_SpatialLogic::scanAdjacentBlocks
+        );
+
+        register(
+                "select_adjacent_block",
+                DAI_SpatialLogic::selectAdjacentBlock
+        );
+
+        register(
+                "spatial_clear",
+                DAI_SpatialLogic::clearSpatialState
         );
     }
 

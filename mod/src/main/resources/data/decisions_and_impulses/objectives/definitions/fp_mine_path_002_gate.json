@@ -1,0 +1,217 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_mine_path_002_slab_place",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "mine_origin|1,0,1"
+        },
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:spruce_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:birch_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:jungle_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:acacia_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:dark_oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:mangrove_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:cherry_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:pale_oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:crimson_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:warped_slab"
+            }
+          ],
+          "negate": true
+        },
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:cave_air"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:void_air"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_mine_path_002_foundation_place",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "mine_origin|1,0,1"
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "mine_origin|1,0,1"
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_mine_path_003_gate",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:spruce_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:birch_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:jungle_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:acacia_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:dark_oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:mangrove_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:cherry_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:pale_oak_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:crimson_slab"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "mine_origin|1,1,1",
+              "string_value": "minecraft:warped_slab"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

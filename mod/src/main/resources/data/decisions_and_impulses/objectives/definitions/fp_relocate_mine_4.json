@@ -1,0 +1,36 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "remember_waypoint",
+      "action": "fp_mine_site_3_failed",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "fp_mine_site_3_failed"
+        }
+      ]
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "mine_origin",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "mine_origin"
+        }
+      ]
+    },
+    {
+      "type": "remember_offset_waypoint",
+      "action": "home_origin",
+      "direction": "1,0,-7",
+      "open": "mine_origin"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_mine_site_preflight"
+    }
+  ]
+}

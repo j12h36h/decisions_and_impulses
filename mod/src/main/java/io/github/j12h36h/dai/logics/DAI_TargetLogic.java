@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.approach.DAI_ApproachProfile;
+import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputTargeting;
 import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
@@ -625,14 +626,24 @@ public final class DAI_TargetLogic {
      */
     public static void clear() {
 
+        /*
+         * Clearing the selected block must also release the approach
+         * controller's active/completed ownership. Otherwise
+         * interactionTarget() can continue returning the old block and
+         * movement/path rebuilding continues after target_clear.
+         */
+        DAI_ApproachController.discardTargetOwnership();
+
         DAI_TargetState.clear();
+
+        closeCraftingTableMenuIfOpen();
 
         DAI_ActionStatus.set(
                 DAI_ActionResult.SUCCESS
         );
 
         DAI_Core.LOGGER.debug(
-                "<DAI>: Cleared all selected targets."
+                "<DAI>: Cleared all selected targets and block-approach ownership."
         );
     }
 
@@ -651,14 +662,55 @@ public final class DAI_TargetLogic {
 
     public static void clearBlock() {
 
+        DAI_ApproachController.discardTargetOwnership();
+
         DAI_TargetState.clearBlock();
+
+        closeCraftingTableMenuIfOpen();
 
         DAI_ActionStatus.set(
                 DAI_ActionResult.SUCCESS
         );
 
         DAI_Core.LOGGER.debug(
-                "<DAI>: Cleared selected block target."
+                "<DAI>: Cleared selected block target and block-approach ownership."
+        );
+    }
+
+    /**
+     * Crafting-table workflows historically close the GUI before returning
+     * to world targeting. Some newer objective flows omit an explicit
+     * close_container but always clear the workstation target afterward.
+     * Restore that safe boundary without affecting inventory crafting or
+     * unrelated external containers.
+     */
+    private static void closeCraftingTableMenuIfOpen() {
+
+        Minecraft minecraft =
+                Minecraft.getInstance();
+
+        if (
+                minecraft.player == null
+                        || minecraft.player.containerMenu == null
+        ) {
+            return;
+        }
+
+        if (
+                !"CraftingMenu".equals(
+                        minecraft.player
+                                .containerMenu
+                                .getClass()
+                                .getSimpleName()
+                )
+        ) {
+            return;
+        }
+
+        minecraft.player.closeContainer();
+
+        DAI_Core.LOGGER.debug(
+                "<DAI>: Closed crafting-table menu while leaving its world-target context."
         );
     }
 

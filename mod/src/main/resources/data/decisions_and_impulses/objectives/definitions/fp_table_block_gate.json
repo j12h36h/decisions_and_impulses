@@ -1,0 +1,74 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_table_finalize",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "home_origin|1,1,3",
+          "string_value": "minecraft:crafting_table"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_table_block_place",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "home_origin|1,1,3",
+          "string_value": "minecraft:crafting_table",
+          "negate": true
+        },
+        {
+          "type": "waypoint_offset_air",
+          "parameter": "home_origin|1,1,3"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_table_block_clear",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "home_origin|1,1,3",
+          "string_value": "minecraft:crafting_table",
+          "negate": true
+        },
+        {
+          "type": "waypoint_offset_air",
+          "operator": "is_false",
+          "parameter": "home_origin|1,1,3"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "home_origin|1,1,3",
+          "string_value": "minecraft:crafting_table",
+          "negate": true
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

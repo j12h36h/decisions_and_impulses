@@ -41,5 +41,6 @@ public final class DAI_ConditionHandler {
         DAI_ConditionsMovementProgress.registerAll();
 
         DAI_ConditionsWaypoint.registerAll();
+        DAI_ConditionsSpatial.registerAll();
     }
 }

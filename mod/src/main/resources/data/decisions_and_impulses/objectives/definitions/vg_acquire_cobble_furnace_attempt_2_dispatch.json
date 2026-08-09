@@ -1,0 +1,28 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:vg_acquire_cobble_furnace_attempt_3",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0,
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

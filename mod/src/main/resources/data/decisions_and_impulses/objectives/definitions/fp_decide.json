@@ -1,0 +1,22 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_lava_recovery",
+      "conditions": [
+        {
+          "type": "player_in_lava"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_decide_progress",
+      "conditions": [
+        {
+          "type": "player_in_lava",
+          "operator": "is_false"
+        }
+      ]
+    }
+  ]
+}

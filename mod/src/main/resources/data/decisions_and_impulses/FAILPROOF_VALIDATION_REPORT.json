@@ -1,0 +1,48 @@
+{
+  "objective_definitions": 1514,
+  "failproof_objectives": 1303,
+  "logic_definitions": 167,
+  "recognition_definitions": 171,
+  "recognition_groups": 148,
+  "dai_recipes": 43,
+  "registered_java_action_types": 92,
+  "registered_java_condition_types": 191,
+  "house_plank_nodes": 79,
+  "house_air_clear_nodes": 19,
+  "mine_excavation_nodes": 54,
+  "mine_slices": 6,
+  "validation_errors": [],
+  "validation_warnings": [],
+  "uses_exact_blueprint_placement": true,
+  "uses_ray_alignment_preflight": true,
+  "uses_real_drop_collectors": true,
+  "legacy_non_vg_objectives_removed": true,
+  "portal_entry_preserved": true,
+  "portal_frame_auto_build_included": false,
+  "json_parse_errors": [],
+  "reachable_objectives": 1438,
+  "unresolved_action_references": [],
+  "reachable_unsafe_action_usage": {
+    "interact": [],
+    "place_targeted_block": [],
+    "place_nearest_block": [],
+    "run_if_failure": [],
+    "run_if_success": []
+  },
+  "max_reachable_immediate_sequence": {
+    "actions": 26,
+    "definition": "fp_decide",
+    "note": "fp_decide is resolve-time mutually-exclusive references; largest semantic blueprint attempts are 21 actions"
+  },
+  "final_checks": {
+    "house_plank_gate_count": 79,
+    "house_air_gate_count": 19,
+    "mine_air_gate_count": 54,
+    "mine_path_gate_count": 6,
+    "table_exact_place_present": true,
+    "ray_alignment_present": true,
+    "adjacent_scan_present": true,
+    "stone_to_cobble_explicit_collectors": true
+  },
+  "archive_test": "passed"
+}

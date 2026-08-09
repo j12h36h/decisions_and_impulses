@@ -1,0 +1,35 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "remember_offset_waypoint",
+      "action": "mine_origin",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "mine_entrance"
+        }
+      ],
+      "direction": "0,1,1",
+      "open": "mine_entrance"
+    },
+    {
+      "type": "remember_offset_waypoint",
+      "action": "mine_origin",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "mine_ready"
+        }
+      ],
+      "direction": "5,1,1",
+      "open": "mine_ready"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_cycle"
+    }
+  ]
+}

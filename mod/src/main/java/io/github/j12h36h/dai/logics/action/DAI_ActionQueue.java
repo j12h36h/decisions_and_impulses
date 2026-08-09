@@ -626,6 +626,32 @@ public final class DAI_ActionQueue {
         return ACTIONS.getFirst();
     }
 
+    /**
+     * Replaces the current normal queue head while preserving queue order.
+     * Primarily used when a higher-level action can specialize an already
+     * queued generic continuation instead of duplicating it.
+     */
+    public static boolean replaceHead(
+            DAI_ActionDefinition replacement
+    ) {
+
+        if (
+                replacement == null
+                        || ACTIONS.isEmpty()
+        ) {
+            return false;
+        }
+
+        ACTIONS.set(
+                0,
+                replacement
+        );
+
+        mutate();
+
+        return true;
+    }
+
     public static DAI_ActionDefinition dispatchHead() {
 
         if (barrierAction != null) {

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "entries": [
+    "@dirt",
+    "@sand",
+    "@gravel",
+    "@natural_stone",
+    "@deepslate"
+  ]
+}

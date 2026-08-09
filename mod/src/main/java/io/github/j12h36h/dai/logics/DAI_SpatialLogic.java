@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.menus.system.DAI_SpatialState;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
 import io.github.j12h36h.dai.menus.system.DAI_WaypointMemory;
@@ -105,6 +106,8 @@ public final class DAI_SpatialLogic {
                                 offset.getZ()
                         )
                         .immutable();
+
+        DAI_ApproachController.discardTargetOwnership();
 
         DAI_TargetState.selectBlock(
                 position
@@ -396,6 +399,8 @@ public final class DAI_SpatialLogic {
                         offset.getZ()
                 )
                 .immutable();
+
+        DAI_ApproachController.discardTargetOwnership();
 
         DAI_TargetState.selectBlock(
                 selected

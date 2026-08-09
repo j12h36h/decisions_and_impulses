@@ -1,0 +1,28 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:vg_acquire_diamond_attempt_3",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

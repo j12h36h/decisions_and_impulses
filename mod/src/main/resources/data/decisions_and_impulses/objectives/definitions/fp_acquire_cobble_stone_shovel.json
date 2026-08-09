@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_acquire_cobble_stone_shovel_attempt_1"
+    }
+  ]
+}

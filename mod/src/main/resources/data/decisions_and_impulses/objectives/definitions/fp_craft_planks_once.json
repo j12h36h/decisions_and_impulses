@@ -1,0 +1,550 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:fp_planks_oak_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_spruce_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_birch_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_jungle_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_acacia_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_dark_oak_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_mangrove_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_cherry_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_pale_oak_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_crimson_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_warped_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:warped_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_planks_unhandled",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:oak_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:spruce_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:birch_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:jungle_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:acacia_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:dark_oak_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:mangrove_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:cherry_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:pale_oak_log",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:crimson_stem",
+              "number_value": 1.0
+            },
+            {
+              "type": "inventory_item_count",
+              "operator": "greater_than_or_equal",
+              "parameter": "minecraft:warped_stem",
+              "number_value": 1.0
+            }
+          ],
+          "negate": true
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:fp_cycle",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

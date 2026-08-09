@@ -1,0 +1,118 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "#minecraft:logs",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        }
+      ],
+      "value": 24.0
+    },
+    {
+      "type": "approach_target_block",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 300,
+      "value": 3.25
+    },
+    {
+      "type": "wait_for_approach",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 300
+    },
+    {
+      "type": "wait_for_target_block",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 40
+    },
+    {
+      "type": "mine_targeted_block",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 40
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "#minecraft:logs",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0,
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 160,
+      "value": 8.0
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:fp_acquire_log_attempt_1_dispatch"
+    }
+  ]
+}
