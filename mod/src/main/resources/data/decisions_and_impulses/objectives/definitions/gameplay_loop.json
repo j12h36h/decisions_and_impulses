@@ -1,0 +1,12 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_survival_shell"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_spawn_safety"
+    }
+  ]
+}

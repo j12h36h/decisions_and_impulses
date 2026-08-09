@@ -1,0 +1,80 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "eat_best_food",
+      "conditions": [
+        {
+          "type": "player_hunger",
+          "operator": "less_than",
+          "number_value": 14.0
+        }
+      ],
+      "ticks": 32
+    },
+    {
+      "type": "swim_set",
+      "conditions": [
+        {
+          "type": "player_in_water"
+        }
+      ],
+      "state": true
+    },
+    {
+      "type": "jump",
+      "conditions": [
+        {
+          "type": "player_in_water"
+        }
+      ]
+    },
+    {
+      "type": "swim_set",
+      "conditions": [
+        {
+          "type": "player_in_lava"
+        }
+      ],
+      "state": true
+    },
+    {
+      "type": "jump",
+      "conditions": [
+        {
+          "type": "player_in_lava"
+        }
+      ],
+      "ticks": 5,
+      "direction": "forward"
+    },
+    {
+      "type": "scan"
+    },
+    {
+      "type": "equip_best_weapon",
+      "conditions": [
+        {
+          "type": "target_is_hostile"
+        }
+      ]
+    },
+    {
+      "type": "attack_target",
+      "conditions": [
+        {
+          "type": "target_is_hostile"
+        }
+      ]
+    },
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

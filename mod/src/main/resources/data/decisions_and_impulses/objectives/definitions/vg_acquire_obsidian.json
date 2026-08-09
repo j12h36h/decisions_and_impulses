@@ -1,0 +1,201 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 180,
+      "value": 20.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 180,
+      "value": 20.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 180
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 180,
+      "value": 20.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 260,
+      "value": 40.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 260
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 260,
+      "value": 40.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 360,
+      "value": 72.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 360
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 360,
+      "value": 72.0
+    },
+    {
+      "action": "decisions_and_impulses:vg_impossible_signal",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "select_waypoint",
+      "action": "nether_portal"
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 140,
+      "value": 0.5
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 140
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 16
+    },
+    {
+      "type": "move",
+      "ticks": 28,
+      "direction": "forward"
+    },
+    {
+      "type": "delay",
+      "ticks": 100
+    },
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

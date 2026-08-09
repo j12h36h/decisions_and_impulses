@@ -1,0 +1,18 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "remember_waypoint",
+      "action": "nether_entry"
+    },
+    {
+      "type": "automation_stop"
+    }
+  ]
+}

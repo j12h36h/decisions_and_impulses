@@ -1,0 +1,110 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:furnace",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "furnace"
+        }
+      ],
+      "value": 12.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "furnace",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "furnace"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_furnace_place",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "furnace"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:furnace",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_acquire_cobble_furnace",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "furnace"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:furnace",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_craft_furnace",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "furnace"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:furnace",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "furnace"
+        }
+      ]
+    }
+  ]
+}

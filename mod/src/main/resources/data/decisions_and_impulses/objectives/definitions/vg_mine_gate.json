@@ -1,0 +1,34 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "recognize_block",
+      "action": "minecraft:stone",
+      "value": 24.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "mine_entrance",
+      "conditions": [
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_search_mine",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "mine_entrance"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

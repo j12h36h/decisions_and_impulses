@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:chest",
+      "value": 12.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "home_chest",
+      "conditions": [
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

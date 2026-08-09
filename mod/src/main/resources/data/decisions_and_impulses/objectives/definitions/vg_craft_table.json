@@ -1,0 +1,66 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "close_container"
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 4.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:nether_portal",
+      "value": 48.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "nether_portal",
+      "conditions": [
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "explore_for_block",
+      "action": "minecraft:nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "ticks": 200,
+      "value": 64.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "ticks": 200
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "value": 64.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "explore_for_block",
+      "action": "minecraft:nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "ticks": 320,
+      "value": 96.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "ticks": 320
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ],
+      "value": 96.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "nether_portal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_portal_builder_unavailable",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "nether_portal"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

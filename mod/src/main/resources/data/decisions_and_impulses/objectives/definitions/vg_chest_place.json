@@ -1,0 +1,214 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "place_nearest_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:chest",
+          "number_value": 1.0
+        }
+      ],
+      "ticks": 90,
+      "value": 6.0
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ],
+      "value": 12.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "home_chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "place_nearest_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:chest",
+          "number_value": 1.0
+        }
+      ],
+      "ticks": 90,
+      "value": 10.0
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ],
+      "value": 14.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "home_chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "place_nearest_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:chest",
+          "number_value": 1.0
+        }
+      ],
+      "ticks": 90,
+      "value": 16.0
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ],
+      "value": 20.0
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "home_chest",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:vg_impossible_signal",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "home_chest"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

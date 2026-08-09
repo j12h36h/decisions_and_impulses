@@ -1,0 +1,16 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "L"
+  ],
+  "key": {
+    "L": {
+      "tag": "minecraft:jungle_logs"
+    }
+  },
+  "result": {
+    "item": "minecraft:jungle_planks",
+    "count": 4
+  },
+  "container": "minecraft:inventory"
+}

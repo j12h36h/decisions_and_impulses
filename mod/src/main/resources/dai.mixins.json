@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "io.github.j12h36h.dai.mixin",
+  "package": "io.github.j12h36h.dai.logics.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "Mixin_ClientPacketListener",

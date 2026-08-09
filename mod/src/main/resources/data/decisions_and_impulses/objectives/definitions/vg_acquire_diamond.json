@@ -1,0 +1,201 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 160,
+      "value": 20.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 160,
+      "value": 20.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 160,
+      "value": 20.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 240,
+      "value": 40.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 240
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 240,
+      "value": 40.0
+    },
+    {
+      "type": "explore_for_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 340,
+      "value": 72.0
+    },
+    {
+      "type": "wait_for_exploration",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 340
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:diamond_ores",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ],
+      "ticks": 340,
+      "value": 72.0
+    },
+    {
+      "action": "decisions_and_impulses:vg_impossible_signal",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:diamond",
+          "number_value": 3.0,
+          "negate": true
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

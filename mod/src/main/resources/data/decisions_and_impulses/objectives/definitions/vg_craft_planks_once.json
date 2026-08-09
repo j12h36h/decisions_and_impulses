@@ -1,0 +1,1395 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:spruce_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:spruce_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:spruce_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:birch_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:birch_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:birch_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:jungle_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:jungle_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:jungle_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:acacia_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:acacia_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:acacia_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:dark_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:dark_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:dark_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:mangrove_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:mangrove_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:mangrove_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:cherry_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:cherry_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:cherry_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:pale_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:pale_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:pale_oak_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crimson_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crimson_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:crimson_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:warped_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:warped_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:warped_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:warped_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "craft_recipe",
+      "action": "minecraft:warped_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:warped_stem",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:spruce_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:birch_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:jungle_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:acacia_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:dark_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:mangrove_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cherry_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:pale_oak_log",
+          "number_value": 1.0
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crimson_stem",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

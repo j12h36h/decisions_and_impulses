@@ -1,0 +1,83 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "add_look",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "path_forward_dangerous_drop"
+            },
+            {
+              "type": "path_forward_lava"
+            }
+          ]
+        }
+      ],
+      "yaw": 90.0
+    },
+    {
+      "type": "add_look",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "path_forward_dangerous_drop"
+            },
+            {
+              "type": "path_forward_lava"
+            }
+          ]
+        }
+      ],
+      "yaw": 90.0
+    },
+    {
+      "type": "add_look",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "path_forward_dangerous_drop"
+            },
+            {
+              "type": "path_forward_lava"
+            }
+          ]
+        }
+      ],
+      "yaw": 90.0
+    },
+    {
+      "type": "add_look",
+      "conditions": [
+        {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "path_forward_dangerous_drop"
+            },
+            {
+              "type": "path_forward_lava"
+            }
+          ]
+        }
+      ],
+      "yaw": 90.0
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}
