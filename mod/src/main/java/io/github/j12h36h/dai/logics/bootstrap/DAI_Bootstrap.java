@@ -23,6 +23,7 @@ public final class DAI_Bootstrap {
         );
 
         DAI_ConfigBootstrap.initialize(
+                modBus,
                 container
         );
 

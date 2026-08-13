@@ -851,6 +851,10 @@ public final class DAI_PathFinder {
                         position.below()
                 );
 
+        if (feet.is(Blocks.SNOW)) {
+            cost += 0.10D;
+        }
+
         if (
                 isPassableNonAirBlock(
                         level,
@@ -1468,9 +1472,21 @@ public final class DAI_PathFinder {
 
                     if (targetBelow) {
 
-                        meaningfulProgress =
+                        /*
+                         * Descending is useful only when it does not undo the
+                         * progress of the previous staging move. The old
+                         * `descent > 0` rule allowed a lower-but-farther tile
+                         * to win, then an upper-but-closer tile to win on the
+                         * next pass, producing a two-position recovery loop.
+                         */
+                        boolean usefulDescent =
                                 descent > 0
-                                        || targetProgress > 0.75D;
+                                        && candidateTargetDistance
+                                        <= originTargetDistance + 0.35D;
+
+                        meaningfulProgress =
+                                targetProgress > 0.75D
+                                        || usefulDescent;
 
                     } else {
 
@@ -2062,6 +2078,19 @@ public final class DAI_PathFinder {
                 )
         ) {
             return false;
+        }
+
+        /*
+         * A vanilla snow layer has a thin collision shape, but a player's
+         * feet remain in that block coordinate while standing/walking across
+         * it. Treating every non-empty collision shape as impassable made
+         * snowy terrain look like a field of walls.
+         */
+        if (
+                state.is(Blocks.SNOW)
+                        && state.getFluidState().isEmpty()
+        ) {
+            return true;
         }
 
         return state.getCollisionShape(

@@ -238,7 +238,7 @@ public final class DAI_ConditionsInventory {
                                     resultId
                             );
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Recipe result '{}' unlocked={}.",
                             resultId,
                             unlocked

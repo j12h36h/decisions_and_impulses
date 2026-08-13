@@ -83,7 +83,7 @@ public final class DAI_ApproachPathing {
 
             DAI_ApproachState.resetRouteProgress();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Current position {} is already the nearest approach position for target {}.",
                     origin,
                     DAI_ApproachState.target()

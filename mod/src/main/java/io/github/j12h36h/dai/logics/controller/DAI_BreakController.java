@@ -102,7 +102,7 @@ public final class DAI_BreakController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Complete crosshair single-block break requested."
         );
     }
@@ -175,7 +175,7 @@ public final class DAI_BreakController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Targeted single-block break requested for {}.",
                 breakingPos
         );
@@ -203,7 +203,7 @@ public final class DAI_BreakController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Continuous block breaking started."
         );
     }
@@ -223,7 +223,7 @@ public final class DAI_BreakController {
                     DAI_ActionResult.CANCELLED
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Block breaking stopped."
             );
         }
@@ -266,7 +266,7 @@ public final class DAI_BreakController {
                     DAI_ActionResult.CANCELLED
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Active block-breaking operation cancelled during reset."
             );
         }
@@ -484,7 +484,7 @@ public final class DAI_BreakController {
                     DAI_ActionResult.RUNNING
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Finished breaking block at {}; continuous breaking remains active.",
                     finishedPos
             );
@@ -601,7 +601,7 @@ public final class DAI_BreakController {
                         DAI_ActionResult.RUNNING
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Could not start breaking block at {}; continuous breaking remains active.",
                         breakingPos
                 );
@@ -618,7 +618,7 @@ public final class DAI_BreakController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Started breaking block at {}{}.",
                 breakingPos,
                 explicitTarget
@@ -706,7 +706,7 @@ public final class DAI_BreakController {
                         DAI_ActionResult.RUNNING
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Could not continue breaking block at {}; continuous breaking remains active.",
                         failedPos
                 );
@@ -799,7 +799,7 @@ public final class DAI_BreakController {
                 result
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Finished continuous block breaking at {} with result={}: {}.",
                 finishedPos,
                 result,

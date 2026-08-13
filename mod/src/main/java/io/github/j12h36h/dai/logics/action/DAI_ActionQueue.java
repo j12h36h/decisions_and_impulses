@@ -6,11 +6,29 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class DAI_ActionQueue {
 
     private static final int MAX_QUEUE_SIZE =
-            1024;
+            128;
+
+    /*
+     * High-level automation continuations are queued as tiny references and
+     * expanded only when they reach the head. This prevents recursive
+     * fp_cycle/fp_decide flows from materializing hundreds of atomic actions
+     * that are already stale by the time they execute.
+     */
+    private static final String DEFERRED_REFERENCE_TYPE =
+            "__dai_deferred_reference";
+
+    /*
+     * Deferred references are structural queue nodes, not semantic actions.
+     * Allow a bounded number to expand inline before dispatching the one
+     * semantic action permitted this tick.
+     */
+    private static final int MAX_INLINE_REFERENCE_EXPANSIONS =
+            8;
 
     private static final List<DAI_ActionDefinition> ACTIONS =
             new ArrayList<>();
@@ -106,10 +124,61 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Enqueued {} atomic action(s) (size={}).",
                 accepted.size(),
                 ACTIONS.size()
+        );
+    }
+
+    /**
+     * Queues a high-level action reference without expanding it immediately.
+     *
+     * Fail-proof / vanilla-goal continuations are coalesced by identifier:
+     * once one copy is pending, another copy cannot amplify the queue.
+     */
+    public static void enqueueDeferredReference(
+            String actionId
+    ) {
+
+        if (actionId == null || actionId.isBlank()) {
+            return;
+        }
+
+        String normalized =
+                actionId.trim();
+
+        if (
+                isCoalescibleReference(
+                        normalized
+                )
+                        && containsDeferredReference(
+                        normalized
+                )
+        ) {
+
+            DAI_Core.debug(
+                    "<DAI>: Coalesced duplicate deferred action '{}'.",
+                    normalized
+            );
+
+            return;
+        }
+
+        enqueue(
+                new DAI_ActionDefinition(
+                        DEFERRED_REFERENCE_TYPE,
+                        normalized,
+                        List.of(),
+                        List.of(),
+                        "",
+                        "",
+                        0.0F,
+                        0.0F,
+                        "",
+                        0,
+                        0
+                )
         );
     }
 
@@ -168,7 +237,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Prepended {} atomic action(s) (size={}).",
                 accepted.size(),
                 ACTIONS.size()
@@ -220,7 +289,7 @@ public final class DAI_ActionQueue {
 
                 mutate();
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Action queue delay completed."
                 );
             }
@@ -232,14 +301,195 @@ public final class DAI_ActionQueue {
             return;
         }
 
-        DAI_ActionDefinition action =
-                ACTIONS.removeFirst();
+        /*
+         * Controllers continue at full client-tick rate, but NEW semantic
+         * actions and their structural expansion are globally governed.
+         */
+        if (!DAI_ActionGovernor.canStartSemanticAction()) {
+            return;
+        }
 
-        mutate();
+        int referenceExpansions =
+                0;
 
-        executeQueuedAction(
-                action
+        while (!ACTIONS.isEmpty()) {
+
+            DAI_ActionDefinition action =
+                    ACTIONS.removeFirst();
+
+            mutate();
+
+            if (isDeferredReference(action)) {
+
+                expandDeferredReference(
+                        action
+                );
+
+                referenceExpansions++;
+
+                if (
+                        referenceExpansions
+                                >= MAX_INLINE_REFERENCE_EXPANSIONS
+                ) {
+
+                    DAI_Core.LOGGER.warn(
+                            "<DAI>: Deferred-reference expansion budget reached in one tick ({}); remaining queue size={}.",
+                            MAX_INLINE_REFERENCE_EXPANSIONS,
+                            ACTIONS.size()
+                    );
+
+                    return;
+                }
+
+                /*
+                 * Structural expansion does not consume the semantic-action
+                 * budget. Continue until an executable action is reached.
+                 */
+                continue;
+            }
+
+            executeQueuedAction(
+                    action
+            );
+
+            DAI_ActionGovernor.onSemanticActionStarted();
+
+            return;
+        }
+    }
+
+    private static void expandDeferredReference(
+            DAI_ActionDefinition reference
+    ) {
+
+        if (reference == null || !reference.hasAction()) {
+            return;
+        }
+
+        List<DAI_ActionDefinition> resolved =
+                DAI_ActionResolver.resolve(
+                        reference.action()
+                );
+
+        if (resolved.isEmpty()) {
+            return;
+        }
+
+        enqueueFirstAll(
+                resolved
         );
+
+        DAI_Core.debug(
+                "<DAI>: Lazily expanded deferred action '{}' into {} atomic action(s) (queueSize={}).",
+                reference.action(),
+                resolved.size(),
+                ACTIONS.size()
+        );
+    }
+
+    private static boolean isDeferredReference(
+            DAI_ActionDefinition action
+    ) {
+
+        return action != null
+                && DEFERRED_REFERENCE_TYPE.equals(
+                action.type()
+        );
+    }
+
+    private static boolean containsDeferredReference(
+            String actionId
+    ) {
+
+        if (
+                barrierAction != null
+                        && isDeferredReference(barrierAction)
+                        && actionId.equals(
+                        barrierAction.action()
+                )
+        ) {
+            return true;
+        }
+
+        for (DAI_ActionDefinition queued : ACTIONS) {
+
+            if (
+                    isDeferredReference(queued)
+                            && actionId.equals(
+                            queued.action()
+                    )
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isCoalescibleReference(
+            String actionId
+    ) {
+
+        String normalized =
+                actionId == null
+                        ? ""
+                        : actionId.trim()
+                        .toLowerCase(
+                                Locale.ROOT
+                        );
+
+        return normalized.startsWith(
+                DAI_Core.MODID + ":fp_"
+        )
+                || normalized.startsWith(
+                DAI_Core.MODID + ":vg_"
+        );
+    }
+
+    /**
+     * Hard control-plane interrupt used by menu actions.
+     *
+     * Existing queued/barrier work is discarded and the first semantic action
+     * of the requested menu command executes immediately on the render thread,
+     * bypassing the normal governor. Remaining resolved actions stay at the
+     * front and subsequently obey normal rate limits.
+     */
+    public static void interruptAndDispatch(
+            List<DAI_ActionDefinition> actions
+    ) {
+
+        clear();
+        DAI_ActionGovernor.resetForPriorityInterrupt();
+
+        if (actions == null || actions.isEmpty()) {
+            return;
+        }
+
+        enqueueFirstAll(actions);
+
+        int referenceExpansions = 0;
+
+        while (!ACTIONS.isEmpty()) {
+
+            DAI_ActionDefinition action =
+                    ACTIONS.removeFirst();
+
+            mutate();
+
+            if (isDeferredReference(action)) {
+                expandDeferredReference(action);
+                referenceExpansions++;
+
+                if (referenceExpansions >= MAX_INLINE_REFERENCE_EXPANSIONS) {
+                    return;
+                }
+
+                continue;
+            }
+
+            executeQueuedAction(action);
+            return;
+        }
     }
 
     /*
@@ -286,7 +536,7 @@ public final class DAI_ActionQueue {
 
         if (newlyInstalled) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Queue barrier installed by action type='{}' slot={}.",
                     action.type(),
                     action.slot()
@@ -294,7 +544,7 @@ public final class DAI_ActionQueue {
 
         } else {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Queue barrier refreshed by action type='{}' slot={}.",
                     action.type(),
                     action.slot()
@@ -359,8 +609,25 @@ public final class DAI_ActionQueue {
 
         ACTIONS.removeFirst();
 
+        /*
+         * A promoted wait is now the continuation of an asynchronous
+         * operation that has already started successfully. Its original
+         * queue-time conditions must NOT be re-evaluated while polling.
+         *
+         * In particular, generated datapack waits commonly carry
+         * last_action_success so they only follow a successful start. The
+         * start action immediately changes the live status to RUNNING, which
+         * made that condition false on the very next barrier poll. The old
+         * behavior released the barrier early and allowed target/exploration
+         * actions behind it to cancel and restart the active controller.
+         *
+         * Strip conditions only when the action becomes a hard barrier. The
+         * initiating queued action already passed its runtime conditions, and
+         * the barrier's generation-bound controller result is now the sole
+         * authority for completion/failure.
+         */
         DAI_ActionDefinition bound =
-                withSlot(
+                withBarrierSlot(
                         head,
                         slot
                 );
@@ -376,7 +643,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Promoted queue-head action type='{}' to barrier slot={} pollDelay={} (remainingQueueSize={}).",
                 normalizedType,
                 bound.slot(),
@@ -410,7 +677,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queue barrier released by action type='{}' slot={}.",
                 type,
                 slot
@@ -538,7 +805,7 @@ public final class DAI_ActionQueue {
                 )
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Skipped {} action type='{}' because its runtime conditions failed.",
                     barrierDispatch
                             ? "barrier"
@@ -686,9 +953,11 @@ public final class DAI_ActionQueue {
         hasDispatchedAction =
                 false;
 
+        DAI_ActionGovernor.resetForPriorityInterrupt();
+
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared action queue and active barrier."
         );
     }
@@ -783,7 +1052,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Deferred queued action type='{}' for {} tick(s).",
                 action.type(),
                 delayTicks
@@ -836,7 +1105,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Bound queue-head action type='{}' to slot={}.",
                 normalizedType,
                 bound.slot()
@@ -893,7 +1162,7 @@ public final class DAI_ActionQueue {
 
             mutate();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Bound first queued action type='{}' to slot={}.",
                     normalizedType,
                     bound.slot()
@@ -923,7 +1192,7 @@ public final class DAI_ActionQueue {
 
         mutate();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Action queue delayed for {} tick(s).",
                 delayTicks
         );
@@ -944,6 +1213,31 @@ public final class DAI_ActionQueue {
      * HELPERS
      * ------------------------------------------------------------
      */
+
+    private static DAI_ActionDefinition withBarrierSlot(
+            DAI_ActionDefinition action,
+            int slot
+    ) {
+
+        return new DAI_ActionDefinition(
+                action.type(),
+                action.action(),
+                List.of(),
+                action.sequence(),
+                action.menu(),
+                action.open(),
+                action.yaw(),
+                action.pitch(),
+                action.direction(),
+                action.ticks(),
+                Math.max(
+                        0,
+                        slot
+                ),
+                action.state(),
+                action.value()
+        );
+    }
 
     private static DAI_ActionDefinition withSlot(
             DAI_ActionDefinition action,

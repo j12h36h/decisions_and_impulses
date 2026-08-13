@@ -55,7 +55,7 @@ public final class DAI_CombatLogic {
 
             DAI_TargetState.clearEntity();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Selected attack target is no longer valid."
             );
 

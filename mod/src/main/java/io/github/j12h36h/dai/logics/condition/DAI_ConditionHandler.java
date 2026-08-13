@@ -36,6 +36,7 @@ public final class DAI_ConditionHandler {
         DAI_ConditionsCombat.registerAll();
         DAI_ConditionsEffect.registerAll();
         DAI_ConditionsNavigation.registerAll();
+        DAI_ConditionsScaffold.registerAll();
         DAI_ConditionsAdvancement.registerAll();
         DAI_ConditionsKnowledge.registerAll();
         DAI_ConditionsMovementProgress.registerAll();

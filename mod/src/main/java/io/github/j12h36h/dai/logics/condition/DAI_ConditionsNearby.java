@@ -1,5 +1,7 @@
 package io.github.j12h36h.dai.logics.condition;
 
+import io.github.j12h36h.dai.logics.DAI_RecognitionLogic;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
@@ -18,6 +20,47 @@ public final class DAI_ConditionsNearby {
     }
 
     public static void registerAll() {
+
+        DAI_ConditionRegistry.register(
+                "nearby_recognition",
+                (context, condition) -> {
+
+                    if (
+                            !context.hasLevel()
+                                    || !context.hasPlayer()
+                    ) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    Identifier recognitionId =
+                            Identifier.tryParse(
+                                    condition.parameter()
+                            );
+
+                    if (recognitionId == null) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    double configuredRadius =
+                            condition.parameterNumber() > 0.0D
+                                    ? condition.parameterNumber()
+                                    : condition.numberValue() > 0.0D
+                                    ? condition.numberValue()
+                                    : DEFAULT_RADIUS;
+
+                    int radius =
+                            (int) Math.round(
+                                    configuredRadius
+                            );
+
+                    return DAI_ConditionValue.bool(
+                            DAI_RecognitionLogic.recognizesNearby(
+                                    recognitionId,
+                                    radius
+                            )
+                    );
+                }
+        );
 
         DAI_ConditionRegistry.register(
                 "nearby_entity_count",

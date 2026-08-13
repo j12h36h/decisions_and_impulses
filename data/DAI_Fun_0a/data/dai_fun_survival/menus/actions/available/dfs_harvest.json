@@ -1,0 +1,31 @@
+{
+  "priority": 100,
+  "buttons": [
+  {
+      "slot": 0,
+      "id": "daifun_survival_harvest_grass",
+      "text": "[D-F] Harvest Grass",
+      "action": "dai_fun_survival:harvest_grass",
+      "conditions": [
+        {
+          "type": "nearby_recognition",
+          "parameter": "dai_fun_survival:harvest_grass",
+          "number_value": 24.0
+        }
+      ]
+    },
+    {
+      "slot": 1,
+      "id": "daifun_survival_harvest_tree",
+      "text": "[D-F] Harvest Tree",
+      "action": "dai_fun_survival:harvest_wood",
+      "conditions": [
+        {
+          "type": "nearby_recognition",
+          "parameter": "decisions_and_impulses:tree",
+          "number_value": 24.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.logics.action;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_RuntimeTelemetry;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -54,7 +55,7 @@ public final class DAI_ActionRegistry {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered action type '{}'.",
                     normalizedId
             );
@@ -132,9 +133,21 @@ public final class DAI_ActionRegistry {
          * current result with RUNNING, FAILURE, CANCELLED, or
          * TIMED_OUT.
          */
-        DAI_ActionStatus.begin();
+        /*
+         * Synchronous actions succeed by default.
+         *
+         * Persistent/asynchronous handlers explicitly replace this with
+         * RUNNING when they acquire controller/barrier ownership. Starting
+         * every action as RUNNING allowed simple actions such as
+         * forget_waypoint, target_clear, input_stop_all, and enqueue_action
+         * to leave the runtime permanently RUNNING when they happened to be
+         * the last dispatched action in a branch.
+         */
+        DAI_ActionStatus.set(
+                DAI_ActionResult.SUCCESS
+        );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Executing registered action type '{}'.",
                 type
         );
@@ -151,6 +164,12 @@ public final class DAI_ActionRegistry {
                     DAI_ActionResult.FAILURE
             );
 
+            DAI_RuntimeTelemetry.actionFailure(
+                    type,
+                    action.action(),
+                    exception
+            );
+
             DAI_Core.LOGGER.error(
                     "<DAI>: Action type '{}' failed during execution.",
                     type,
@@ -158,7 +177,7 @@ public final class DAI_ActionRegistry {
             );
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Registered action type '{}' completed dispatch with currentResult={} and previousResult={}.",
                 type,
                 DAI_ActionStatus.get(),
@@ -195,7 +214,7 @@ public final class DAI_ActionRegistry {
 
         ACTIONS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} registered action type(s).",
                 removed
         );

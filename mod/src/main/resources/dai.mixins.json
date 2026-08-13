@@ -5,7 +5,9 @@
   "client": [
     "Mixin_ClientPacketListener",
     "Mixin_Mouse",
-    "Mixin_Advancements"
+    "Mixin_Advancements",
+    "Mixin_CreativeModeInventoryScreen",
+    "Mixin_Minecraft"
   ],
   "injectors": {
     "defaultRequire": 1

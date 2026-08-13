@@ -247,7 +247,7 @@ public final class DAI_ApproachTargeting {
                 return ApproachTargetResult.WAITING_FOR_ALIGNMENT;
             }
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Target {} is visible from the current position but could not be placed beneath the crosshair after {} tick(s); requesting reposition.",
                     target,
                     APPROACH_ALIGNMENT_GRACE_TICKS
@@ -278,7 +278,7 @@ public final class DAI_ApproachTargeting {
                  */
                 if (target.equals(blocker)) {
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Visibility inspection returned target {} as its own blocker; requesting reposition instead of clearing it.",
                             target
                     );
@@ -293,21 +293,19 @@ public final class DAI_ApproachTargeting {
                         )
                 ) {
 
-                    DAI_Core.LOGGER.info(
-                            "<DAI>: Clearing obstruction {} before aligning with target {}.",
-                            blocker,
-                            target
-                    );
+                    DAI_ApproachObstruction.ClearResult clearResult =
+                            DAI_ApproachObstruction.clear(
+                                    minecraft,
+                                    blocker
+                            );
 
-                    DAI_ApproachObstruction.clear(
-                            minecraft,
-                            blocker
-                    );
-
-                    return ApproachTargetResult.OBSTRUCTION_HANDLED;
+                    return clearResult
+                            == DAI_ApproachObstruction.ClearResult.REPOSITION
+                            ? ApproachTargetResult.REPOSITION
+                            : ApproachTargetResult.OBSTRUCTION_HANDLED;
                 }
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Target {} is blocked by {}, but the obstruction cannot safely be cleared from the current position; requesting reposition.",
                         target,
                         blocker
@@ -321,7 +319,7 @@ public final class DAI_ApproachTargeting {
          * Visibility inspection found neither a usable target point nor a
          * concrete obstruction that can be handled here.
          */
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: No usable visibility point was found for target {} from the current position; requesting reposition.",
                 target
         );
@@ -400,7 +398,7 @@ public final class DAI_ApproachTargeting {
                         DAI_ActionResult.SUCCESS
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Camera aligned with selected block {}.",
                         selected
                 );
@@ -432,16 +430,19 @@ public final class DAI_ApproachTargeting {
                     )
             ) {
 
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Clearing obstruction {} while waiting to align with target {}.",
-                        blocker,
-                        selected
-                );
+                DAI_ApproachObstruction.ClearResult clearResult =
+                        DAI_ApproachObstruction.clear(
+                                minecraft,
+                                blocker
+                        );
 
-                DAI_ApproachObstruction.clear(
-                        minecraft,
-                        blocker
-                );
+                if (
+                        clearResult
+                                == DAI_ApproachObstruction.ClearResult.REPOSITION
+                ) {
+                    DAI_ActionStatus.set(DAI_ActionResult.FAILURE);
+                    return;
+                }
             }
 
         } else {

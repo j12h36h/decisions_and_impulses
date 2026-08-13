@@ -30,7 +30,7 @@ public final class DAI_InventoryLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opening inventory screen."
         );
 

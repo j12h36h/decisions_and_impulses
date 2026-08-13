@@ -48,7 +48,7 @@ public final class DAI_ScreenProfileManager {
                 profile
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Registered screen profile '{}' with {} variant(s).",
                 normalizedId,
                 profile.variants().size()
@@ -62,7 +62,7 @@ public final class DAI_ScreenProfileManager {
 
         PROFILES.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} screen profile(s).",
                 removed
         );
@@ -403,7 +403,7 @@ public final class DAI_ScreenProfileManager {
 
         if (variant == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Screen profile '{}' has no matching variant for the current screen.",
                     normalizeId(
                             profileId
@@ -413,7 +413,7 @@ public final class DAI_ScreenProfileManager {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Screen profile '{}' matched current screen with {} named slot(s) and {} control(s).",
                 normalizeId(
                         profileId

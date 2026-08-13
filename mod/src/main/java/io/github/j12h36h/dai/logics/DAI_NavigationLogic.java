@@ -61,7 +61,7 @@ public final class DAI_NavigationLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Block approach failed to start."
             );
 
@@ -115,7 +115,7 @@ public final class DAI_NavigationLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Block approach generation={} started with immediate queue barrier ownership.",
                 generation
         );
@@ -164,7 +164,7 @@ public final class DAI_NavigationLogic {
                         DAI_ActionResult.FAILURE
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Discarded unbound wait_for_approach because no approach is active."
                 );
 
@@ -179,7 +179,7 @@ public final class DAI_NavigationLogic {
                             expectedGeneration
                     );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Late-bound wait_for_approach to generation={}.",
                     expectedGeneration
             );
@@ -206,7 +206,7 @@ public final class DAI_NavigationLogic {
                     result
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Resolved historical wait_for_approach generation={} result={}.",
                     expectedGeneration,
                     result
@@ -281,7 +281,7 @@ public final class DAI_NavigationLogic {
                 result
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Block approach generation={} barrier completed with result={}.",
                 expectedGeneration,
                 result
@@ -310,7 +310,7 @@ public final class DAI_NavigationLogic {
                     generation
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Explicitly stopped block approach generation={}.",
                     generation
             );
@@ -372,7 +372,7 @@ public final class DAI_NavigationLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Exploration failed to start for '{}'.",
                     action.action()
             );
@@ -420,7 +420,7 @@ public final class DAI_NavigationLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Exploration generation={} started with immediate queue barrier ownership.",
                 generation
         );
@@ -463,7 +463,7 @@ public final class DAI_NavigationLogic {
                         DAI_ActionResult.FAILURE
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Discarded unbound wait_for_exploration because no exploration is active."
                 );
 
@@ -478,7 +478,7 @@ public final class DAI_NavigationLogic {
                             expectedGeneration
                     );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Late-bound wait_for_exploration to generation={}.",
                     expectedGeneration
             );
@@ -502,7 +502,7 @@ public final class DAI_NavigationLogic {
                     result
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Resolved historical wait_for_exploration generation={} result={}.",
                     expectedGeneration,
                     result
@@ -565,7 +565,7 @@ public final class DAI_NavigationLogic {
                 result
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Exploration generation={} barrier completed with result={}.",
                 expectedGeneration,
                 result
@@ -585,7 +585,7 @@ public final class DAI_NavigationLogic {
                     generation
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Explicitly stopped exploration generation={}.",
                     generation
             );

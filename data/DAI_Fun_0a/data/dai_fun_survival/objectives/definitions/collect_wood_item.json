@@ -1,0 +1,21 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "collect_nearby_items",
+      "action": "#minecraft:logs",
+      "ticks": 240,
+      "value": 12.0
+    },
+    {
+      "type": "spatial_clear"
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "harvest_wood_anchor"
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

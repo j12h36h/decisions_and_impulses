@@ -41,7 +41,7 @@ public final class DAI_MenuLayout {
                 screenHeight
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Menu layouts initialized for screen {}x{}.",
                 screenWidth,
                 screenHeight
@@ -105,7 +105,7 @@ public final class DAI_MenuLayout {
 
         layouts.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} menu layout(s).",
                 removed
         );
@@ -144,7 +144,7 @@ public final class DAI_MenuLayout {
                 layout
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Registered {} menu layout at {}: x={}, y={}, width={}, height={}.",
                 category,
                 position,

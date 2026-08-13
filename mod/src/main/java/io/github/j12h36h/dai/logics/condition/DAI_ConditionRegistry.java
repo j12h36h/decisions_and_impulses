@@ -43,7 +43,7 @@ public final class DAI_ConditionRegistry {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered condition '{}'.",
                     normalizedId
             );
@@ -117,7 +117,7 @@ public final class DAI_ConditionRegistry {
                 return DAI_ConditionValue.missing();
             }
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Read condition '{}' as {}.",
                     type,
                     value
@@ -154,7 +154,7 @@ public final class DAI_ConditionRegistry {
 
         CONDITIONS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared condition registry (removed {}).",
                 removed
         );

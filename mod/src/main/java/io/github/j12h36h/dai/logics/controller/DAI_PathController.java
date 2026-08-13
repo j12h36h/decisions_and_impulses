@@ -117,7 +117,7 @@ public final class DAI_PathController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Started following path with {} node(s).",
                 path.size()
         );
@@ -331,7 +331,7 @@ public final class DAI_PathController {
                     DAI_ActionResult.CANCELLED
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Active path following cancelled during reset."
             );
         }
@@ -401,7 +401,7 @@ public final class DAI_PathController {
                 shouldSwim
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Path swim assist {}.",
                 shouldSwim
                         ? "enabled"
@@ -435,7 +435,7 @@ public final class DAI_PathController {
 
         minecraft.player.jumpFromGround();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Path follower requested jump toward node {}.",
                 targetNode
         );
@@ -486,7 +486,7 @@ public final class DAI_PathController {
 
         stuckChecks++;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Path follower made insufficient progress ({}/{}).",
                 stuckChecks,
                 MAX_STUCK_CHECKS
@@ -885,7 +885,7 @@ public final class DAI_PathController {
                 result
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Finished path following toward {} with result={}: {}.",
                 destination,
                 result,

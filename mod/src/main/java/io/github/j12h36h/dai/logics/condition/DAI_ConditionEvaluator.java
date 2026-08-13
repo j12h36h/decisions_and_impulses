@@ -11,6 +11,11 @@ public final class DAI_ConditionEvaluator {
     private static final int MAX_GROUP_DEPTH = 32;
     private static final int MAX_EVALUATED_NODES = 512;
 
+    /* Per-node condition tracing is extremely allocation-heavy in large
+     * fail-proof graphs. Runtime telemetry already captures state snapshots,
+     * so keep detailed condition tracing off by default. */
+    private static final boolean TRACE_CONDITIONS = false;
+
     private DAI_ConditionEvaluator() {
         // Utility class.
     }
@@ -58,12 +63,14 @@ public final class DAI_ConditionEvaluator {
                     )
             ) {
 
-                DAI_Core.LOGGER.debug(
-                        "<DAI>: Condition group was blocked by '{}'.",
-                        condition == null
-                                ? "<null>"
-                                : condition.type()
-                );
+                if (TRACE_CONDITIONS) {
+                    DAI_Core.debug(
+                            "<DAI>: Condition group was blocked by '{}'.",
+                            condition == null
+                                    ? "<null>"
+                                    : condition.type()
+                    );
+                }
 
                 return false;
             }
@@ -166,13 +173,15 @@ public final class DAI_ConditionEvaluator {
             result = !result;
         }
 
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Condition '{}' operator='{}' negate={} result={}.",
-                condition.type(),
-                condition.operator(),
-                condition.negate(),
-                result
-        );
+        if (TRACE_CONDITIONS) {
+            DAI_Core.debug(
+                    "<DAI>: Condition '{}' operator='{}' negate={} result={}.",
+                    condition.type(),
+                    condition.operator(),
+                    condition.negate(),
+                    result
+            );
+        }
 
         return result;
     }

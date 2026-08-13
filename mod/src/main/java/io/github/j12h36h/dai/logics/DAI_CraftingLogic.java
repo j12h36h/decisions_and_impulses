@@ -93,7 +93,7 @@ public final class DAI_CraftingLogic {
             );
             return;
         }
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Resolving craft_recipe result='{}' in menu='{}', containerId={}.",
                 requestedResult,
                 menu.getClass().getSimpleName(),
@@ -146,7 +146,7 @@ public final class DAI_CraftingLogic {
                 requestedResult,
                 recipes
         );
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Found {} candidate recipe display(s) for '{}' in menu='{}', containerId={}.",
                 DAI_CraftingState.recipes().size(),
                 DAI_CraftingState.result(),
@@ -375,7 +375,7 @@ public final class DAI_CraftingLogic {
                         && DAI_CraftingRecipeLogic.hasNextRecipe()
         ) {
             DAI_CraftingState.advanceRecipe();
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Candidate recipe {}/{} for '{}' produced no output; trying candidate {}.",
                     DAI_CraftingState.recipeIndex(),
                     DAI_CraftingState.recipes().size(),

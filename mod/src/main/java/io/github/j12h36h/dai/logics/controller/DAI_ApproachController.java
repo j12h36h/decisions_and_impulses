@@ -3,11 +3,9 @@ package io.github.j12h36h.dai.logics.controller;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
-import io.github.j12h36h.dai.logics.approach.DAI_ApproachPathing;
-import io.github.j12h36h.dai.logics.approach.DAI_ApproachRecovery;
-import io.github.j12h36h.dai.logics.approach.DAI_ApproachState;
-import io.github.j12h36h.dai.logics.approach.DAI_ApproachTargeting;
+import io.github.j12h36h.dai.logics.approach.*;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_RuntimeTelemetry;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
@@ -26,8 +24,50 @@ public final class DAI_ApproachController {
     private static final int STUCK_CHECK_INTERVAL =
             10;
 
+    /*
+     * Route-level stagnation already rebuilds a dead route after roughly
+     * 1.5 seconds. This second detector deliberately survives those route
+     * rebuilds and watches actual player displacement across the entire
+     * normal approach attempt.
+     *
+     * If the player has not moved at least 0.20 blocks for two seconds while
+     * a normal approach route is actively expected to move them, escalate to
+     * approach recovery instead of waiting for the full action timeout.
+     */
+    private static final int APPROACH_STALL_TICKS =
+            40;
+
+    private static final double APPROACH_STALL_DISTANCE_SQUARED =
+            0.04D;
+
+    /*
+     * Positional movement alone is not proof that an approach is succeeding:
+     * a route can wander, oscillate, or repeatedly reposition while never
+     * getting meaningfully closer to the target.
+     *
+     * Track the best eye-to-target distance across normal approach pathing.
+     * If it fails to improve by at least 0.25 blocks for roughly three
+     * seconds, escalate through the existing safe/destructive recovery chain.
+     */
+    private static final int TARGET_DISTANCE_STALL_TICKS =
+            60;
+
+    private static final double TARGET_DISTANCE_PROGRESS =
+            0.25D;
+
+    private static final double TARGET_DISTANCE_NEAR_MARGIN =
+            0.75D;
+
     private static final int DEBUG_LOG_INTERVAL =
             20;
+
+    private static Vec3 approachProgressAnchor;
+    private static int approachNoProgressTicks;
+
+    private static double bestTargetDistance =
+            Double.POSITIVE_INFINITY;
+
+    private static int targetDistanceNoProgressTicks;
 
     private DAI_ApproachController() {
         // Utility class.
@@ -99,7 +139,7 @@ public final class DAI_ApproachController {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Rejected approach to {} because generation={} still owns target {}.",
                     blockPos,
                     DAI_ApproachState.generation(),
@@ -148,6 +188,15 @@ public final class DAI_ApproachController {
                 minecraft.player.position()
         );
 
+        resetApproachProgressMonitor(
+                minecraft
+        );
+
+        resetTargetDistanceProgressMonitor(
+                minecraft,
+                blockPos
+        );
+
         DAI_ApproachState.setDebugLogTicks(
                 DEBUG_LOG_INTERVAL
         );
@@ -166,11 +215,16 @@ public final class DAI_ApproachController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Started approaching block {} with stopDistance={} timeout={} generation={}.",
                 blockPos,
                 DAI_ApproachState.stopDistance(),
                 DAI_ApproachState.ticksRemaining(),
+                generation
+        );
+
+        DAI_RuntimeTelemetry.approachStart(
+                blockPos,
                 generation
         );
 
@@ -258,6 +312,78 @@ public final class DAI_ApproachController {
             finish(
                     DAI_ActionResult.TIMED_OUT,
                     "approach timed out"
+            );
+
+            return;
+        }
+
+        /*
+         * Detect whole-approach positional stagnation before a dead route can
+         * repeatedly rebuild itself until the full timeout expires.
+         *
+         * Only normal target routes are monitored here. Safe-recovery routes,
+         * obstruction breaking, alignment, and other intentional stationary
+         * states retain their existing dedicated lifecycle/recovery rules.
+         */
+        if (tickApproachProgressMonitor(minecraft)) {
+
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Approach made no positional progress for {} tick(s); escalating recovery for target {}.",
+                    APPROACH_STALL_TICKS,
+                    target
+            );
+
+            DAI_ApproachState.clearPath();
+
+            resetApproachProgressMonitor(
+                    minecraft
+            );
+
+            resetTargetDistanceProgressMonitor(
+                    minecraft,
+                    target
+            );
+
+            handlePathFailure(
+                    minecraft,
+                    "approach stalled with no positional progress"
+            );
+
+            return;
+        }
+
+        /*
+         * A second progress monitor catches the opposite failure mode:
+         * movement continues, but distance to the actual target does not
+         * meaningfully improve.
+         */
+        if (
+                tickTargetDistanceProgressMonitor(
+                        minecraft,
+                        target
+                )
+        ) {
+
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Approach failed to reduce target distance for {} tick(s); escalating recovery for target {}.",
+                    TARGET_DISTANCE_STALL_TICKS,
+                    target
+            );
+
+            DAI_ApproachState.clearPath();
+
+            resetApproachProgressMonitor(
+                    minecraft
+            );
+
+            resetTargetDistanceProgressMonitor(
+                    minecraft,
+                    target
+            );
+
+            handlePathFailure(
+                    minecraft,
+                    "approach stalled without reducing target distance"
             );
 
             return;
@@ -415,6 +541,205 @@ public final class DAI_ApproachController {
 
     /*
      * ------------------------------------------------------------
+     * APPROACH-LEVEL PROGRESS
+     * ------------------------------------------------------------
+     */
+
+    /**
+     * Returns true only when a normal installed route has expected movement
+     * but the player's actual position has remained effectively unchanged for
+     * the full approach-level stall window.
+     */
+    private static boolean tickApproachProgressMonitor(
+            Minecraft minecraft
+    ) {
+
+        if (
+                minecraft.player == null
+                        || DAI_BreakController.isActive()
+                        || DAI_ApproachState.recoveryActive()
+                        || DAI_ApproachState.approachPath() == null
+                        || DAI_ApproachState.approachPosition() == null
+        ) {
+
+            resetApproachProgressMonitor(
+                    minecraft
+            );
+
+            return false;
+        }
+
+        Vec3 currentPosition =
+                minecraft.player.position();
+
+        if (approachProgressAnchor == null) {
+
+            approachProgressAnchor =
+                    currentPosition;
+
+            approachNoProgressTicks =
+                    0;
+
+            return false;
+        }
+
+        if (
+                currentPosition.distanceToSqr(
+                        approachProgressAnchor
+                ) >= APPROACH_STALL_DISTANCE_SQUARED
+        ) {
+
+            approachProgressAnchor =
+                    currentPosition;
+
+            approachNoProgressTicks =
+                    0;
+
+            return false;
+        }
+
+        approachNoProgressTicks++;
+
+        return approachNoProgressTicks
+                >= APPROACH_STALL_TICKS;
+    }
+
+    private static void resetApproachProgressMonitor(
+            Minecraft minecraft
+    ) {
+
+        approachProgressAnchor =
+                minecraft == null
+                        || minecraft.player == null
+                        ? null
+                        : minecraft.player.position();
+
+        approachNoProgressTicks =
+                0;
+    }
+
+    /**
+     * Returns true when normal approach execution is active but the best
+     * observed target distance has not improved meaningfully for the full
+     * target-progress window.
+     *
+     * This deliberately survives ordinary route rebuilds. Safe recovery and
+     * breaking own their own movement semantics and reset this monitor.
+     */
+    private static boolean tickTargetDistanceProgressMonitor(
+            Minecraft minecraft,
+            BlockPos target
+    ) {
+
+        if (
+                minecraft == null
+                        || minecraft.player == null
+                        || target == null
+                        || DAI_BreakController.isActive()
+                        || DAI_ApproachState.recoveryActive()
+        ) {
+
+            resetTargetDistanceProgressMonitor(
+                    minecraft,
+                    target
+            );
+
+            return false;
+        }
+
+        double currentDistance =
+                minecraft.player
+                        .getEyePosition()
+                        .distanceTo(
+                                Vec3.atCenterOf(
+                                        target
+                                )
+                        );
+
+        /*
+         * Once close enough for targeting/alignment work, distance is no
+         * longer the useful success metric. Do not penalize legitimate camera
+         * alignment or obstruction handling inside this margin.
+         */
+        if (
+                currentDistance
+                        <= DAI_ApproachState.stopDistance()
+                        + TARGET_DISTANCE_NEAR_MARGIN
+        ) {
+
+            bestTargetDistance =
+                    currentDistance;
+
+            targetDistanceNoProgressTicks =
+                    0;
+
+            return false;
+        }
+
+        if (Double.isInfinite(bestTargetDistance)) {
+
+            bestTargetDistance =
+                    currentDistance;
+
+            targetDistanceNoProgressTicks =
+                    0;
+
+            return false;
+        }
+
+        if (
+                bestTargetDistance
+                        - currentDistance
+                        >= TARGET_DISTANCE_PROGRESS
+        ) {
+
+            bestTargetDistance =
+                    currentDistance;
+
+            targetDistanceNoProgressTicks =
+                    0;
+
+            return false;
+        }
+
+        targetDistanceNoProgressTicks++;
+
+        return targetDistanceNoProgressTicks
+                >= TARGET_DISTANCE_STALL_TICKS;
+    }
+
+    private static void resetTargetDistanceProgressMonitor(
+            Minecraft minecraft,
+            BlockPos target
+    ) {
+
+        if (
+                minecraft == null
+                        || minecraft.player == null
+                        || target == null
+        ) {
+
+            bestTargetDistance =
+                    Double.POSITIVE_INFINITY;
+
+        } else {
+
+            bestTargetDistance =
+                    minecraft.player
+                            .getEyePosition()
+                            .distanceTo(
+                                    Vec3.atCenterOf(
+                                            target
+                                    )
+                            );
+        }
+
+        targetDistanceNoProgressTicks =
+                0;
+    }
+
+    /*
+     * ------------------------------------------------------------
      * PATHING
      * ------------------------------------------------------------
      */
@@ -545,7 +870,7 @@ public final class DAI_ApproachController {
                         == DAI_ApproachPathing.PathBuildResult.PATH_READY
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Repositioning for block target {} using {} path node(s).",
                     DAI_ApproachState.target(),
                     DAI_ApproachState.approachPath() == null
@@ -666,7 +991,7 @@ public final class DAI_ApproachController {
                 DAI_ActionResult.CANCELLED
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Active block approach generation={} cancelled during reset.",
                 generation
         );
@@ -704,7 +1029,7 @@ public final class DAI_ApproachController {
 
         if (wasActive) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Discarded stale block-approach ownership for generation={}.",
                     generation
             );
@@ -833,7 +1158,10 @@ public final class DAI_ApproachController {
 
         if (
                 finishedTarget != null
-                        && result == DAI_ActionResult.FAILURE
+                        && (
+                        result == DAI_ActionResult.FAILURE
+                                || result == DAI_ActionResult.TIMED_OUT
+                )
                         && shouldBlacklist(
                         reason
                 )
@@ -843,11 +1171,18 @@ public final class DAI_ApproachController {
                     finishedTarget
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Temporarily blacklisted unusable block target {}.",
                     finishedTarget
             );
         }
+
+        DAI_RuntimeTelemetry.approachFinish(
+                finishedTarget,
+                finishedGeneration,
+                result,
+                reason
+        );
 
         clearState();
 
@@ -883,6 +1218,15 @@ public final class DAI_ApproachController {
         )
                 || reason.equals(
                 "target could not be evaluated after path completion"
+        )
+                || reason.equals(
+                "approach stalled with no positional progress"
+        )
+                || reason.equals(
+                "approach stalled without reducing target distance"
+        )
+                || reason.equals(
+                "approach timed out"
         );
     }
 
@@ -910,6 +1254,20 @@ public final class DAI_ApproachController {
         DAI_InputState.setManagedOverride(
                 false
         );
+
+        approachProgressAnchor =
+                null;
+
+        approachNoProgressTicks =
+                0;
+
+        bestTargetDistance =
+                Double.POSITIVE_INFINITY;
+
+        targetDistanceNoProgressTicks =
+                0;
+
+        DAI_ApproachObstruction.reset();
 
         DAI_ApproachState.clearActiveState();
     }

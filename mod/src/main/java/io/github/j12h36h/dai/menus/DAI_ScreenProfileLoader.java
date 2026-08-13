@@ -72,7 +72,7 @@ public final class DAI_ScreenProfileLoader
                             profile
                     );
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Loaded screen profile '{}' with {} variant(s).",
                             profileId,
                             profile.variants().size()

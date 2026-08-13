@@ -38,7 +38,7 @@ public final class DAI_LookLogic {
             float pitch
     ) {
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Setting look rotation to yaw={}, pitch={}.",
                 yaw,
                 pitch
@@ -57,7 +57,7 @@ public final class DAI_LookLogic {
             float pitch
     ) {
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Adding look rotation yaw={}, pitch={}.",
                 yaw,
                 pitch

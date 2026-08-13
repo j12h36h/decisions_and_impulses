@@ -118,7 +118,7 @@ public final class DAI_ExploreController {
                         DAI_ActionResult.RUNNING
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Exploration generation={} already searching for '{}'; reusing it.",
                         generation,
                         requestedTarget
@@ -131,7 +131,7 @@ public final class DAI_ExploreController {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Rejected exploration for '{}' because generation={} still owns search target '{}'.",
                     normalizedTarget,
                     generation,
@@ -181,7 +181,7 @@ public final class DAI_ExploreController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Started exploration generation={} for '{}' with radius={} and timeout={} tick(s).",
                 generation,
                 requestedTarget,
@@ -269,7 +269,7 @@ public final class DAI_ExploreController {
             destinationRetryTicks =
                     DESTINATION_RETRY_DELAY_TICKS;
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Exploration generation={} found no reachable short-leg destination; retrying.",
                     generation
             );
@@ -285,7 +285,7 @@ public final class DAI_ExploreController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Exploration generation={} moving toward {} via {} node(s) while searching for '{}'.",
                 generation,
                 plan.destination(),
@@ -337,7 +337,7 @@ public final class DAI_ExploreController {
                 DAI_ActionResult.CANCELLED
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Exploration generation={} cancelled during reset.",
                 cancelledGeneration
         );
@@ -423,7 +423,7 @@ public final class DAI_ExploreController {
                 result
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Finished exploration generation={} for '{}' with result={}: {}.",
                 finishedGeneration,
                 finishedTarget,

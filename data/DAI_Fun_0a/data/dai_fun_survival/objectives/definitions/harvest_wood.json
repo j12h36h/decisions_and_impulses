@@ -1,0 +1,9 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "dai_fun_survival:detect_wood"
+    }
+  ]
+}

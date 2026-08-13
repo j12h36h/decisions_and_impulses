@@ -77,7 +77,7 @@ public final class DAI_ClientBootstrap {
                 MENU_KEY
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Registered DAI menu keybind."
         );
     }
@@ -91,7 +91,7 @@ public final class DAI_ClientBootstrap {
                 DAI_ClientBootstrap::onClientTick
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Registered post-client-tick listener."
         );
     }
@@ -120,7 +120,7 @@ public final class DAI_ClientBootstrap {
 
                 DAI_ClientRuntime.updateMouseCapture();
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: DAI menu opened."
                 );
             }

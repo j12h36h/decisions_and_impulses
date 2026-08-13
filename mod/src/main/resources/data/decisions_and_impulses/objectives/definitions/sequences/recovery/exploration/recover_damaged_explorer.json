@@ -1,0 +1,86 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 19.0
+        }
+      ]
+    },
+    {
+      "type": "sprint_set",
+      "state": false,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 19.0
+        }
+      ]
+    },
+    {
+      "type": "crouch_set",
+      "state": true,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 19.0
+        }
+      ]
+    },
+    {
+      "type": "eat_best_food",
+      "ticks": 32,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 19.0
+        },
+        {
+          "type": "player_hunger",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 30,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 19.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:signal_impossible_state",
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "type": "crouch_set",
+      "state": false,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 19.0
+        }
+      ]
+    }
+  ]
+}

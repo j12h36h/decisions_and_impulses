@@ -56,7 +56,7 @@ public final class DAI_CraftingRecipeLogic {
                                 DAI_CraftingState.recipeIndex()
                         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Placing recipe candidate {}/{} for result='{}', displayId={}, menu='{}', containerId={}, craftMax={}.",
                 DAI_CraftingState.recipeIndex() + 1,
                 DAI_CraftingState.recipes().size(),
@@ -173,7 +173,7 @@ public final class DAI_CraftingRecipeLogic {
                                 entry.id()
                         );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Recipe candidate for result='{}': displayId={}, resolvedResult='{}', craftable={}.",
                         requestedResult,
                         entry.id().index(),
@@ -198,7 +198,7 @@ public final class DAI_CraftingRecipeLogic {
 
         if (!craftableMatches.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Found {} craftable recipe display(s) for '{}' ({} additional unavailable display(s)).",
                     craftableMatches.size(),
                     requestedResult,
@@ -210,7 +210,7 @@ public final class DAI_CraftingRecipeLogic {
 
         if (!fallbackMatches.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Found {} recipe display(s) for '{}', but none are currently marked craftable.",
                     fallbackMatches.size(),
                     requestedResult

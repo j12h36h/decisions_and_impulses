@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
+import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
 import io.github.j12h36h.dai.menus.system.DAI_WaypointMemory;
 import net.minecraft.client.Minecraft;
@@ -157,6 +158,34 @@ public final class DAI_WaypointLogic {
         }
 
         /*
+         * A failed target memory entry means the approach subsystem has
+         * already proved that this exact block cannot currently be used from
+         * the player's reachable interaction space. Persistent waypoints must
+         * respect that result; otherwise a crafting table/furnace waypoint can
+         * override the blacklist forever and create a one-target retry loop.
+         */
+        if (
+                DAI_FailedTargetMemory.contains(
+                        waypoint.position()
+                )
+        ) {
+
+            DAI_TargetState.clearBlock();
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.FAILURE
+            );
+
+            DAI_Core.debug(
+                    "<DAI>: Rejected waypoint '{}' at {} because the target is temporarily blacklisted.",
+                    waypoint.name(),
+                    waypoint.position()
+            );
+
+            return;
+        }
+
+        /*
          * A waypoint selection is a new authoritative target. Drop any
          * completed/active approach ownership from the previous block first
          * so camera/interact logic immediately resolves to this waypoint.
@@ -171,9 +200,77 @@ public final class DAI_WaypointLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected waypoint '{}' as temporary block target at {}.",
                 waypoint.name(),
+                waypoint.position()
+        );
+    }
+
+    /**
+     * Forgets a waypoint only when its exact block position is currently in
+     * failed-target memory. This is intentionally idempotent so datapack gates
+     * can invoke it every cycle without disturbing a healthy workstation.
+     */
+    public static void forgetFailedWaypoint(
+            String name
+    ) {
+
+        Minecraft minecraft =
+                Minecraft.getInstance();
+
+        if (minecraft.level == null) {
+
+            fail(
+                    "Cannot validate failed waypoint '{}' because no world is available.",
+                    name
+            );
+
+            return;
+        }
+
+        DAI_WaypointMemory.DAI_Waypoint waypoint =
+                DAI_WaypointMemory.getInDimension(
+                        name,
+                        minecraft.level.dimension()
+                );
+
+        if (waypoint == null) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.SUCCESS
+            );
+
+            return;
+        }
+
+        if (
+                !DAI_FailedTargetMemory.contains(
+                        waypoint.position()
+                )
+        ) {
+
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.SUCCESS
+            );
+
+            return;
+        }
+
+        DAI_ApproachController.discardTargetOwnership();
+        DAI_TargetState.clearBlock();
+
+        DAI_WaypointMemory.forget(
+                name
+        );
+
+        DAI_ActionStatus.set(
+                DAI_ActionResult.SUCCESS
+        );
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Forgot failed waypoint '{}' at {}; a fresh workstation/location may now be selected.",
+                name,
                 waypoint.position()
         );
     }
@@ -317,7 +414,7 @@ public final class DAI_WaypointLogic {
                 DAI_ActionResult.FAILURE
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: " + message,
                 arguments
         );

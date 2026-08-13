@@ -1,0 +1,19 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:craft_sticks_once"
+    },
+    {
+      "action": "decisions_and_impulses:craft_sticks_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        }
+      ]
+    }
+  ]
+}

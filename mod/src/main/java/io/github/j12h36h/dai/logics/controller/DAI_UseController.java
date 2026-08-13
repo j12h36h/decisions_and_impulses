@@ -33,7 +33,7 @@ public final class DAI_UseController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Item use requested."
         );
     }
@@ -52,7 +52,7 @@ public final class DAI_UseController {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Held item use started."
         );
     }
@@ -95,7 +95,7 @@ public final class DAI_UseController {
             );
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Held item use released."
         );
     }
@@ -176,7 +176,7 @@ public final class DAI_UseController {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Main-hand item use was not accepted by Minecraft."
             );
 
@@ -196,7 +196,7 @@ public final class DAI_UseController {
                         : DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Used held item; heldOperation={}, result={}.",
                 heldOperation,
                 result
@@ -245,7 +245,7 @@ public final class DAI_UseController {
                     DAI_ActionResult.CANCELLED
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Active item-use operation cancelled during reset."
             );
         }

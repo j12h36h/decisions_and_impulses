@@ -27,7 +27,7 @@ public final class DAI_RecogRequirementRegistry {
 
         HANDLERS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} recognition requirement handler(s).",
                 removed
         );
@@ -63,7 +63,7 @@ public final class DAI_RecogRequirementRegistry {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered recognition requirement type '{}'.",
                     normalizedType
             );
@@ -119,7 +119,7 @@ public final class DAI_RecogRequirementRegistry {
                         requirement
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition requirement '{}' = {}.",
                 type,
                 result

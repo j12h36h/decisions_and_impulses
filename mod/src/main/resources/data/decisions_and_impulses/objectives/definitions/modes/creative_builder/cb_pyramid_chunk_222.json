@@ -1,0 +1,380 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "17,3,15"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "17,3,15"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "18,3,15"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "18,3,15"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|17,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "2,3,16"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "2,3,16"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|18,3,15",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|3,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "3,3,16"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|3,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "select_waypoint_offset",
+      "action": "cb_build_origin",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|3,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "direction": "3,3,16"
+    },
+    {
+      "type": "place_block_at_selected_position",
+      "action": "minecraft:sandstone",
+      "conditions": [
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|2,3,16",
+          "string_value": "minecraft:sandstone"
+        },
+        {
+          "type": "block_at_waypoint_offset",
+          "operator": "equals",
+          "parameter": "cb_build_origin|3,3,16",
+          "string_value": "minecraft:sandstone",
+          "negate": true
+        }
+      ],
+      "ticks": 160
+    },
+    {
+      "type": "delay",
+      "ticks": 2
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:cb_pyramid_chunk_223",
+      "conditions": [
+        {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "cb_build_origin|17,3,15",
+              "string_value": "minecraft:sandstone"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "cb_build_origin|18,3,15",
+              "string_value": "minecraft:sandstone"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "cb_build_origin|2,3,16",
+              "string_value": "minecraft:sandstone"
+            },
+            {
+              "type": "block_at_waypoint_offset",
+              "operator": "equals",
+              "parameter": "cb_build_origin|3,3,16",
+              "string_value": "minecraft:sandstone"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:cb_pyramid_chunk_222",
+      "conditions": [
+        {
+          "type": "not",
+          "conditions": [
+            {
+              "type": "all",
+              "conditions": [
+                {
+                  "type": "block_at_waypoint_offset",
+                  "operator": "equals",
+                  "parameter": "cb_build_origin|17,3,15",
+                  "string_value": "minecraft:sandstone"
+                },
+                {
+                  "type": "block_at_waypoint_offset",
+                  "operator": "equals",
+                  "parameter": "cb_build_origin|18,3,15",
+                  "string_value": "minecraft:sandstone"
+                },
+                {
+                  "type": "block_at_waypoint_offset",
+                  "operator": "equals",
+                  "parameter": "cb_build_origin|2,3,16",
+                  "string_value": "minecraft:sandstone"
+                },
+                {
+                  "type": "block_at_waypoint_offset",
+                  "operator": "equals",
+                  "parameter": "cb_build_origin|3,3,16",
+                  "string_value": "minecraft:sandstone"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

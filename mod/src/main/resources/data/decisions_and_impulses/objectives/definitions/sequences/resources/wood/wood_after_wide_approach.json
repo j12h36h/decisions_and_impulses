@@ -1,0 +1,44 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:harvest_selected_log_wide",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 8.0
+        },
+        {
+          "type": "target_block_selected"
+        },
+        {
+          "type": "approach_last_success"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:explore_for_wood_extended",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "approach_last_success",
+          "operator": "is_false"
+        }
+      ]
+    }
+  ]
+}

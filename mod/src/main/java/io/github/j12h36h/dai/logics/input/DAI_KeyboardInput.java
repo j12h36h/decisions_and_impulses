@@ -20,7 +20,7 @@ public final class DAI_KeyboardInput extends KeyboardInput {
     public DAI_KeyboardInput(Options options) {
         super(options);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Movement input initialized."
         );
     }
@@ -37,7 +37,7 @@ public final class DAI_KeyboardInput extends KeyboardInput {
 
                 overrideActive = false;
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Movement input override disabled."
                 );
             }
@@ -49,7 +49,7 @@ public final class DAI_KeyboardInput extends KeyboardInput {
 
             overrideActive = true;
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Movement input override enabled."
             );
         }
@@ -110,7 +110,7 @@ public final class DAI_KeyboardInput extends KeyboardInput {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Movement input changed: forward={}, strafe={}, jump={}, sneak={}, sprint={}.",
                 forward,
                 strafe,

@@ -59,7 +59,7 @@ public final class DAI_MoveLogic {
                         < nextJumpTick
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Jump blocked by cooldown; remaining={} tick(s).",
                     nextJumpTick
                             - currentTick
@@ -70,7 +70,7 @@ public final class DAI_MoveLogic {
 
         if (!minecraft.player.onGround()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Jump blocked because the player is airborne."
             );
 
@@ -95,7 +95,7 @@ public final class DAI_MoveLogic {
                     minecraft
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Stationary jump requested; cooldown={}.",
                     JUMP_COOLDOWN_TICKS
             );
@@ -125,7 +125,7 @@ public final class DAI_MoveLogic {
                 minecraft
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Directional jump requested direction='{}', ticks={}, cooldown={}.",
                 direction,
                 movementTicks,
@@ -148,7 +148,7 @@ public final class DAI_MoveLogic {
                         enabled
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Crouch input {}.",
                 enabled
                         ? "enabled"
@@ -166,7 +166,7 @@ public final class DAI_MoveLogic {
                         action.state()
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Crouch input {}.",
                 action.state()
                         ? "enabled"
@@ -189,7 +189,7 @@ public final class DAI_MoveLogic {
                         enabled
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Sprint input {}.",
                 enabled
                         ? "enabled"
@@ -207,7 +207,7 @@ public final class DAI_MoveLogic {
                         action.state()
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Sprint input {}.",
                 action.state()
                         ? "enabled"
@@ -240,7 +240,7 @@ public final class DAI_MoveLogic {
         nextJumpTick =
                 0L;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Stopped all managed input."
         );
     }
@@ -339,7 +339,7 @@ public final class DAI_MoveLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Requesting player jump."
         );
 

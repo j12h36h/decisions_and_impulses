@@ -19,7 +19,7 @@ public final class DAI_BuildController {
 
         placePending = true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Block placement requested."
         );
     }
@@ -57,7 +57,7 @@ public final class DAI_BuildController {
                         instanceof BlockHitResult blockHitResult)
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Block placement ignored because no block is targeted."
             );
 
@@ -69,7 +69,7 @@ public final class DAI_BuildController {
 
         if (stack.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Block placement ignored because the main hand is empty."
             );
 
@@ -89,7 +89,7 @@ public final class DAI_BuildController {
                     InteractionHand.MAIN_HAND
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Placement interaction succeeded at {}.",
                     blockHitResult.getBlockPos()
             );
@@ -97,7 +97,7 @@ public final class DAI_BuildController {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Placement interaction did not succeed at {}.",
                 blockHitResult.getBlockPos()
         );

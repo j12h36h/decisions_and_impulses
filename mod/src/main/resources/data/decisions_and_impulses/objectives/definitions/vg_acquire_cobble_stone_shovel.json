@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:vg_acquire_cobble_stone_shovel_attempt_1"
-    }
-  ]
-}

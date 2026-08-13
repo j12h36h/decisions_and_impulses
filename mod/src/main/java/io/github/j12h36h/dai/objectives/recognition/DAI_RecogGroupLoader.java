@@ -110,7 +110,7 @@ public final class DAI_RecogGroupLoader extends
                             )
                     );
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Prepared recognition group '{}' from pack '{}'.",
                             groupId,
                             resource.sourcePackId()
@@ -147,7 +147,7 @@ public final class DAI_RecogGroupLoader extends
 
         for (LoadedGroup loadedGroup : loadedGroups) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registering recognition group '{}' from pack '{}' with {} entry(s), replace={}.",
                     loadedGroup.id(),
                     loadedGroup.sourcePack(),

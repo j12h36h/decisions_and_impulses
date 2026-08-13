@@ -28,7 +28,7 @@ public final class DAI_FlowLogic {
 
         if (!DAI_ActionStatus.previousFailed()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: stop_if_failure skipped because previousResult={}.",
                     DAI_ActionStatus.previous()
             );
@@ -45,7 +45,7 @@ public final class DAI_FlowLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared action queue because the previous action finished with result={}.",
                 previousResult
         );
@@ -61,7 +61,7 @@ public final class DAI_FlowLogic {
 
         if (!DAI_ActionStatus.previousSucceeded()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: stop_if_success skipped because previousResult={}.",
                     DAI_ActionStatus.previous()
             );
@@ -75,7 +75,7 @@ public final class DAI_FlowLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared action queue because the previous action succeeded."
         );
     }
@@ -93,7 +93,7 @@ public final class DAI_FlowLogic {
 
         if (!DAI_ActionStatus.previousFailed()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: run_if_failure skipped because previousResult={}.",
                     DAI_ActionStatus.previous()
             );
@@ -120,7 +120,7 @@ public final class DAI_FlowLogic {
 
         if (!DAI_ActionStatus.previousSucceeded()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: run_if_success skipped because previousResult={}.",
                     DAI_ActionStatus.previous()
             );
@@ -187,7 +187,7 @@ public final class DAI_FlowLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Prepended conditional {} branch '{}' containing {} atomic action(s).",
                 branch,
                 actionId,

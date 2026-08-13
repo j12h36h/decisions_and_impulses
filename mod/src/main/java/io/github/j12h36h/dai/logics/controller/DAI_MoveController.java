@@ -69,7 +69,7 @@ public final class DAI_MoveController {
         active =
                 true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Starting timed movement (forward={}, sideways={}, ticks={}).",
                 forward,
                 sideways,
@@ -209,7 +209,7 @@ public final class DAI_MoveController {
                     );
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Swim assist {}.",
                 swimToggle
                         ? "enabled"
@@ -255,7 +255,7 @@ public final class DAI_MoveController {
 
         if (hadMovement) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Stopped managed directional movement."
             );
         }
@@ -289,7 +289,7 @@ public final class DAI_MoveController {
                     .clearMovement();
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Timed movement completed."
         );
 
@@ -334,7 +334,7 @@ public final class DAI_MoveController {
                         false
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Reset all movement input."
         );
     }
@@ -372,7 +372,7 @@ public final class DAI_MoveController {
                         heldSideways
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Holding managed movement (forward={}, sideways={}).",
                 heldForward,
                 heldSideways
@@ -430,7 +430,7 @@ public final class DAI_MoveController {
                     .clearMovement();
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Released persistent movement hold."
         );
     }

@@ -1,0 +1,38 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:crafting_table",
+      "value": 8.0
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

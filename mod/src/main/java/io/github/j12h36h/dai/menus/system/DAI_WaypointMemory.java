@@ -68,7 +68,7 @@ public final class DAI_WaypointMemory {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Remembered waypoint '{}' at {} in {}.",
                     normalizedName,
                     position,
@@ -78,7 +78,7 @@ public final class DAI_WaypointMemory {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Updated waypoint '{}' from {} in {} to {} in {}.",
                 normalizedName,
                 previous.position(),
@@ -177,7 +177,7 @@ public final class DAI_WaypointMemory {
             return false;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Forgot waypoint '{}' at {} in {}.",
                 removed.name(),
                 removed.position(),
@@ -194,7 +194,7 @@ public final class DAI_WaypointMemory {
 
         WAYPOINTS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared waypoint memory (removed {}).",
                 removed
         );

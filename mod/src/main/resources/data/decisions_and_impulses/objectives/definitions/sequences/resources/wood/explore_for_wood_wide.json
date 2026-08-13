@@ -1,0 +1,75 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:recover_damaged_explorer"
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "type": "explore_for_block",
+      "action": "#minecraft:logs",
+      "ticks": 120,
+      "value": 24.0,
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "type": "wait_for_exploration",
+      "ticks": 120,
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 8.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_explorer"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:wood_after_wide_scan",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

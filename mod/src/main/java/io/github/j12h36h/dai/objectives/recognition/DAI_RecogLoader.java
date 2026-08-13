@@ -107,7 +107,7 @@ public final class DAI_RecogLoader extends
                         )
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Prepared recognition definition '{}' from pack '{}'.",
                         recognitionId,
                         resource.sourcePackId()
@@ -146,7 +146,7 @@ public final class DAI_RecogLoader extends
             DAI_RecogDefinition definition =
                     loadedRecognition.definition();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registering recognition definition '{}' from pack '{}' with type='{}', groups={}, requirements={}.",
                     loadedRecognition.id(),
                     loadedRecognition.sourcePack(),

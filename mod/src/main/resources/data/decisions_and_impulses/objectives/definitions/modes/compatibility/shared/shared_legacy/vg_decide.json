@@ -1,0 +1,9 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:automation_continue"
+    }
+  ]
+}

@@ -182,6 +182,31 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "automation_start_speedrun",
+                DAI_AutomationLogic::startSpeedrun
+        );
+
+        register(
+                "automation_start_creative_builder",
+                DAI_AutomationLogic::startCreativeBuilder
+        );
+
+        register(
+                "automation_start_adventure",
+                DAI_AutomationLogic::startAdventure
+        );
+
+        register(
+                "automation_continue",
+                DAI_AutomationLogic::continueAutomation
+        );
+
+        register(
+                "speedrun_find_portal_site",
+                DAI_SpeedrunLogic::findPortalSite
+        );
+
+        register(
                 "automation_stop",
                 DAI_AutomationLogic::stop
         );
@@ -192,6 +217,132 @@ public final class DAI_ActionHandler {
         register(
                 "set_gamemode",
                 DAI_GameModeLogic::setGameMode
+        );
+
+        register(
+                "run_command",
+                DAI_CommandLogic::runCommand
+        );
+
+        register(
+                "key_click",
+                DAI_InputLogic::keyClick
+        );
+
+        register(
+                "key_press",
+                DAI_InputLogic::keyPress
+        );
+
+        register(
+                "key_release",
+                DAI_InputLogic::keyRelease
+        );
+
+        register(
+                "type_text",
+                DAI_InputLogic::typeText
+        );
+
+        register(
+                "creative_open_inventory",
+                DAI_CreativeInventoryLogic::openCreativeInventory
+        );
+
+        register(
+                "creative_close_inventory",
+                DAI_CreativeInventoryLogic::closeCreativeInventory
+        );
+
+        register(
+                "creative_select_tab",
+                DAI_CreativeInventoryLogic::selectTab
+        );
+
+        register(
+                "creative_search_item",
+                DAI_CreativeInventoryLogic::search
+        );
+
+        register(
+                "creative_take_item",
+                DAI_CreativeInventoryLogic::takeVisibleItem
+        );
+
+        register(
+                "creative_equip_item",
+                DAI_CreativeInventoryLogic::equipItem
+        );
+
+        register(
+                "creative_save_toolbar",
+                DAI_CreativeInventoryLogic::saveToolbar
+        );
+
+        register(
+                "creative_load_toolbar",
+                DAI_CreativeInventoryLogic::loadToolbar
+        );
+
+        register(
+                "creative_pick_block_nbt",
+                DAI_CreativeInventoryLogic::pickBlockWithData
+        );
+
+        register(
+                "creative_remove_block",
+                DAI_CreativeInventoryLogic::removeSelectedBlock
+        );
+
+        register(
+                "creative_place_block",
+                DAI_CreativeInventoryLogic::placeSelectedBlock
+        );
+
+        register(
+                "creative_set_block",
+                DAI_CreativeInventoryLogic::setSelectedBlockState
+        );
+
+        register(
+                "creative_flight_set",
+                DAI_CreativeFlightLogic::setFlight
+        );
+
+        register(
+                "creative_fly_to",
+                DAI_CreativeFlightLogic::flyTo
+        );
+
+        register(
+                "wait_for_creative_flight",
+                DAI_CreativeFlightLogic::waitForFlight
+        );
+
+        register(
+                "creative_hover",
+                DAI_CreativeFlightLogic::hover
+        );
+
+        register(
+                "creative_build_blueprint",
+                DAI_CreativeBuildLogic::startBlueprint
+        );
+
+        /*
+         * Blueprint cells are nested data records consumed by
+         * DAI_CreativeBuildController; registering the type keeps datapack
+         * validation aware of that payload schema. They are a harmless
+         * SUCCESS no-op if ever dispatched independently.
+         */
+        register(
+                "creative_blueprint_cell",
+                action -> DAI_ActionStatus.set(DAI_ActionResult.SUCCESS)
+        );
+
+        register(
+                "wait_for_creative_build",
+                DAI_CreativeBuildLogic::waitForBlueprint
         );
     }
 
@@ -215,6 +366,11 @@ public final class DAI_ActionHandler {
         register(
                 "hotbar_previous",
                 DAI_InventoryLogic::selectPreviousHotbarSlot
+        );
+
+        register(
+                "hotbar_normalize",
+                DAI_HotbarNormalizeLogic::normalize
         );
 
         register(
@@ -356,10 +512,22 @@ public final class DAI_ActionHandler {
                 DAI_ExactPlacementLogic::placeAtSelectedPosition
         );
 
+        /* Internal smooth camera alignment before Creative physical placement. */
+        register(
+                "exact_place_align",
+                DAI_ExactPlacementLogic::alignPlacement
+        );
+
         /* Internal continuation used by deterministic blueprint placement. */
         register(
                 "exact_place_finish",
                 DAI_ExactPlacementLogic::finishPlacement
+        );
+
+        /* Internal world-state commit check after the physical use action. */
+        register(
+                "exact_place_verify",
+                DAI_ExactPlacementLogic::verifyPlacement
         );
 
         register(
@@ -393,6 +561,26 @@ public final class DAI_ActionHandler {
         register(
                 "wait_for_exploration",
                 DAI_NavigationLogic::waitForExploration
+        );
+
+        register(
+                "vertical_scaffold_to_target",
+                DAI_ScaffoldLogic::ascendToTarget
+        );
+
+        register(
+                "wait_for_vertical_scaffold",
+                DAI_ScaffoldLogic::waitForAscent
+        );
+
+        register(
+                "vertical_scaffold_descend",
+                DAI_ScaffoldLogic::descend
+        );
+
+        register(
+                "wait_for_scaffold_descent",
+                DAI_ScaffoldLogic::waitForDescent
         );
     }
 
@@ -429,6 +617,14 @@ public final class DAI_ActionHandler {
                                 action.action()
                         )
         );
+
+        register(
+                "forget_failed_waypoint",
+                action ->
+                        DAI_WaypointLogic.forgetFailedWaypoint(
+                                action.action()
+                        )
+        );
     }
 
     private static void registerSpatialActions() {
@@ -441,6 +637,11 @@ public final class DAI_ActionHandler {
         register(
                 "remember_offset_waypoint",
                 DAI_SpatialLogic::rememberOffsetWaypoint
+        );
+
+        register(
+                "remember_surface_offset_waypoint",
+                DAI_SpatialLogic::rememberSurfaceOffsetWaypoint
         );
 
         register(

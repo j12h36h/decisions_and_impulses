@@ -1,0 +1,11 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "gather_wood",
+      "text": "Gather Wood",
+      "action": "dai_fun_survival:gather_wood"
+    }
+  ]
+}

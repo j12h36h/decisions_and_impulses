@@ -57,7 +57,7 @@ public final class DAI_MenuDatapack {
 
         menu.closeMenu(category);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opening {} datapack menu '{}' with {} button(s).",
                 category,
                 normalizedId,
@@ -81,7 +81,7 @@ public final class DAI_MenuDatapack {
             );
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opened {} datapack menu '{}'.",
                 category,
                 normalizedId
@@ -175,7 +175,7 @@ public final class DAI_MenuDatapack {
 
         menu.addMenuWidget(button);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Added {} menu button '{}' to slot {} with action '{}'.",
                 category,
                 definition.id(),

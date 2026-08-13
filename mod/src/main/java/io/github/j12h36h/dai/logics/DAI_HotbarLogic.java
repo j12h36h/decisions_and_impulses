@@ -191,7 +191,7 @@ public final class DAI_HotbarLogic {
                     slot
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Selected hotbar item '{}' in slot {}.",
                     itemId,
                     slot + 1
@@ -229,7 +229,7 @@ public final class DAI_HotbarLogic {
 
         if (sourceSlot < 0) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Inventory does not contain item '{}'.",
                     itemId
             );
@@ -296,7 +296,7 @@ public final class DAI_HotbarLogic {
                 destinationSlot
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Moved inventory item '{}' from inventory slot {} to hotbar slot {} and selected it.",
                 itemId,
                 sourceSlot,
@@ -344,7 +344,7 @@ public final class DAI_HotbarLogic {
                         slotIndex
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected hotbar slot {}.",
                 slotIndex + 1
         );

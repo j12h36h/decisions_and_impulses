@@ -48,7 +48,7 @@ public final class DAI_MenuAutomation {
 
         normalizeSelection();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opening automation selector menu."
         );
 
@@ -70,14 +70,14 @@ public final class DAI_MenuAutomation {
 
                     if (selected == null) {
 
-                        DAI_Core.LOGGER.debug(
+                        DAI_Core.debug(
                                 "<DAI>: Automation selection ignored because no entries are available."
                         );
 
                         return;
                     }
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Opening selected automation '{}' with action '{}'.",
                             selected.id(),
                             selected.action()
@@ -97,7 +97,7 @@ public final class DAI_MenuAutomation {
 
         refresh(state);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Automation selector menu opened with {} entry(s).",
                 entries().size()
         );
@@ -163,7 +163,7 @@ public final class DAI_MenuAutomation {
                         entries.size()
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected previous automation entry at index {}.",
                 selectedIndex
         );
@@ -185,7 +185,7 @@ public final class DAI_MenuAutomation {
                         entries.size()
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected next automation entry at index {}.",
                 selectedIndex
         );

@@ -100,7 +100,7 @@ public final class DAI_BlockLogic {
                 )
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Cannot place '{}' because no block face is targeted.",
                     blockItemId
             );
@@ -114,7 +114,7 @@ public final class DAI_BlockLogic {
                 )
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Cannot place '{}' because it is not available in the player inventory.",
                     blockItemId
             );
@@ -122,7 +122,7 @@ public final class DAI_BlockLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Preparing to place block item '{}'.",
                 blockItemId
         );
@@ -203,7 +203,7 @@ public final class DAI_BlockLogic {
 
         if (support == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No valid placement support was found within {} block(s).",
                     searchRadius
             );
@@ -244,7 +244,7 @@ public final class DAI_BlockLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued placement of '{}' using support block {} within radius {}.",
                 blockItemId,
                 support,
@@ -294,7 +294,7 @@ public final class DAI_BlockLogic {
 
         if (!isHarvestableCrop(state)) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Selected block '{}' at {} is not a mature supported crop.",
                     state.getBlock()
                             .builtInRegistryHolder()
@@ -330,7 +330,7 @@ public final class DAI_BlockLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued harvest for mature crop '{}' at {}.",
                 state.getBlock()
                         .builtInRegistryHolder()

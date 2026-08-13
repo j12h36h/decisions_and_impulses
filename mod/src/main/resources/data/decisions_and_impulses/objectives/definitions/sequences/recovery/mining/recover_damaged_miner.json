@@ -1,0 +1,98 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "crouch_set",
+      "state": false,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "jump",
+      "direction": "backward",
+      "ticks": 8,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "move",
+      "direction": "backward",
+      "ticks": 14,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "eat_best_food",
+      "ticks": 32,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        },
+        {
+          "type": "player_hunger",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 30,
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:signal_impossible_state",
+      "conditions": [
+        {
+          "type": "player_health",
+          "operator": "less_than",
+          "number_value": 6.0
+        }
+      ]
+    }
+  ]
+}

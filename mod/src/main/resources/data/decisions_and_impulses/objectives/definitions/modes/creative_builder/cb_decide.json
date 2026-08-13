@@ -1,0 +1,49 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:sandstone",
+      "slot": 0,
+      "value": 64
+    },
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:cut_sandstone",
+      "slot": 1,
+      "value": 64
+    },
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:chiseled_sandstone",
+      "slot": 2,
+      "value": 64
+    },
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:orange_terracotta",
+      "slot": 3,
+      "value": 64
+    },
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:blue_terracotta",
+      "slot": 4,
+      "value": 64
+    },
+    {
+      "type": "creative_equip_item",
+      "action": "minecraft:sandstone_slab",
+      "slot": 5,
+      "value": 64
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:cb_pyramid_chunk_001"
+    }
+  ]
+}

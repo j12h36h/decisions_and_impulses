@@ -1,0 +1,35 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "select_waypoint",
+      "action": "harvest_wood_anchor"
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 220,
+      "value": 3.25
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 220
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 60
+    },
+    {
+      "type": "mine_targeted_block",
+      "ticks": 160
+    },
+    {
+      "type": "enqueue_action",
+      "action": "dai_fun_survival:detect_wood_adjacent",
+      "conditions": [
+        {
+          "type": "last_action_success"
+        }
+      ]
+    }
+  ]
+}

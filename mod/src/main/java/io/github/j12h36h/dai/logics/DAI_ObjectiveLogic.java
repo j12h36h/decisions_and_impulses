@@ -56,7 +56,7 @@ public final class DAI_ObjectiveLogic {
                         + ":"
                         + objectiveName;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Executing objective '{}' through flattened action '{}'.",
                 objectiveId,
                 objectiveAction

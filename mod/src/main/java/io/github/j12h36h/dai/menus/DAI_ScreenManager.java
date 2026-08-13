@@ -29,7 +29,7 @@ public final class DAI_ScreenManager {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Restoring screen {}.",
                 screen.getClass().getSimpleName()
         );

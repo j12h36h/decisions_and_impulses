@@ -1,0 +1,10 @@
+{
+  "pack": {
+    "description": "DAI Fundamentals - Basic survival automation.",
+    "min_format": [
+      107,
+      1
+    ],
+    "max_format": 107
+  }
+}

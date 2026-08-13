@@ -13,6 +13,9 @@ public final class DAI_SystemManager {
             > SYSTEMS =
             new EnumMap<>(DAI_MenuCategory.class);
 
+    private static final Set<String> AVAILABLE_ACTION_MENUS =
+            new HashSet<>();
+
     static {
 
         for (DAI_MenuCategory category : DAI_MenuCategory.values()) {
@@ -35,8 +38,9 @@ public final class DAI_SystemManager {
                 .sum();
 
         SYSTEMS.values().forEach(Map::clear);
+        AVAILABLE_ACTION_MENUS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared all system definitions (removed {}).",
                 removed
         );
@@ -53,7 +57,11 @@ public final class DAI_SystemManager {
 
         definitions.clear();
 
-        DAI_Core.LOGGER.debug(
+        if (category == DAI_MenuCategory.ACTION) {
+            AVAILABLE_ACTION_MENUS.clear();
+        }
+
+        DAI_Core.debug(
                 "<DAI>: Cleared {} {} system definition(s).",
                 removed,
                 category
@@ -64,6 +72,47 @@ public final class DAI_SystemManager {
             DAI_MenuCategory category,
             String id,
             DAI_SystemDefinition definition
+    ) {
+
+        registerInternal(
+                category,
+                id,
+                definition,
+                false
+        );
+    }
+
+    public static void registerAvailableAction(
+            String id,
+            DAI_SystemDefinition definition
+    ) {
+
+        registerInternal(
+                DAI_MenuCategory.ACTION,
+                id,
+                definition,
+                true
+        );
+    }
+
+    public static boolean isAvailableActionMenu(
+            String id
+    ) {
+
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+
+        return AVAILABLE_ACTION_MENUS.contains(
+                id.trim()
+        );
+    }
+
+    private static void registerInternal(
+            DAI_MenuCategory category,
+            String id,
+            DAI_SystemDefinition definition,
+            boolean availableAction
     ) {
 
         if (id == null || id.isBlank()) {
@@ -91,21 +140,54 @@ public final class DAI_SystemManager {
                         definition
                 );
 
+        if (category == DAI_MenuCategory.ACTION) {
+
+            if (availableAction) {
+                AVAILABLE_ACTION_MENUS.add(
+                        normalizedId
+                );
+            } else {
+                AVAILABLE_ACTION_MENUS.remove(
+                        normalizedId
+                );
+            }
+        }
+
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
-                    "<DAI>: Registered {} system definition '{}'.",
-                    category,
-                    normalizedId
-            );
+            if (availableAction) {
+
+                DAI_Core.debug(
+                        "<DAI>: Registered dynamic available ACTION menu '{}'.",
+                        normalizedId
+                );
+
+            } else {
+
+                DAI_Core.debug(
+                        "<DAI>: Registered {} system definition '{}'.",
+                        category,
+                        normalizedId
+                );
+            }
 
         } else {
 
-            DAI_Core.LOGGER.warn(
-                    "<DAI>: Replaced existing {} system definition '{}'.",
-                    category,
-                    normalizedId
-            );
+            if (availableAction) {
+
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Replaced existing ACTION menu '{}' with a dynamic available definition.",
+                        normalizedId
+                );
+
+            } else {
+
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Replaced existing {} system definition '{}'.",
+                        category,
+                        normalizedId
+                );
+            }
         }
     }
 

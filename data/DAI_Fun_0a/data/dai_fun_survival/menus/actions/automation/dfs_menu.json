@@ -1,0 +1,11 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "daifun_survival",
+      "text": "[D-F] Survival",
+      "action": "dai_fun_survival:open_menu_dfs"
+    }
+  ]
+}

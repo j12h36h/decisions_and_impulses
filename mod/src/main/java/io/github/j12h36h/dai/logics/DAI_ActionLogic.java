@@ -45,7 +45,7 @@ public final class DAI_ActionLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Executing action type='{}'.",
                 action.type()
         );

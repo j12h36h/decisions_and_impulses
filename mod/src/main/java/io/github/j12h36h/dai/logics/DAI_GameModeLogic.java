@@ -114,7 +114,7 @@ public final class DAI_GameModeLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Submitted gamemode change request '{}'.",
                     gameMode
             );

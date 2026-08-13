@@ -1,12 +1,14 @@
 package io.github.j12h36h.dai.menus;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import io.github.j12h36h.dai.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.logics.DAI_ActionLogic;
 import io.github.j12h36h.dai.menus.system.DAI_ClientRuntime;
+import io.github.j12h36h.dai.menus.system.DAI_SystemManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,6 +41,9 @@ public class DAI_MenuCore extends Screen {
     private final DAI_MenuAutomation automationMenu =
             new DAI_MenuAutomation();
 
+    private final DAI_MenuAvailable availableMenu =
+            new DAI_MenuAvailable();
+
     private long lastQueueRevision = -1L;
 
     public DAI_MenuCore() {
@@ -69,7 +74,7 @@ public class DAI_MenuCore extends Screen {
         updateSystemRootButton();
         updateActionRootButton("default");
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Menu core initialized."
         );
     }
@@ -165,7 +170,7 @@ public class DAI_MenuCore extends Screen {
         String normalizedOpen =
                 open.trim().toLowerCase(Locale.ROOT);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Updating {} menu with definition '{}'.",
                 category,
                 normalizedOpen
@@ -212,6 +217,27 @@ public class DAI_MenuCore extends Screen {
                     this,
                     state,
                     layout
+            );
+
+            updateActionRootButton(
+                    normalizedOpen
+            );
+
+            return;
+        }
+
+        if (
+                category == DAI_MenuCategory.ACTION
+                        && DAI_SystemManager.isAvailableActionMenu(
+                        normalizedOpen
+                )
+        ) {
+
+            availableMenu.open(
+                    this,
+                    state,
+                    layout,
+                    normalizedOpen
             );
 
             updateActionRootButton(
@@ -288,16 +314,28 @@ public class DAI_MenuCore extends Screen {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Running menu action '{}'.",
                 action
         );
 
-        DAI_ActionQueue.enqueueAll(
+        var resolved =
                 DAI_ActionResolver.resolve(
                         action.trim()
-                )
-        );
+                );
+
+        if (resolved.isEmpty()) {
+            return;
+        }
+
+        /*
+         * Menu input is the user control plane. It always outranks queued
+         * autonomous work. Cancel current controller ownership first, then
+         * synchronously dispatch the selected menu action. This makes Stop
+         * effective immediately instead of waiting behind a barrier/timeout.
+         */
+        DAI_AutomationLogic.interruptWorkForMenuAction();
+        DAI_ActionQueue.interruptAndDispatch(resolved);
     }
 
     void closeMenu(
@@ -367,6 +405,13 @@ public class DAI_MenuCore extends Screen {
         ) {
 
             hotbarMenu.refresh(state);
+        }
+
+        if (
+                state.actionMode() == DAI_MenuState.ActionMode.AVAILABLE
+        ) {
+
+            availableMenu.refresh(state);
         }
     }
 
@@ -508,7 +553,7 @@ public class DAI_MenuCore extends Screen {
 
             DAI_ClientRuntime.updateMouseCapture();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: DAI menu closed."
             );
 

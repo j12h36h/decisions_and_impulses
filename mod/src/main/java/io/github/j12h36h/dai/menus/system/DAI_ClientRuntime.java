@@ -7,12 +7,15 @@ import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.logics.controller.DAI_BreakController;
 import io.github.j12h36h.dai.logics.controller.DAI_BuildController;
 import io.github.j12h36h.dai.logics.controller.DAI_CombatController;
+import io.github.j12h36h.dai.logics.controller.DAI_CreativeBuildController;
+import io.github.j12h36h.dai.logics.controller.DAI_CreativeFlightController;
 import io.github.j12h36h.dai.logics.controller.DAI_ExploreController;
 import io.github.j12h36h.dai.logics.controller.DAI_InteractionController;
 import io.github.j12h36h.dai.logics.controller.DAI_ItemController;
 import io.github.j12h36h.dai.logics.controller.DAI_LookController;
 import io.github.j12h36h.dai.logics.controller.DAI_MoveController;
 import io.github.j12h36h.dai.logics.controller.DAI_PathController;
+import io.github.j12h36h.dai.logics.controller.DAI_ScaffoldController;
 import io.github.j12h36h.dai.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputState;
@@ -41,7 +44,7 @@ public final class DAI_ClientRuntime {
         initializationPending =
                 true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Client runtime initialization requested."
         );
     }
@@ -183,6 +186,9 @@ public final class DAI_ClientRuntime {
          */
         DAI_ExploreController.reset();
         DAI_PathController.reset();
+        DAI_ScaffoldController.reset();
+        DAI_CreativeFlightController.reset();
+        DAI_CreativeBuildController.reset();
 
         DAI_ApproachController.reset();
         DAI_MoveController.reset();
@@ -228,7 +234,7 @@ public final class DAI_ClientRuntime {
         DAI_ConditionMemory.clear();
         DAI_ScreenManager.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Client runtime session reset."
         );
     }
@@ -272,7 +278,7 @@ public final class DAI_ClientRuntime {
             minecraft.mouseHandler
                     .releaseMouse();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Mouse cursor released."
             );
 
@@ -288,7 +294,7 @@ public final class DAI_ClientRuntime {
             minecraft.mouseHandler
                     .grabMouse();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Mouse cursor grabbed."
             );
         }

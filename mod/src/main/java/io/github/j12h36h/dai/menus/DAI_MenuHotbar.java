@@ -41,7 +41,7 @@ public final class DAI_MenuHotbar {
                 true
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opening hotbar menu."
         );
 
@@ -72,7 +72,7 @@ public final class DAI_MenuHotbar {
 
         refresh(state);
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Hotbar menu opened."
         );
     }

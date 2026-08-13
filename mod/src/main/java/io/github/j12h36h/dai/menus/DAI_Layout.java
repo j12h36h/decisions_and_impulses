@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.menus;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import net.minecraft.client.gui.screens.inventory.BookEditScreen;
+import net.minecraft.client.gui.screens.inventory.BookViewScreen;
 
 public final class DAI_Layout {
 
@@ -13,7 +15,6 @@ public final class DAI_Layout {
     private DAI_Layout() {
         // Utility class.
     }
-
     public record Layout(
             DAI_Position position,
             int x,
@@ -156,7 +157,7 @@ public final class DAI_Layout {
                         || y + height > screenHeight
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Layout extends outside screen bounds: position={}, x={}, y={}, width={}, height={}, screenWidth={}, screenHeight={}.",
                     position,
                     x,

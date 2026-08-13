@@ -1,0 +1,11 @@
+{
+  "priority": 2147483647,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "stop",
+      "text": "Stop Automation",
+      "action": "decisions_and_impulses:stop_vanilla_gameplay"
+    }
+  ]
+}

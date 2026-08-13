@@ -1,0 +1,28 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:automation_continue",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:vg_acquire_raw_iron_iron_axe_attempt_2",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 1.0,
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

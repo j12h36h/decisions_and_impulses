@@ -63,7 +63,7 @@ public final class DAI_ContainerLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Cannot open a container because no block or entity is targeted."
             );
 
@@ -97,7 +97,7 @@ public final class DAI_ContainerLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued container interaction with {} retry check(s).",
                 retries
         );
@@ -141,7 +141,7 @@ public final class DAI_ContainerLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Container menu opened: {}.",
                     minecraft.player
                             .containerMenu
@@ -187,7 +187,7 @@ public final class DAI_ContainerLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Container menu has not opened yet; {} check(s) remaining.",
                 retriesRemaining - 1
         );
@@ -229,7 +229,7 @@ public final class DAI_ContainerLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No external container menu is currently open."
             );
 
@@ -248,7 +248,7 @@ public final class DAI_ContainerLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Closed container menu {}.",
                 menuName
         );

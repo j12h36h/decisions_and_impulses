@@ -1,0 +1,140 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:iron_ores",
+      "ticks": 90,
+      "value": 10.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:raw_iron",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:iron_ores",
+      "ticks": 90,
+      "value": 10.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:raw_iron",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "#minecraft:iron_ores",
+      "ticks": 90,
+      "value": 10.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:raw_iron",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    }
+  ]
+}

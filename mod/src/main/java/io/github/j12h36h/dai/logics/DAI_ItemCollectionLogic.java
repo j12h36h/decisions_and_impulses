@@ -16,11 +16,14 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class DAI_ItemCollectionLogic {
 
@@ -43,6 +46,40 @@ public final class DAI_ItemCollectionLogic {
     private static final double DIRECT_PICKUP_DISTANCE =
             2.0D;
 
+    /*
+     * Once the safe pickup stance has been reached, the collector may nudge
+     * toward the ItemEntity while sneaking. If that nudge does not reduce the
+     * horizontal pickup distance by a meaningful amount for roughly one
+     * second, the drop is considered unsafe from this stance rather than
+     * allowing an endless ledge dance.
+     */
+    private static final int EDGE_PICKUP_STALL_TICKS =
+            20;
+
+    /*
+     * Even tiny back-and-forth improvements can repeatedly reset the local
+     * no-progress timer. Cap the entire direct sneaking nudge phase so one
+     * awkward ledge drop can never monopolize collection indefinitely.
+     */
+    private static final int EDGE_PICKUP_MAX_NUDGE_TICKS =
+            30;
+
+    /*
+     * If the safe pickup stance itself leaves the ItemEntity beyond the
+     * allowed direct-pickup radius, waiting for the whole collection timeout
+     * cannot improve anything because movement is intentionally stopped in
+     * that branch. Give the entity a brief half-second grace period in case it
+     * is still falling/sliding, then reject only that entity and continue.
+     */
+    private static final int OUT_OF_RANGE_PICKUP_GRACE_TICKS =
+            10;
+
+    private static final double EDGE_PICKUP_PROGRESS_DISTANCE =
+            0.10D;
+
+    private static final int MAX_EDGE_REJECTED_ITEMS =
+            64;
+
     private static DAI_Path path;
 
     private static int pathIndex;
@@ -56,12 +93,31 @@ public final class DAI_ItemCollectionLogic {
 
     private static BlockPos pickupStance;
 
+    private static double edgePickupBestDistance =
+            Double.POSITIVE_INFINITY;
+
+    private static int edgePickupNoProgressTicks;
+
+    private static int edgePickupNudgeTicks;
+
+    private static int outOfRangePickupTicks;
+
+    /*
+     * Unsafe ledge drops are ignored by entity id until that entity disappears.
+     * This keeps one bad drop from being selected again by the next collection
+     * objective while still allowing every other nearby item to be collected.
+     */
+    private static final Set<Integer> edgeRejectedEntityIds =
+            new HashSet<>();
+
     /* Optional item id/tag filter supplied through action.action(). */
     private static String itemFilter =
             "";
 
     private static double searchRadius =
             DEFAULT_SEARCH_RADIUS;
+
+    private static int startingMatchingItemCount;
 
     private static boolean active;
 
@@ -124,11 +180,22 @@ public final class DAI_ItemCollectionLogic {
             pickupStance =
                     null;
 
+            resetEdgePickupProgress();
+
+            pruneEdgeRejectedItems(
+                    minecraft
+            );
+
             itemFilter =
                     action != null
                             && action.hasAction()
                             ? action.action()
                             : "";
+
+            startingMatchingItemCount =
+                    countMatchingInventoryItems(
+                            minecraft
+                    );
 
             active =
                     true;
@@ -137,11 +204,35 @@ public final class DAI_ItemCollectionLogic {
                     true
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Started nearby-item collection with radius={} timeout={} tick(s).",
                     searchRadius,
                     ticksRemaining
             );
+        }
+
+        /*
+         * Filtered collection is a bounded resource-acquisition primitive.
+         * Once at least one requested item has actually entered inventory,
+         * release the hard barrier immediately so the datapack can decide
+         * whether more of that resource is still required.
+         *
+         * Unfiltered collection retains its original collect-all behavior.
+         */
+        if (
+                itemFilter != null
+                        && !itemFilter.isBlank()
+                        && countMatchingInventoryItems(
+                        minecraft
+                ) > startingMatchingItemCount
+        ) {
+
+            finish(
+                    DAI_ActionResult.SUCCESS,
+                    "requested item collected"
+            );
+
+            return;
         }
 
         /*
@@ -222,6 +313,8 @@ public final class DAI_ItemCollectionLogic {
 
             pickupStance =
                     null;
+
+            resetEdgePickupProgress();
         }
 
         double distance =
@@ -242,11 +335,7 @@ public final class DAI_ItemCollectionLogic {
         /*
          * Build/rebuild a world path when necessary.
          */
-        if (
-                path == null
-                        || pathIndex
-                        >= path.nodes().size()
-        ) {
+        if (path == null) {
 
             if (
                     !buildPath(
@@ -261,7 +350,7 @@ public final class DAI_ItemCollectionLogic {
                  * Forget it so another reachable nearby drop can be chosen
                  * on the next collection tick.
                  */
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Could not build collection path to dropped item {}.",
                         target.getItem()
                 );
@@ -304,6 +393,9 @@ public final class DAI_ItemCollectionLogic {
                             <= DIRECT_PICKUP_DISTANCE
             ) {
 
+                outOfRangePickupTicks =
+                        0;
+
                 Vec3 safeNudgeTarget =
                         new Vec3(
                                 target.getX(),
@@ -316,7 +408,44 @@ public final class DAI_ItemCollectionLogic {
                         safeNudgeTarget
                 );
 
+                if (
+                        edgePickupStalled(
+                                minecraft,
+                                target
+                        )
+                ) {
+
+                    rejectUnsafeEdgeItem(
+                            target
+                    );
+
+                    DAI_InputState
+                            .movement()
+                            .setMovement(
+                                    0.0F,
+                                    0.0F
+                            );
+
+                    DAI_InputState
+                            .movement()
+                            .setSneak(false);
+
+                    clearTrackedTarget();
+
+                    continueCollection();
+
+                    return;
+                }
+
             } else {
+
+                /*
+                 * No direct nudge is occurring while the entity remains
+                 * outside pickup range. Reset only the nudge-progress
+                 * metrics here; preserve outOfRangePickupTicks so the
+                 * half-second grace period can actually accumulate.
+                 */
+                resetEdgeNudgeProgress();
 
                 DAI_InputState
                         .movement()
@@ -324,8 +453,43 @@ public final class DAI_ItemCollectionLogic {
                                 0.0F,
                                 0.0F
                         );
+
+                outOfRangePickupTicks++;
+
+                if (
+                        outOfRangePickupTicks
+                                >= OUT_OF_RANGE_PICKUP_GRACE_TICKS
+                ) {
+
+                    DAI_Core.LOGGER.info(
+                            "<DAI>: Skipping dropped item {} at {} because safe pickup stance remained {:.2f} block(s) away after {} tick(s).",
+                            target.getItem(),
+                            target.blockPosition(),
+                            distance,
+                            OUT_OF_RANGE_PICKUP_GRACE_TICKS
+                    );
+
+                    rejectUnsafeEdgeItem(
+                            target
+                    );
+
+                    DAI_InputState
+                            .movement()
+                            .setSneak(false);
+
+                    clearTrackedTarget();
+
+                    continueCollection();
+
+                    return;
+                }
             }
         } else {
+
+            resetEdgePickupProgress();
+
+            outOfRangePickupTicks =
+                    0;
 
             DAI_InputState
                     .movement()
@@ -359,13 +523,15 @@ public final class DAI_ItemCollectionLogic {
 
         clearState();
 
+        edgeRejectedEntityIds.clear();
+
         if (wasActive) {
 
             DAI_ActionStatus.set(
                     DAI_ActionResult.CANCELLED
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Active item collection cancelled during reset."
             );
         }
@@ -414,6 +580,10 @@ public final class DAI_ItemCollectionLogic {
             return null;
         }
 
+        pruneEdgeRejectedItems(
+                minecraft
+        );
+
         AABB searchBox =
                 minecraft.player
                         .getBoundingBox()
@@ -428,6 +598,9 @@ public final class DAI_ItemCollectionLogic {
                         item ->
                                 item.isAlive()
                                         && !item.hasPickUpDelay()
+                                        && !edgeRejectedEntityIds.contains(
+                                        item.getId()
+                                )
                                         && matchesRequestedItem(item)
                 )
                 .stream()
@@ -482,6 +655,8 @@ public final class DAI_ItemCollectionLogic {
         pickupStance =
                 null;
 
+        resetEdgePickupProgress();
+
         DAI_Core.LOGGER.info(
                 "<DAI>: Tracking dropped item {} at {}.",
                 item.getItem(),
@@ -510,18 +685,33 @@ public final class DAI_ItemCollectionLogic {
 
         pickupStance =
                 null;
+
+        resetEdgePickupProgress();
     }
 
     private static boolean matchesRequestedItem(
             ItemEntity itemEntity
     ) {
 
+        return itemEntity != null
+                && matchesRequestedStack(
+                itemEntity.getItem()
+        );
+    }
+
+    private static boolean matchesRequestedStack(
+            ItemStack stack
+    ) {
+
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+
         if (
-                itemEntity == null
-                        || itemFilter == null
+                itemFilter == null
                         || itemFilter.isBlank()
         ) {
-            return itemEntity != null;
+            return true;
         }
 
         String normalized =
@@ -545,8 +735,7 @@ public final class DAI_ItemCollectionLogic {
                             tagId
                     );
 
-            return itemEntity.getItem()
-                    .is(tag);
+            return stack.is(tag);
         }
 
         Identifier itemId =
@@ -562,9 +751,174 @@ public final class DAI_ItemCollectionLogic {
 
         return itemId.equals(
                 BuiltInRegistries.ITEM.getKey(
-                        itemEntity.getItem()
-                                .getItem()
+                        stack.getItem()
                 )
+        );
+    }
+
+    private static int countMatchingInventoryItems(
+            Minecraft minecraft
+    ) {
+
+        if (
+                minecraft == null
+                        || minecraft.player == null
+        ) {
+            return 0;
+        }
+
+        int count = 0;
+
+        var inventory =
+                minecraft.player.getInventory();
+
+        for (
+                int slot = 0;
+                slot < inventory.getContainerSize();
+                slot++
+        ) {
+
+            ItemStack stack =
+                    inventory.getItem(
+                            slot
+                    );
+
+            if (matchesRequestedStack(stack)) {
+                count += stack.getCount();
+            }
+        }
+
+        return count;
+    }
+
+    private static boolean edgePickupStalled(
+            Minecraft minecraft,
+            ItemEntity target
+    ) {
+
+        if (
+                minecraft == null
+                        || minecraft.player == null
+                        || target == null
+        ) {
+            return false;
+        }
+
+        edgePickupNudgeTicks++;
+
+        double currentDistance =
+                horizontalDistance(
+                        minecraft.player.position(),
+                        target.position()
+                );
+
+        if (Double.isInfinite(edgePickupBestDistance)) {
+
+            edgePickupBestDistance =
+                    currentDistance;
+
+            edgePickupNoProgressTicks =
+                    0;
+
+        } else if (
+                edgePickupBestDistance
+                        - currentDistance
+                        >= EDGE_PICKUP_PROGRESS_DISTANCE
+        ) {
+
+            /*
+             * Meaningful progress resets the local stall timer, but NOT the
+             * absolute nudge budget. Tiny repeated oscillations therefore
+             * cannot extend this phase forever.
+             */
+            edgePickupBestDistance =
+                    currentDistance;
+
+            edgePickupNoProgressTicks =
+                    0;
+
+        } else {
+
+            edgePickupNoProgressTicks++;
+        }
+
+        return edgePickupNoProgressTicks
+                >= EDGE_PICKUP_STALL_TICKS
+                || edgePickupNudgeTicks
+                >= EDGE_PICKUP_MAX_NUDGE_TICKS;
+    }
+
+    private static void resetEdgeNudgeProgress() {
+
+        edgePickupBestDistance =
+                Double.POSITIVE_INFINITY;
+
+        edgePickupNoProgressTicks =
+                0;
+
+        edgePickupNudgeTicks =
+                0;
+    }
+
+    private static void resetEdgePickupProgress() {
+
+        resetEdgeNudgeProgress();
+
+        outOfRangePickupTicks =
+                0;
+    }
+
+    private static void rejectUnsafeEdgeItem(
+            ItemEntity target
+    ) {
+
+        if (target == null) {
+            return;
+        }
+
+        if (
+                edgeRejectedEntityIds.size()
+                        >= MAX_EDGE_REJECTED_ITEMS
+        ) {
+            edgeRejectedEntityIds.clear();
+        }
+
+        edgeRejectedEntityIds.add(
+                target.getId()
+        );
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Skipping dropped item {} at {} after safe edge pickup exceeded its progress/nudge budget (stall={} tick(s), maxNudge={} tick(s)).",
+                target.getItem(),
+                target.blockPosition(),
+                EDGE_PICKUP_STALL_TICKS,
+                EDGE_PICKUP_MAX_NUDGE_TICKS
+        );
+    }
+
+    private static void pruneEdgeRejectedItems(
+            Minecraft minecraft
+    ) {
+
+        if (
+                minecraft == null
+                        || minecraft.level == null
+                        || edgeRejectedEntityIds.isEmpty()
+        ) {
+            return;
+        }
+
+        edgeRejectedEntityIds.removeIf(
+                entityId -> {
+
+                    var entity =
+                            minecraft.level.getEntity(
+                                    entityId
+                            );
+
+                    return !(entity instanceof ItemEntity item)
+                            || !item.isAlive();
+                }
         );
     }
 
@@ -688,11 +1042,15 @@ public final class DAI_ItemCollectionLogic {
             return true;
         }
 
-        path =
-                null;
-
-        pathIndex =
-                0;
+        /*
+         * Keep the completed path as a marker that the proven safe pickup
+         * stance was reached. Rebuilding a one-node path here every tick
+         * prevented the direct-pickup stall/out-of-range budgets from ever
+         * accumulating and produced the repeated pickup-plan spam seen in the
+         * current Speedrun log. Item movement still explicitly nulls the path
+         * above and triggers a real replan.
+         */
+        pathIndex = nodes.size();
 
         return false;
     }
@@ -927,8 +1285,13 @@ public final class DAI_ItemCollectionLogic {
         pickupStance =
                 null;
 
+        resetEdgePickupProgress();
+
         itemFilter =
                 "";
+
+        startingMatchingItemCount =
+                0;
 
         searchRadius =
                 DEFAULT_SEARCH_RADIUS;

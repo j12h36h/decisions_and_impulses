@@ -1,0 +1,407 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "#minecraft:base_stone_overworld",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:grass_block",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:dirt",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:podzol",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:mycelium",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:sand",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:red_sand",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:gravel",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:mud",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:moss_block",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:terracotta",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "minecraft:snow_block",
+      "value": 8.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "explore_for_block",
+      "action": "#minecraft:base_stone_overworld",
+      "ticks": 120,
+      "value": 16.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_exploration",
+      "ticks": 120,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "recognize_block",
+      "action": "#minecraft:base_stone_overworld",
+      "value": 16.0,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "remember_target_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "remember_waypoint",
+      "action": "descent_anchor",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "operator": "is_false",
+          "parameter": "descent_anchor"
+        }
+      ]
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

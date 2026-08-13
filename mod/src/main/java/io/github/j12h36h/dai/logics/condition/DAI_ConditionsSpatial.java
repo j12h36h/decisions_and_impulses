@@ -10,9 +10,40 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Map;
+import java.util.Set;
 
 /** Datapack-facing conditions for waypoint-relative and scanned geometry. */
 public final class DAI_ConditionsSpatial {
+
+    /*
+     * Exact plank set used by the fail-proof starter-house datapack.
+     *
+     * Thousands of generated conditions previously fetched the same block
+     * state up to eleven times just to ask whether it was one of these plank
+     * variants. Keep the accepted set identical while reducing that query to
+     * one block-state read and one set lookup.
+     */
+    private static final Set<String> HOUSE_PLANK_IDS =
+            Set.of(
+                    "minecraft:oak_planks",
+                    "minecraft:spruce_planks",
+                    "minecraft:birch_planks",
+                    "minecraft:jungle_planks",
+                    "minecraft:acacia_planks",
+                    "minecraft:dark_oak_planks",
+                    "minecraft:mangrove_planks",
+                    "minecraft:cherry_planks",
+                    "minecraft:pale_oak_planks",
+                    "minecraft:crimson_planks",
+                    "minecraft:warped_planks"
+            );
+
+    private static final Set<String> STRICT_AIR_IDS =
+            Set.of(
+                    "minecraft:air",
+                    "minecraft:cave_air",
+                    "minecraft:void_air"
+            );
 
     private DAI_ConditionsSpatial() {
         // Utility class.
@@ -78,6 +109,71 @@ public final class DAI_ConditionsSpatial {
                     return DAI_ConditionValue.bool(
                             state.isAir()
                                     || state.canBeReplaced()
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "waypoint_offset_strict_air",
+                (context, condition) -> {
+
+                    BlockState state =
+                            waypointOffsetState(
+                                    context,
+                                    condition.parameter()
+                            );
+
+                    if (state == null) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    /*
+                     * Exact equivalent of the old generated any-of
+                     * air/cave_air/void_air checks, but performs one world
+                     * lookup instead of three. Do not broaden this to
+                     * state.isAir(); modded air-like blocks were not accepted
+                     * by the original datapack.
+                     */
+                    String blockId =
+                            state.getBlock()
+                                    .builtInRegistryHolder()
+                                    .key()
+                                    .identifier()
+                                    .toString();
+
+                    return DAI_ConditionValue.bool(
+                            STRICT_AIR_IDS.contains(
+                                    blockId
+                            )
+                    );
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "waypoint_offset_house_plank",
+                (context, condition) -> {
+
+                    BlockState state =
+                            waypointOffsetState(
+                                    context,
+                                    condition.parameter()
+                            );
+
+                    if (state == null) {
+                        return DAI_ConditionValue.missing();
+                    }
+
+                    String blockId =
+                            state.getBlock()
+                                    .builtInRegistryHolder()
+                                    .key()
+                                    .identifier()
+                                    .toString();
+
+                    return DAI_ConditionValue.bool(
+                            HOUSE_PLANK_IDS.contains(
+                                    blockId
+                            )
                     );
                 }
         );

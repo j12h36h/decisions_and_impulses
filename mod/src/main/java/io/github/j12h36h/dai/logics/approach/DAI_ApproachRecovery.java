@@ -24,6 +24,15 @@ public final class DAI_ApproachRecovery {
     private static final double MAX_FALLBACK_BREAK_DISTANCE =
             4.5D;
 
+    /*
+     * Safe recovery is a staging mechanism, not an alternate navigation mode.
+     * Four distinct staging routes are enough to escape a canopy/ledge while
+     * preventing an unreachable underground target from consuming the whole
+     * action timeout by oscillating between nearby positions.
+     */
+    private static final int MAX_SAFE_RECOVERY_ATTEMPTS =
+            4;
+
     private DAI_ApproachRecovery() {
         // Utility class.
     }
@@ -200,6 +209,20 @@ public final class DAI_ApproachRecovery {
             return false;
         }
 
+        if (
+                DAI_ApproachState.safeRecoveryAttempts()
+                        >= MAX_SAFE_RECOVERY_ATTEMPTS
+        ) {
+
+            DAI_Core.debug(
+                    "<DAI>: Safe recovery budget exhausted for target {} after {} staging route(s).",
+                    DAI_ApproachState.target(),
+                    DAI_ApproachState.safeRecoveryAttempts()
+            );
+
+            return false;
+        }
+
         /*
          * A recovery route already owns movement.
          *
@@ -261,6 +284,8 @@ public final class DAI_ApproachRecovery {
          */
         DAI_ApproachState.clearFallback();
 
+        DAI_ApproachState.incrementSafeRecoveryAttempts();
+
         DAI_ApproachState.setRecoveryPosition(
                 recoveryPosition
         );
@@ -297,7 +322,9 @@ public final class DAI_ApproachRecovery {
         );
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Normal target approach unavailable; safe recovery route selected from {} to {} for target {} ({} node(s)).",
+                "<DAI>: Normal target approach unavailable; safe recovery route {}/{} selected from {} to {} for target {} ({} node(s)).",
+                DAI_ApproachState.safeRecoveryAttempts(),
+                MAX_SAFE_RECOVERY_ATTEMPTS,
                 origin,
                 recoveryPosition,
                 target,
@@ -525,7 +552,7 @@ public final class DAI_ApproachRecovery {
                         > MAX_FALLBACK_BREAK_DISTANCE
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Destructive-fallback obstruction {} is too far away (distance={}); abandoning fallback.",
                     fallbackObstruction,
                     String.format(

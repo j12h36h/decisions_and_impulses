@@ -51,7 +51,7 @@ public final class DAI_RecogScanner {
 
         if (resolvedOrigin == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition scan could not resolve a valid origin."
             );
 
@@ -241,7 +241,7 @@ public final class DAI_RecogScanner {
 
         if (bestPosition == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition nearest-match origin found no configured group within horizontalRadius={}, upwardRange={}, downwardRange={}.",
                     horizontalRadius,
                     upwardRange,
@@ -251,7 +251,7 @@ public final class DAI_RecogScanner {
             return null;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition nearest-match origin resolved from {} to {}.",
                 suppliedOrigin,
                 bestPosition
@@ -304,7 +304,7 @@ public final class DAI_RecogScanner {
 
         if (originGroups.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition connected scan ignored because the resolved origin block does not match any configured group."
             );
 
@@ -413,7 +413,7 @@ public final class DAI_RecogScanner {
                         .size()
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition connected scan group counts={}.",
                 groupCounts
         );
@@ -529,7 +529,7 @@ public final class DAI_RecogScanner {
                         .size()
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition bounded-region scan horizontalRadius={}, upwardRange={}, downwardRange={}, groupCounts={}.",
                 horizontalRadius,
                 upwardRange,
@@ -550,7 +550,7 @@ public final class DAI_RecogScanner {
             DAI_RecogDefinition definition
     ) {
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Volume recognition scan is not implemented yet; using bounded-region scan."
         );
 
@@ -567,7 +567,7 @@ public final class DAI_RecogScanner {
             DAI_RecogDefinition definition
     ) {
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Regional recognition scan is not implemented yet; using bounded-region scan."
         );
 
@@ -700,7 +700,7 @@ public final class DAI_RecogScanner {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition scan reached the configured block limit of {}.",
                 scan.maxBlocks()
         );
@@ -712,7 +712,7 @@ public final class DAI_RecogScanner {
             int groupCount
     ) {
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Recognition {} scan collected {} block(s) for {} configured group(s).",
                 mode,
                 blockCount,

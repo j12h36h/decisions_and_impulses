@@ -24,7 +24,7 @@ public final class DAI_MenuLogic {
         Minecraft minecraft =
                 Minecraft.getInstance();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opening pause screen."
         );
 
@@ -68,7 +68,7 @@ public final class DAI_MenuLogic {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Opened chat screen."
         );
     }
@@ -95,7 +95,7 @@ public final class DAI_MenuLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No screen is currently open."
             );
 
@@ -112,7 +112,7 @@ public final class DAI_MenuLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Closed screen {}.",
                 screenName
         );
@@ -150,7 +150,7 @@ public final class DAI_MenuLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Updating menu='{}', open='{}'.",
                 menu,
                 open

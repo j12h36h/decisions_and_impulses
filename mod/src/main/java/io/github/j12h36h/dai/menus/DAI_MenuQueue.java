@@ -130,7 +130,7 @@ public final class DAI_MenuQueue {
 
                     DAI_ActionQueue.previous();
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Selected previous queued action."
                     );
                 }
@@ -159,14 +159,14 @@ public final class DAI_MenuQueue {
 
                     if (selectedAction == null) {
 
-                        DAI_Core.LOGGER.debug(
+                        DAI_Core.debug(
                                 "<DAI>: Queue removal ignored because the queue is empty."
                         );
 
                         return;
                     }
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Removing queued action at index {} with type '{}'.",
                             selectedIndex,
                             selectedAction.type()
@@ -195,7 +195,7 @@ public final class DAI_MenuQueue {
 
                     DAI_ActionQueue.next();
 
-                    DAI_Core.LOGGER.debug(
+                    DAI_Core.debug(
                             "<DAI>: Selected next queued action."
                     );
                 }

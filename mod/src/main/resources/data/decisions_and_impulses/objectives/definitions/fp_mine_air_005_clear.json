@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:fp_mine_air_005_clear_attempt_1"
-    }
-  ]
-}

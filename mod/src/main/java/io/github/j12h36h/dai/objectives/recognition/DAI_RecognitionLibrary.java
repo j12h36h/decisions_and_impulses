@@ -27,7 +27,7 @@ public final class DAI_RecognitionLibrary {
 
         DEFINITIONS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} recognition definition(s).",
                 removed
         );
@@ -49,7 +49,7 @@ public final class DAI_RecognitionLibrary {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered recognition definition '{}'.",
                     id
             );

@@ -19,7 +19,8 @@ public final class DAI_MenuState {
 
     public enum ActionMode {
         DATAPACK,
-        AUTOMATION
+        AUTOMATION,
+        AVAILABLE
     }
 
     private final EnumMap<
@@ -88,7 +89,7 @@ public final class DAI_MenuState {
             );
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Menu state initialized."
         );
     }
@@ -112,7 +113,7 @@ public final class DAI_MenuState {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: System menu mode changed from {} to {}.",
                 this.systemMode,
                 systemMode
@@ -141,7 +142,7 @@ public final class DAI_MenuState {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Action menu mode changed from {} to {}.",
                 this.actionMode,
                 actionMode
@@ -327,7 +328,7 @@ public final class DAI_MenuState {
                 open
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: {} menu {}.",
                 category,
                 open
@@ -391,7 +392,7 @@ public final class DAI_MenuState {
         actionMode =
                 ActionMode.DATAPACK;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Menu state reset."
         );
     }

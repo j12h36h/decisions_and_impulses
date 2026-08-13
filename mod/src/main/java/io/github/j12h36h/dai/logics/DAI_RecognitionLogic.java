@@ -1,7 +1,11 @@
 package io.github.j12h36h.dai.logics;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
-import io.github.j12h36h.dai.objectives.recognition.*;
+import io.github.j12h36h.dai.objectives.recognition.DAI_RecogDefinition;
+import io.github.j12h36h.dai.objectives.recognition.DAI_RecogEvaluator;
+import io.github.j12h36h.dai.objectives.recognition.DAI_RecogScanner;
+import io.github.j12h36h.dai.objectives.recognition.DAI_RecogSnapshot;
+import io.github.j12h36h.dai.objectives.recognition.DAI_RecognitionLibrary;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -26,7 +30,7 @@ public final class DAI_RecognitionLogic {
                         || minecraft.level == null
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition ignored because no client level is available."
             );
 
@@ -38,7 +42,7 @@ public final class DAI_RecognitionLogic {
                         instanceof BlockHitResult blockHitResult)
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition ignored because no block is targeted."
             );
 
@@ -80,7 +84,7 @@ public final class DAI_RecognitionLogic {
 
             if (!evaluation.matched()) {
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Target did not match recognition definition '{}': {}.",
                         definitionId,
                         evaluation.failures()
@@ -143,5 +147,26 @@ public final class DAI_RecognitionLogic {
         }
 
         return false;
+    }
+
+    /**
+     * Reads continuously refreshed nearby recognition perception.
+     *
+     * Available menus may call this every client tick. The perception helper
+     * deliberately performs structural world scans on a slower fixed cadence
+     * and returns the cached result between refreshes. The check remains live
+     * without turning every menu refresh into a structure scan.
+     *
+     * This method never changes DAI's selected block/entity target.
+     */
+    public static boolean recognizesNearby(
+            Identifier recognitionId,
+            int requestedRadius
+    ) {
+
+        return DAI_RecognitionPerceptionLogic.recognizesNearby(
+                recognitionId,
+                requestedRadius
+        );
     }
 }

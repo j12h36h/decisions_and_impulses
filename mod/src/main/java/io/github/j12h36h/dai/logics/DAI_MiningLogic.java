@@ -170,7 +170,7 @@ public final class DAI_MiningLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued nearest-block mining for '{}' within radius {}.",
                 action.action(),
                 searchRadius
@@ -287,7 +287,7 @@ public final class DAI_MiningLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Mining target {} is already gone.",
                     selectedBlock
             );
@@ -317,7 +317,7 @@ public final class DAI_MiningLogic {
 
         if (!toolType.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Mining target '{}' at {} with preferred tool type '{}'.",
                     blockState.getBlock()
                             .builtInRegistryHolder()
@@ -337,7 +337,7 @@ public final class DAI_MiningLogic {
 
         } else {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Mining target '{}' at {} with the current item.",
                     blockState.getBlock()
                             .builtInRegistryHolder()
@@ -377,7 +377,7 @@ public final class DAI_MiningLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued exact targeted break for {} after {} tool-sync tick(s).",
                 selectedBlock,
                 TOOL_SWITCH_DELAY
@@ -462,7 +462,7 @@ public final class DAI_MiningLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Targeted-break block {} is already gone.",
                     target
             );
@@ -511,7 +511,7 @@ public final class DAI_MiningLogic {
                     )
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Exact mining target {} moved off the crosshair after tool synchronization; realigning before breaking.",
                     target
             );
@@ -568,7 +568,7 @@ public final class DAI_MiningLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Cannot equip a tool because no block is targeted."
             );
 
@@ -586,7 +586,7 @@ public final class DAI_MiningLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Cannot equip a tool because the targeted block is air."
             );
 
@@ -604,7 +604,7 @@ public final class DAI_MiningLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Targeted block '{}' does not require a supported tool.",
                     blockState.getBlock()
                             .builtInRegistryHolder()
@@ -615,7 +615,7 @@ public final class DAI_MiningLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Targeted block '{}' selected tool type '{}'.",
                 blockState.getBlock()
                         .builtInRegistryHolder()
@@ -717,7 +717,7 @@ public final class DAI_MiningLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Mining target {} is not under the crosshair; retrying with {} check(s) remaining.",
                 selectedBlock,
                 retriesRemaining - 1
@@ -842,7 +842,7 @@ public final class DAI_MiningLogic {
                     )
             ) {
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Equipped '{}' as the best available {}.",
                         candidate,
                         toolType
@@ -852,7 +852,7 @@ public final class DAI_MiningLogic {
             }
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: No supported {} was found in the player inventory.",
                 toolType
         );

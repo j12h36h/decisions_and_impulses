@@ -1,0 +1,52 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "wait_for_target_block",
+      "ticks": 30,
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "type": "mine_targeted_block",
+      "ticks": 70,
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "target_block_selected"
+        },
+        {
+          "type": "targeted_block_breakable"
+        }
+      ]
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "#minecraft:logs",
+      "ticks": 12,
+      "value": 4.0,
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

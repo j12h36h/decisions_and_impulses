@@ -2,12 +2,16 @@ package io.github.j12h36h.dai.menus.system;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.j12h36h.dai.logics.condition.DAI_ConditionDefinition;
+
+import java.util.List;
 
 public record DAI_SystemButton(
         int slot,
         String id,
         String text,
-        String action
+        String action,
+        List<DAI_ConditionDefinition> conditions
 ) {
 
     public static final Codec<DAI_SystemButton> CODEC =
@@ -16,14 +20,39 @@ public record DAI_SystemButton(
                             Codec.INT.fieldOf("slot").forGetter(DAI_SystemButton::slot),
                             Codec.STRING.fieldOf("id").forGetter(DAI_SystemButton::id),
                             Codec.STRING.fieldOf("text").forGetter(DAI_SystemButton::text),
-                            Codec.STRING.fieldOf("action").forGetter(DAI_SystemButton::action)
+                            Codec.STRING.fieldOf("action").forGetter(DAI_SystemButton::action),
+                            DAI_ConditionDefinition.CODEC
+                                    .listOf()
+                                    .optionalFieldOf(
+                                            "conditions",
+                                            List.of()
+                                    )
+                                    .forGetter(DAI_SystemButton::conditions)
                     ).apply(instance, DAI_SystemButton::new)
             );
+
+    public DAI_SystemButton(
+            int slot,
+            String id,
+            String text,
+            String action
+    ) {
+        this(
+                slot,
+                id,
+                text,
+                action,
+                List.of()
+        );
+    }
 
     public DAI_SystemButton {
         id = normalize(id);
         text = normalize(text);
         action = normalize(action);
+        conditions = conditions == null
+                ? List.of()
+                : List.copyOf(conditions);
 
         if (slot < 0) {
             throw new IllegalArgumentException(
@@ -36,6 +65,19 @@ public record DAI_SystemButton(
                     "Menu button id, text, and action cannot be blank."
             );
         }
+
+        if (
+                conditions.stream()
+                        .anyMatch(condition -> condition == null)
+        ) {
+            throw new IllegalArgumentException(
+                    "Menu button conditions cannot contain null entries."
+            );
+        }
+    }
+
+    public boolean hasConditions() {
+        return !conditions.isEmpty();
     }
 
     private static String normalize(String value) {

@@ -12,175 +12,109 @@ import net.minecraft.world.phys.Vec3;
 
 public final class DAI_ApproachObstruction {
 
+    private static final int ALIGNMENT_BUDGET_TICKS = 12;
+
+    private static BlockPos alignmentBlocker;
+    private static int alignmentTicks;
+
     private DAI_ApproachObstruction() {
         // Utility class.
     }
 
-    /**
-     * Returns whether the supplied obstruction is safe for the normal
-     * approach controller to clear automatically.
-     *
-     * This intentionally remains conservative. Normal obstruction clearing
-     * handles leaves and lightweight replaceable vegetation, while more
-     * destructive recovery is handled separately by DAI_ApproachRecovery.
-     */
-    public static boolean canClear(
-            Minecraft minecraft,
-            BlockPos blocker
-    ) {
+    public enum ClearResult {
+        ALIGNING,
+        BREAKING,
+        REPOSITION
+    }
 
-        if (
-                minecraft.level == null
-                        || blocker == null
-        ) {
-            return false;
+    public static boolean canClear(Minecraft minecraft, BlockPos blocker) {
+        if (minecraft.level == null || blocker == null) return false;
+        BlockState state = minecraft.level.getBlockState(blocker);
+        if (state.isAir()) return false;
+        if (state.is(BlockTags.LEAVES)) return true;
+        if (state.canBeReplaced() && state.getFluidState().isEmpty()) {
+            return state.getDestroySpeed(minecraft.level, blocker) >= 0.0F;
         }
-
-        BlockState state =
-                minecraft.level.getBlockState(
-                        blocker
-                );
-
-        if (state.isAir()) {
-            return false;
-        }
-
-        /*
-         * Leaves are considered safe temporary obstructions.
-         */
-        if (
-                state.is(
-                        BlockTags.LEAVES
-                )
-        ) {
-            return true;
-        }
-
-        /*
-         * Lightweight replaceable vegetation may also be cleared.
-         *
-         * Fluids remain explicitly excluded.
-         */
-        if (
-                state.canBeReplaced()
-                        && state.getFluidState()
-                        .isEmpty()
-        ) {
-
-            return state.getDestroySpeed(
-                    minecraft.level,
-                    blocker
-            ) >= 0.0F;
-        }
-
         return false;
     }
 
     /**
-     * Attempts to clear a known safe obstruction while approaching the
-     * currently selected target.
-     *
-     * Movement is stopped while aiming and breaking so the player does not
-     * drift away from the confirmed interaction position.
+     * Bounded obstruction ownership. The same blocker gets only a short
+     * camera-alignment budget; inability to put it under the crosshair asks
+     * the outer approach logic to reposition instead of burning the full
+     * approach timeout.
      */
-    public static void clear(
-            Minecraft minecraft,
-            BlockPos blocker
-    ) {
-
-        if (
-                minecraft.player == null
-                        || minecraft.level == null
-                        || blocker == null
-        ) {
-            return;
+    public static ClearResult clear(Minecraft minecraft, BlockPos blocker) {
+        if (minecraft.player == null || minecraft.level == null || blocker == null) {
+            resetAlignment();
+            return ClearResult.REPOSITION;
         }
 
-        /*
-         * Do not begin a block break while the player is airborne.
-         */
-        if (!minecraft.player.onGround()) {
-
-            stopMovement();
-
-            return;
+        if (!blocker.equals(alignmentBlocker)) {
+            alignmentBlocker = blocker.immutable();
+            alignmentTicks = 0;
         }
 
-        if (
-                minecraft.level
-                        .getBlockState(
-                                blocker
-                        )
-                        .isAir()
-        ) {
-            return;
+        if (minecraft.level.getBlockState(blocker).isAir()) {
+            resetAlignment();
+            return ClearResult.BREAKING;
         }
-
-        /*
-         * Never restart a break already owned by DAI_BreakController.
-         */
-        if (DAI_BreakController.isActive()) {
-
-            stopMovement();
-
-            return;
-        }
-
-        Vec3 blockerCenter =
-                Vec3.atCenterOf(
-                        blocker
-                );
-
-        DAI_ApproachTargeting.rotateToward(
-                minecraft,
-                blockerCenter
-        );
 
         stopMovement();
 
-        /*
-         * Minecraft's hit result is authoritative for whether the requested
-         * rotation has actually placed this obstruction under the crosshair.
-         */
-        if (
-                !(
-                        minecraft.hitResult
-                                instanceof BlockHitResult blockHitResult
-                )
-        ) {
-            return;
+        if (DAI_BreakController.isActive()) {
+            return ClearResult.BREAKING;
         }
 
+        if (!minecraft.player.onGround()) {
+            return tickAlignmentFailure(blocker);
+        }
+
+        DAI_ApproachTargeting.rotateToward(minecraft, Vec3.atCenterOf(blocker));
+
         if (
-                !blocker.equals(
-                        blockHitResult.getBlockPos()
-                )
+                minecraft.hitResult instanceof BlockHitResult hit
+                        && blocker.equals(hit.getBlockPos())
         ) {
-            return;
+            resetAlignment();
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Beginning exact obstruction break {} before approaching target {}.",
+                    blocker,
+                    DAI_ApproachState.target()
+            );
+            DAI_BreakController.breakOnce(blocker);
+            return ClearResult.BREAKING;
+        }
+
+        return tickAlignmentFailure(blocker);
+    }
+
+    private static ClearResult tickAlignmentFailure(BlockPos blocker) {
+        alignmentTicks++;
+        if (alignmentTicks < ALIGNMENT_BUDGET_TICKS) {
+            return ClearResult.ALIGNING;
         }
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Clearing obstruction {} before approaching target {}.",
+                "<DAI>: Could not align with safe obstruction {} within {} tick(s); requesting reposition.",
                 blocker,
-                DAI_ApproachState.target()
+                ALIGNMENT_BUDGET_TICKS
         );
+        resetAlignment();
+        return ClearResult.REPOSITION;
+    }
 
-        DAI_BreakController.breakOnce();
+    public static void reset() {
+        resetAlignment();
+    }
+
+    private static void resetAlignment() {
+        alignmentBlocker = null;
+        alignmentTicks = 0;
     }
 
     private static void stopMovement() {
-
-        DAI_InputState
-                .movement()
-                .setMovement(
-                        0.0F,
-                        0.0F
-                );
-
-        DAI_InputState
-                .movement()
-                .setJump(
-                        false
-                );
+        DAI_InputState.movement().setMovement(0.0F, 0.0F);
+        DAI_InputState.movement().setJump(false);
     }
 }

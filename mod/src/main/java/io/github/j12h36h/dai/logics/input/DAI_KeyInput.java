@@ -49,7 +49,7 @@ public final class DAI_KeyInput {
                 mapping.getKey()
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Clicking key '{}'.",
                 key
         );
@@ -75,7 +75,7 @@ public final class DAI_KeyInput {
                 down
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Setting key '{}' to {}.",
                 key,
                 down
@@ -113,7 +113,7 @@ public final class DAI_KeyInput {
                 down
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Setting key '{}' to {}.",
                 key,
                 down

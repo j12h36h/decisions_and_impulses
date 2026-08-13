@@ -7,6 +7,7 @@ import io.github.j12h36h.dai.logics.approach.DAI_ApproachProfile;
 import io.github.j12h36h.dai.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.input.DAI_InputTargeting;
+import io.github.j12h36h.dai.logics.navigation.DAI_PathFinder;
 import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
 import net.minecraft.client.Minecraft;
@@ -41,13 +42,27 @@ public final class DAI_TargetLogic {
      * 3D distance is slightly smaller.
      */
     private static final int PREFERRED_VERTICAL_RANGE =
-            4;
+            2;
 
     private static final int SURFACE_DEEP_TARGET_LIMIT =
-            6;
+            3;
 
     private static final double VERTICAL_DISTANCE_WEIGHT =
-            4.0D;
+            8.0D;
+
+    /*
+     * A full radius-48 cube contains more than 900,000 positions. Repeated
+     * acquisition attempts were rescanning that volume and generating heavy
+     * client/GC pressure. Search vertically only as far as autonomous
+     * interaction reasonably needs before exploration moves the player.
+     */
+    private static final int MAX_BLOCK_SEARCH_VERTICAL_RADIUS =
+            24;
+
+    private static String cachedBlockQuery =
+            "";
+
+    private static BlockPos cachedBlockResult;
 
     private DAI_TargetLogic() {
         // Utility class.
@@ -118,7 +133,7 @@ public final class DAI_TargetLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No living target was found within recognition range."
             );
 
@@ -146,7 +161,7 @@ public final class DAI_TargetLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognized '{}' at distance={} but rejected pursuit; category={} pursuitRadius={}.",
                     target.getName().getString(),
                     formatDistance(
@@ -169,7 +184,7 @@ public final class DAI_TargetLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected living target '{}' category={} distance={} pursuitRadius={}.",
                 target.getName().getString(),
                 profile.category(),
@@ -263,7 +278,7 @@ public final class DAI_TargetLogic {
                         DAI_ActionResult.FAILURE
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Rejected supplied entity target '{}' because distance={} exceeds category={} pursuitRadius={}.",
                         livingTarget.getName().getString(),
                         formatDistance(
@@ -278,7 +293,7 @@ public final class DAI_TargetLogic {
                 return false;
             }
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Accepted supplied living target '{}' category={} distance={}.",
                     livingTarget.getName().getString(),
                     profile.category(),
@@ -296,7 +311,7 @@ public final class DAI_TargetLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Selected supplied entity target '{}'.",
                 target.getName().getString()
         );
@@ -468,11 +483,29 @@ public final class DAI_TargetLogic {
                 minecraft.player
                         .blockPosition();
 
-        BlockPos nearestPosition =
-                null;
+        /*
+         * Reuse the last result when it is still a valid match. This is
+         * especially important for retry graphs that intentionally clear
+         * their selected target before asking recognition for the same block
+         * category again. Validation keeps this cache safe after mining,
+         * movement, world changes, or block updates.
+         */
+        if (
+                cachedTargetUsable(
+                        minecraft,
+                        matcher,
+                        requestedTarget,
+                        playerPosition,
+                        searchRadius
+                )
+        ) {
 
-        double bestScore =
-                Double.MAX_VALUE;
+            DAI_TargetState.selectBlock(
+                    cachedBlockResult
+            );
+
+            return true;
+        }
 
         boolean playerNearSurface =
                 isNearSurface(
@@ -480,117 +513,169 @@ public final class DAI_TargetLogic {
                         playerPosition
                 );
 
-        BlockPos minimum =
-                playerPosition.offset(
-                        -searchRadius,
-                        -searchRadius,
-                        -searchRadius
+        int verticalRadius =
+                Math.min(
+                        searchRadius,
+                        MAX_BLOCK_SEARCH_VERTICAL_RADIUS
                 );
 
-        BlockPos maximum =
-                playerPosition.offset(
-                        searchRadius,
-                        searchRadius,
-                        searchRadius
-                );
+        BlockPos nearestPosition =
+                null;
 
-        for (
-                BlockPos candidate
-                : BlockPos.betweenClosed(
-                minimum,
-                maximum
-        )
-        ) {
+        double bestScore =
+                Double.MAX_VALUE;
 
-            BlockState state =
-                    minecraft.level.getBlockState(
-                            candidate
-                    );
+        BlockPos.MutableBlockPos candidate =
+                new BlockPos.MutableBlockPos();
 
-            if (
-                    state.isAir()
-                            || !matcher.matches(
-                            state
-                    )
-                            || !isExposed(
-                            minecraft,
-                            candidate
-                    )
-                            || DAI_FailedTargetMemory.contains(
-                            candidate
-                    )
-            ) {
-                continue;
+        int playerX =
+                playerPosition.getX();
+
+        int playerY =
+                playerPosition.getY();
+
+        int playerZ =
+                playerPosition.getZ();
+
+        /*
+         * Search horizontal rings from nearest to farthest. Once the best
+         * score is already lower than the minimum possible score of the next
+         * ring, farther rings cannot win and the scan terminates early.
+         * Nearby trees/stone therefore cost a tiny fraction of the old full
+         * cube scan.
+         */
+        for (int ring = 0; ring <= searchRadius; ring++) {
+
+            for (int deltaX = -ring; deltaX <= ring; deltaX++) {
+
+                for (int deltaZ = -ring; deltaZ <= ring; deltaZ++) {
+
+                    if (
+                            ring > 0
+                                    && Math.max(
+                                    Math.abs(deltaX),
+                                    Math.abs(deltaZ)
+                            ) != ring
+                    ) {
+                        continue;
+                    }
+
+                    int x =
+                            playerX + deltaX;
+
+                    int z =
+                            playerZ + deltaZ;
+
+                    for (int verticalOffset = -verticalRadius; verticalOffset <= verticalRadius; verticalOffset++) {
+
+                        int y =
+                                playerY + verticalOffset;
+
+                        candidate.set(
+                                x,
+                                y,
+                                z
+                        );
+
+                        if (!minecraft.level.hasChunkAt(candidate)) {
+                            continue;
+                        }
+
+                        BlockState state =
+                                minecraft.level.getBlockState(
+                                        candidate
+                                );
+
+                        if (
+                                state.isAir()
+                                        || !matcher.matches(
+                                        state
+                                )
+                                        || !isExposed(
+                                        minecraft,
+                                        candidate
+                                )
+                                        || DAI_FailedTargetMemory.contains(
+                                        candidate
+                                )
+                        ) {
+                            continue;
+                        }
+
+                        if (
+                                playerNearSurface
+                                        && verticalOffset < -SURFACE_DEEP_TARGET_LIMIT
+                                        && !hasSurfaceExposure(
+                                        minecraft,
+                                        candidate
+                                )
+                        ) {
+                            continue;
+                        }
+
+                        double horizontalDistanceSquared =
+                                deltaX * (double) deltaX
+                                        + deltaZ * (double) deltaZ;
+
+                        double absoluteVertical =
+                                Math.abs(
+                                        verticalOffset
+                                );
+
+                        double verticalPenalty =
+                                absoluteVertical
+                                        <= PREFERRED_VERTICAL_RANGE
+                                        ? 0.0D
+                                        : (
+                                        absoluteVertical
+                                                - PREFERRED_VERTICAL_RANGE
+                                )
+                                        * (
+                                        absoluteVertical
+                                                - PREFERRED_VERTICAL_RANGE
+                                )
+                                        * VERTICAL_DISTANCE_WEIGHT;
+
+                        double score =
+                                horizontalDistanceSquared
+                                        + verticalPenalty;
+
+                        if (score >= bestScore) {
+                            continue;
+                        }
+
+                        bestScore =
+                                score;
+
+                        nearestPosition =
+                                candidate.immutable();
+                    }
+                }
             }
 
-            int verticalDifference =
-                    candidate.getY()
-                            - playerPosition.getY();
+            if (nearestPosition != null) {
 
-            if (
-                    playerNearSurface
-                            && verticalDifference
-                            < -SURFACE_DEEP_TARGET_LIMIT
-                            && !hasSurfaceExposure(
-                            minecraft,
-                            candidate
-                    )
-            ) {
-                continue;
+                double nextRingMinimum =
+                        (ring + 1.0D)
+                                * (ring + 1.0D);
+
+                if (bestScore <= nextRingMinimum) {
+                    break;
+                }
             }
-
-            double deltaX =
-                    candidate.getX()
-                            - playerPosition.getX();
-
-            double deltaZ =
-                    candidate.getZ()
-                            - playerPosition.getZ();
-
-            double horizontalDistanceSquared =
-                    deltaX * deltaX
-                            + deltaZ * deltaZ;
-
-            double verticalPenalty =
-                    Math.abs(
-                            verticalDifference
-                    )
-                            <= PREFERRED_VERTICAL_RANGE
-                            ? 0.0D
-                            : (
-                            Math.abs(
-                                    verticalDifference
-                            )
-                                    - PREFERRED_VERTICAL_RANGE
-                    )
-                            * (
-                            Math.abs(
-                                    verticalDifference
-                            )
-                                    - PREFERRED_VERTICAL_RANGE
-                    )
-                            * VERTICAL_DISTANCE_WEIGHT;
-
-            double score =
-                    horizontalDistanceSquared
-                            + verticalPenalty;
-
-            if (score >= bestScore) {
-                continue;
-            }
-
-            bestScore =
-                    score;
-
-            nearestPosition =
-                    candidate.immutable();
         }
 
         if (nearestPosition == null) {
 
+            cachedBlockQuery =
+                    "";
+
+            cachedBlockResult =
+                    null;
+
             DAI_TargetState.clearBlock();
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No exposed block matching '{}' was found within {} block(s).",
                     requestedTarget,
                     searchRadius
@@ -599,24 +684,188 @@ public final class DAI_TargetLogic {
             return false;
         }
 
+        /*
+         * Shared early-game stone acquisition used by Survival and Speedrun
+         * should not spend a full approach/recovery lifecycle proving that an
+         * obviously inaccessible underground stone face cannot be mined.
+         *
+         * While the player is still near the surface, preflight only stone
+         * targets below the player's current layer. If no ordinary reachable
+         * interaction stance exists, temporarily blacklist that exact block
+         * and let the next bounded acquisition attempt select another one.
+         *
+         * Once DAI is genuinely underground, ordinary mining/recovery remains
+         * authoritative and this shortcut is disabled.
+         */
+        if (
+                playerNearSurface
+                        && isEarlyStoneQuery(
+                        requestedTarget
+                )
+                        && nearestPosition.getY()
+                        < playerPosition.getY()
+                        && DAI_PathFinder.findNearestApproachPosition(
+                        minecraft.level,
+                        playerPosition,
+                        nearestPosition,
+                        DAI_ApproachController.DEFAULT_STOPPING_DISTANCE
+                ) == null
+        ) {
+
+            DAI_FailedTargetMemory.remember(
+                    nearestPosition
+            );
+
+            cachedBlockQuery =
+                    "";
+
+            cachedBlockResult =
+                    null;
+
+            DAI_TargetState.clearBlock();
+
+            DAI_Core.debug(
+                    "<DAI>: Rejected surface-stage stone target {} before approach because no reachable interaction stance exists.",
+                    nearestPosition
+            );
+
+            return false;
+        }
+
+        cachedBlockQuery =
+                requestedTarget == null
+                        ? ""
+                        : requestedTarget.trim();
+
+        cachedBlockResult =
+                nearestPosition.immutable();
+
         DAI_TargetState.selectBlock(
                 nearestPosition
         );
 
-        DAI_Core.LOGGER.debug(
-                "<DAI>: Selected nearest exposed block matching '{}' at {} (distance={}).",
+        DAI_Core.debug(
+                "<DAI>: Selected nearest exposed block matching '{}' at {} (optimized ring search score={}).",
                 requestedTarget,
                 nearestPosition,
                 String.format(
                         Locale.ROOT,
                         "%.2f",
-                        Math.sqrt(
-                                nearestPosition.distSqr(
-                                        playerPosition
-                                )
-                        )
+                        bestScore
                 )
         );
+
+        return true;
+    }
+
+    private static boolean isEarlyStoneQuery(
+            String requestedTarget
+    ) {
+
+        if (requestedTarget == null) {
+            return false;
+        }
+
+        return "minecraft:stone".equals(
+                requestedTarget.trim()
+        );
+    }
+
+    private static boolean cachedTargetUsable(
+            Minecraft minecraft,
+            BlockMatcher matcher,
+            String requestedTarget,
+            BlockPos playerPosition,
+            int searchRadius
+    ) {
+
+        if (
+                cachedBlockResult == null
+                        || cachedBlockQuery.isEmpty()
+                        || requestedTarget == null
+                        || !cachedBlockQuery.equals(
+                        requestedTarget.trim()
+                )
+                        || minecraft.level == null
+                        || playerPosition == null
+        ) {
+            return false;
+        }
+
+        int deltaX =
+                Math.abs(
+                        cachedBlockResult.getX()
+                                - playerPosition.getX()
+                );
+
+        int deltaY =
+                Math.abs(
+                        cachedBlockResult.getY()
+                                - playerPosition.getY()
+                );
+
+        int deltaZ =
+                Math.abs(
+                        cachedBlockResult.getZ()
+                                - playerPosition.getZ()
+                );
+
+        if (
+                deltaX > searchRadius
+                        || deltaY > searchRadius
+                        || deltaZ > searchRadius
+                        || !minecraft.level.hasChunkAt(
+                        cachedBlockResult
+                )
+                        || DAI_FailedTargetMemory.contains(
+                        cachedBlockResult
+                )
+        ) {
+            return false;
+        }
+
+        BlockState state =
+                minecraft.level.getBlockState(
+                        cachedBlockResult
+                );
+
+        if (
+                state.isAir()
+                        || !matcher.matches(
+                        state
+                )
+                        || !isExposed(
+                        minecraft,
+                        cachedBlockResult
+                )
+        ) {
+            return false;
+        }
+
+        if (
+                isNearSurface(
+                        minecraft,
+                        playerPosition
+                )
+                        && isEarlyStoneQuery(
+                        requestedTarget
+                )
+                        && cachedBlockResult.getY()
+                        < playerPosition.getY()
+                        && DAI_PathFinder.findNearestApproachPosition(
+                        minecraft.level,
+                        playerPosition,
+                        cachedBlockResult,
+                        DAI_ApproachController.DEFAULT_STOPPING_DISTANCE
+                ) == null
+        ) {
+
+            DAI_FailedTargetMemory.remember(
+                    cachedBlockResult
+            );
+
+            return false;
+        }
 
         return true;
     }
@@ -642,7 +891,7 @@ public final class DAI_TargetLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared all selected targets and block-approach ownership."
         );
     }
@@ -655,7 +904,7 @@ public final class DAI_TargetLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared selected entity target."
         );
     }
@@ -672,7 +921,7 @@ public final class DAI_TargetLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared selected block target and block-approach ownership."
         );
     }
@@ -709,7 +958,7 @@ public final class DAI_TargetLogic {
 
         minecraft.player.closeContainer();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Closed crafting-table menu while leaving its world-target context."
         );
     }

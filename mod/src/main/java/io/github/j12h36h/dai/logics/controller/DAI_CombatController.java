@@ -67,7 +67,7 @@ public final class DAI_CombatController {
         attackPending =
                 true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Basic attack requested."
         );
     }
@@ -81,7 +81,7 @@ public final class DAI_CombatController {
         attackHeld =
                 true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Held attack started."
         );
     }
@@ -94,7 +94,7 @@ public final class DAI_CombatController {
         attackHeld =
                 false;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Held attack stopped."
         );
     }
@@ -153,7 +153,7 @@ public final class DAI_CombatController {
                         > profile.pursuitRadius()
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Refused combat engagement against '{}' category={} because distance={} exceeds pursuitRadius={}.",
                     target.getName().getString(),
                     profile.category(),
@@ -228,7 +228,7 @@ public final class DAI_CombatController {
                 true
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Began combat engagement against '{}' category={} distance={} pursuitRadius={} interactionDistance={}.",
                 target.getName().getString(),
                 profile.category(),
@@ -398,7 +398,7 @@ public final class DAI_CombatController {
             movingAwayTicks =
                     0;
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Revalidated moving combat target '{}' after displacement exceeded {} block(s).",
                     combatTarget.getName().getString(),
                     formatDistance(
@@ -517,7 +517,7 @@ public final class DAI_CombatController {
         attackCooldown =
                 HELD_ATTACK_COOLDOWN;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Attacked combat target '{}'.",
                 combatTarget.getName().getString()
         );
@@ -679,7 +679,7 @@ public final class DAI_CombatController {
         attackCooldown =
                 HELD_ATTACK_COOLDOWN;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Performed held/basic attack; cooldown={} tick(s).",
                 attackHeld
                         ? HELD_ATTACK_COOLDOWN
@@ -820,7 +820,7 @@ public final class DAI_CombatController {
             DAI_TargetState.clearEntity();
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Combat engagement finished: {}.",
                 reason
         );

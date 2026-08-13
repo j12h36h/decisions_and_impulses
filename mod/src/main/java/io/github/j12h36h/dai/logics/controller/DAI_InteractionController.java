@@ -40,7 +40,7 @@ public final class DAI_InteractionController {
         interactPending =
                 true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: World interaction requested."
         );
     }
@@ -121,7 +121,7 @@ public final class DAI_InteractionController {
                             || entity.isRemoved()
             ) {
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Entity interaction ignored because the target is no longer valid."
                 );
 
@@ -151,7 +151,7 @@ public final class DAI_InteractionController {
                             > interactionDistance
             ) {
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Ignored interaction with entity '{}' because distance={} exceeds interactionDistance={}.",
                         entity.getName().getString(),
                         formatDistance(
@@ -191,7 +191,7 @@ public final class DAI_InteractionController {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: World interaction ignored because nothing is targeted."
         );
     }
@@ -236,7 +236,7 @@ public final class DAI_InteractionController {
                     daiMenu
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Stored DAI menu before opening an interaction screen."
             );
         }
@@ -254,7 +254,7 @@ public final class DAI_InteractionController {
                     InteractionHand.MAIN_HAND
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Interacted with {}.",
                     target
             );
@@ -262,7 +262,7 @@ public final class DAI_InteractionController {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Interaction with {} did not succeed.",
                 target
         );

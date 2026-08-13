@@ -46,7 +46,7 @@ public final class DAI_EquipmentLogic {
                 )
         ) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Item '{}' was not found in the player's inventory.",
                     itemId
             );
@@ -299,7 +299,7 @@ public final class DAI_EquipmentLogic {
                     )
             ) {
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Equipped {} '{}'.",
                         description,
                         candidate
@@ -309,7 +309,7 @@ public final class DAI_EquipmentLogic {
             }
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Could not equip {}; no matching item was found.",
                 description
         );

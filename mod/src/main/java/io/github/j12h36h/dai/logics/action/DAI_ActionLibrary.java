@@ -36,7 +36,7 @@ public final class DAI_ActionLibrary {
 
         if (previous == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered action '{}'.",
                     id
             );
@@ -79,7 +79,7 @@ public final class DAI_ActionLibrary {
 
         ACTIONS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} registered action(s).",
                 removed
         );

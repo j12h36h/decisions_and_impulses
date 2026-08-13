@@ -23,14 +23,14 @@ public final class DAI_QueueLogic {
 
         if (ticks <= 0) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Ignoring queue delay with no duration."
             );
 
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Delaying action queue for {} tick(s).",
                 ticks
         );
@@ -66,15 +66,13 @@ public final class DAI_QueueLogic {
             return;
         }
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Deferred enqueue of action '{}'.",
                 action.action()
         );
 
-        DAI_ActionQueue.enqueueAll(
-                DAI_ActionResolver.resolve(
-                        action.action()
-                )
+        DAI_ActionQueue.enqueueDeferredReference(
+                action.action()
         );
     }
 
@@ -84,7 +82,7 @@ public final class DAI_QueueLogic {
 
         DAI_ActionQueue.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared action queue."
         );
     }
@@ -116,7 +114,7 @@ public final class DAI_QueueLogic {
                         selectedIndex
                 );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Randomly selected action branch {}/{}.",
                 selectedIndex + 1,
                 choices.size()
@@ -129,7 +127,7 @@ public final class DAI_QueueLogic {
 
         if (resolvedActions.isEmpty()) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Randomly selected branch resolved to no executable actions."
             );
 

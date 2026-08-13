@@ -5,7 +5,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class DAI_Config {
 
-    public static final int CURRENT_CONFIG_VERSION = 1;
+    public static final int CURRENT_CONFIG_VERSION = 2;
 
     private static final ModConfigSpec.Builder BUILDER =
             new ModConfigSpec.Builder();
@@ -23,6 +23,18 @@ public final class DAI_Config {
                     .comment("Disable vanilla keybinds")
                     .define(
                             "toggleKeybinds",
+                            false
+                    );
+
+    public static final ModConfigSpec.BooleanValue DEBUGGING =
+            BUILDER
+                    .comment(
+                            "Enable DAI debugging and diagnostic telemetry. "
+                                    + "When disabled, DAI debug messages, human trace output, "
+                                    + "and logs/DAI_Log telemetry files are not produced."
+                    )
+                    .define(
+                            "debugging",
                             false
                     );
 
@@ -44,6 +56,18 @@ public final class DAI_Config {
 
     public static final ModConfigSpec SPEC =
             BUILDER.build();
+
+    public static boolean isDebuggingEnabled() {
+
+        try {
+            return DEBUGGING.get();
+
+        } catch (IllegalStateException exception) {
+
+            // Configuration has not finished loading yet.
+            return false;
+        }
+    }
 
     private DAI_Config() {
         // Utility class.

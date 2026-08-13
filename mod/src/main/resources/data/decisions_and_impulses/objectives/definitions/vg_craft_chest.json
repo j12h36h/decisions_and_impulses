@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:vg_craft_chest_attempt_1"
-    }
-  ]
-}

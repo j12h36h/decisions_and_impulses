@@ -73,6 +73,30 @@ public final class DAI_ApproachState {
     private static boolean recoveryActive;
 
     /*
+     * Counts non-destructive staging routes attempted during the CURRENT
+     * approach only. The counter survives each individual recovery route but
+     * is cleared when the approach itself ends.
+     */
+    private static int safeRecoveryAttempts;
+
+    public static int safeRecoveryAttempts() {
+        return safeRecoveryAttempts;
+    }
+
+    public static int incrementSafeRecoveryAttempts() {
+
+        if (safeRecoveryAttempts < Integer.MAX_VALUE) {
+            safeRecoveryAttempts++;
+        }
+
+        return safeRecoveryAttempts;
+    }
+
+    public static void resetSafeRecoveryAttempts() {
+        safeRecoveryAttempts = 0;
+    }
+
+    /*
      * ------------------------------------------------------------
      * DESTRUCTIVE FALLBACK
      * ------------------------------------------------------------
@@ -619,6 +643,8 @@ public final class DAI_ApproachState {
 
         clearRecovery();
 
+        resetSafeRecoveryAttempts();
+
         clearFallback();
 
         stuckCheckTicks =
@@ -678,6 +704,9 @@ public final class DAI_ApproachState {
 
         recoveryActive =
                 false;
+
+        safeRecoveryAttempts =
+                0;
 
         fallbackObstruction =
                 null;

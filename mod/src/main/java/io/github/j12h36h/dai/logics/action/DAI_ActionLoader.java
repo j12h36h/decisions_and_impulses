@@ -86,7 +86,7 @@ public final class DAI_ActionLoader
 
         flattenedDefinitions.forEach((identifier, action) -> {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registering action '{}' with type='{}', reference='{}', conditions={}, sequence={}, ticks={}.",
                     identifier,
                     action.type(),

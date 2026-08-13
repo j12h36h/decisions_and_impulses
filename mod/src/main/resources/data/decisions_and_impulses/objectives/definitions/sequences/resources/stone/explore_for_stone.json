@@ -1,0 +1,17 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:obtain_cobblestone_for_pickaxe",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        }
+      ]
+    }
+  ]
+}

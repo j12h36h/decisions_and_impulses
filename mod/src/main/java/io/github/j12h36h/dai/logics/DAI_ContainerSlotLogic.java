@@ -143,7 +143,7 @@ public final class DAI_ContainerSlotLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Clicked container slot {} in containerId={}.",
                 slot,
                 menu.containerId
@@ -190,7 +190,7 @@ public final class DAI_ContainerSlotLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Shift-clicked container slot {} in containerId={}.",
                 slot,
                 menu.containerId
@@ -259,7 +259,7 @@ public final class DAI_ContainerSlotLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Took stack {} from container slot {} in containerId={}.",
                 stack,
                 slot,
@@ -402,7 +402,7 @@ public final class DAI_ContainerSlotLogic {
                 DAI_ActionResult.SUCCESS
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Inserted '{}' from menu slot {} into container slot {} in containerId={}.",
                 requestedItem,
                 sourceSlot,
@@ -499,7 +499,7 @@ public final class DAI_ContainerSlotLogic {
                         DAI_ActionResult.SUCCESS
                 );
 
-                DAI_Core.LOGGER.debug(
+                DAI_Core.debug(
                         "<DAI>: Container slot {} now contains '{}' in containerId={}.",
                         slot,
                         requested,
@@ -642,7 +642,7 @@ public final class DAI_ContainerSlotLogic {
                 return null;
             }
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Resolved screen profile '{}' slot '{}' -> {}.",
                     profileId,
                     slotName,

@@ -59,7 +59,7 @@ public final class DAI_FoodLogic {
                     DAI_ActionResult.SUCCESS
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Player is not hungry; eat_best_food skipped."
             );
 
@@ -75,7 +75,7 @@ public final class DAI_FoodLogic {
                     DAI_ActionResult.FAILURE
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No supported food was found in the player inventory."
             );
 
@@ -112,7 +112,7 @@ public final class DAI_FoodLogic {
                 DAI_ActionResult.RUNNING
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Queued eating '{}' for {} tick(s).",
                 selectedFood,
                 useTicks

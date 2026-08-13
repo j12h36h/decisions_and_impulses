@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:fp_acquire_cobble_furnace_attempt_1"
-    }
-  ]
-}

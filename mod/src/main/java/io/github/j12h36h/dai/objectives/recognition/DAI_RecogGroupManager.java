@@ -29,7 +29,7 @@ public final class DAI_RecogGroupManager {
 
         GROUPS.clear();
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Cleared {} recognition group definition(s).",
                 removed
         );
@@ -56,7 +56,7 @@ public final class DAI_RecogGroupManager {
                     definition
             );
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Registered recognition group '{}' with {} entrie(s), replace={}.",
                     id,
                     definition.entries().size(),
@@ -82,7 +82,7 @@ public final class DAI_RecogGroupManager {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Merged recognition group '{}' to {} entrie(s).",
                 id,
                 mergedEntries.size()
@@ -134,7 +134,7 @@ public final class DAI_RecogGroupManager {
 
         if (definition == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition group '{}' is not registered.",
                     id
             );

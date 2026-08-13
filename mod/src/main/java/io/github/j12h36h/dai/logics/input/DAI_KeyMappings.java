@@ -37,6 +37,15 @@ public final class DAI_KeyMappings {
         register("save_toolbar", () -> Minecraft.getInstance().options.keySaveHotbarActivator);
         register("load_toolbar", () -> Minecraft.getInstance().options.keyLoadHotbarActivator);
         register("advancements", () -> Minecraft.getInstance().options.keyAdvancements);
+        register("hotbar_1", () -> Minecraft.getInstance().options.keyHotbarSlots[0]);
+        register("hotbar_2", () -> Minecraft.getInstance().options.keyHotbarSlots[1]);
+        register("hotbar_3", () -> Minecraft.getInstance().options.keyHotbarSlots[2]);
+        register("hotbar_4", () -> Minecraft.getInstance().options.keyHotbarSlots[3]);
+        register("hotbar_5", () -> Minecraft.getInstance().options.keyHotbarSlots[4]);
+        register("hotbar_6", () -> Minecraft.getInstance().options.keyHotbarSlots[5]);
+        register("hotbar_7", () -> Minecraft.getInstance().options.keyHotbarSlots[6]);
+        register("hotbar_8", () -> Minecraft.getInstance().options.keyHotbarSlots[7]);
+        register("hotbar_9", () -> Minecraft.getInstance().options.keyHotbarSlots[8]);
     }
 
     private DAI_KeyMappings() {

@@ -81,14 +81,14 @@ public final class DAI_RecogEvaluator {
 
         if (matched) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition evaluation matched result '{}'.",
                     definition.result().id()
             );
 
         } else {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Recognition evaluation for '{}' failed with {} issue(s): {}.",
                     definition.result().id(),
                     failures.size(),

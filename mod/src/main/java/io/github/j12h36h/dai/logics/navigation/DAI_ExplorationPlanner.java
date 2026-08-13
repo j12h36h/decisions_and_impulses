@@ -49,7 +49,7 @@ public final class DAI_ExplorationPlanner {
 
         if (start == null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Exploration planner could not resolve a walkable start near {}.",
                     playerPosition
             );
@@ -88,7 +88,7 @@ public final class DAI_ExplorationPlanner {
 
         if (fresh != null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: Selected fresh short-leg exploration destination {}.",
                     fresh.destination()
             );
@@ -105,7 +105,7 @@ public final class DAI_ExplorationPlanner {
 
         if (recent != null) {
 
-            DAI_Core.LOGGER.debug(
+            DAI_Core.debug(
                     "<DAI>: No fresh short-leg destination was reachable; reusing recent destination {}.",
                     recent.destination()
             );

@@ -3,15 +3,9 @@
   "buttons": [
     {
       "slot": 0,
-      "id": "play",
-      "text": "Play Survival",
-      "action": "decisions_and_impulses:play_vanilla_gameplay"
-    },
-    {
-      "slot": 1,
-      "id": "stop",
-      "text": "Stop Survival",
-      "action": "decisions_and_impulses:stop_vanilla_gameplay"
+      "id": "play_creative_builder",
+      "text": "Build Desert Pyramid (Creative)",
+      "action": "decisions_and_impulses:play_creative_builder"
     }
   ]
 }

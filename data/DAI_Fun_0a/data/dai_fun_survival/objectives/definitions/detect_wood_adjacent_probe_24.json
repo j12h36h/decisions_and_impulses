@@ -1,0 +1,33 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "select_adjacent_block",
+      "action": "harvest_wood_anchor",
+      "direction": "1,-1,-1"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "dai_fun_survival:adopt_wood_target",
+      "conditions": [
+        {
+          "type": "selected_block",
+          "operator": "ends_with",
+          "string_value": "_log"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "dai_fun_survival:detect_wood_adjacent_probe_25",
+      "conditions": [
+        {
+          "type": "selected_block",
+          "operator": "ends_with",
+          "string_value": "_log",
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

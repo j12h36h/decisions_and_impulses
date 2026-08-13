@@ -1,0 +1,12 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:locate_local_crafting_table"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:ensure_crafting_table_dispatch"
+    }
+  ]
+}

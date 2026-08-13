@@ -1,0 +1,47 @@
+{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "daifun_survival_explore",
+      "text": "[D-F] Explore",
+      "action": "dai_fun_survival:open_menu_explore"
+    },
+	{
+	  "slot": 1,
+	  "id": "daifun_survival_attack",
+	  "text": "[D-F] Attack",
+	  "action": "dai_fun_survival:open_menu_attack",
+	  "conditions": [
+		{
+		  "type": "nearby_entity_count",
+		  "parameter": "hostile",
+		  "operator": "greater_than",
+		  "number_value": 0.0,
+		  "parameter_number": 16.0
+		}
+	  ]
+	},
+	{
+	  "slot": 2,
+	  "id": "daifun_survival_hunt",
+	  "text": "[D-F] Hunt",
+	  "action": "dai_fun_survival:open_menu_hunt",
+	  "conditions": [
+		{
+		  "type": "nearby_entity_count",
+		  "parameter": "animal",
+		  "operator": "greater_than",
+		  "number_value": 0.0,
+		  "parameter_number": 16.0
+		}
+	  ]
+	},
+	{
+	  "slot": 3,
+	  "id": "daifun_survival_harvest",
+	  "text": "[D-F] Harvest",
+	  "action": "dai_fun_survival:open_menu_harvest"
+	}
+  ]
+}

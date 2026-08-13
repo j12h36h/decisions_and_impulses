@@ -17,6 +17,26 @@ public final class DAI_Core {
     public static final Logger LOGGER =
             LogUtils.getLogger();
 
+    /**
+     * DAI-owned debug logging is gated by the common debugging config so a
+     * release user can disable verbose diagnostics without suppressing normal
+     * INFO/WARN/ERROR messages from the mod or Minecraft.
+     */
+    public static void debug(
+            String message,
+            Object... arguments
+    ) {
+
+        if (!DAI_Config.isDebuggingEnabled()) {
+            return;
+        }
+
+        LOGGER.debug(
+                message,
+                arguments
+        );
+    }
+
     public DAI_Core(
             IEventBus modBus,
             ModContainer container

@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:fp_craft_stone_pickaxe_attempt_1"
-    }
-  ]
-}

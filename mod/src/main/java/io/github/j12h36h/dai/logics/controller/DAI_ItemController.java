@@ -19,7 +19,7 @@ public final class DAI_ItemController {
 
         dropPending = true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Item drop requested."
         );
     }
@@ -28,7 +28,7 @@ public final class DAI_ItemController {
 
         swapPending = true;
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Item swap requested."
         );
     }
@@ -64,7 +64,7 @@ public final class DAI_ItemController {
                 false
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Dropped held item."
         );
     }
@@ -95,7 +95,7 @@ public final class DAI_ItemController {
                 )
         );
 
-        DAI_Core.LOGGER.debug(
+        DAI_Core.debug(
                 "<DAI>: Swapped main-hand and offhand items."
         );
     }
