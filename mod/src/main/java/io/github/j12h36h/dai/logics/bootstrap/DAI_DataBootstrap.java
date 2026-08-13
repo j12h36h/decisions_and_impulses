@@ -9,6 +9,7 @@ import io.github.j12h36h.dai.menus.DAI_ScreenProfileLoader;
 import io.github.j12h36h.dai.menus.system.DAI_SystemLoader;
 import io.github.j12h36h.dai.objectives.recognition.DAI_RecogGroupLoader;
 import io.github.j12h36h.dai.objectives.recognition.DAI_RecogLoader;
+import io.github.j12h36h.dai.reactions.DAI_ReactionLoader;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -161,6 +162,20 @@ public final class DAI_DataBootstrap {
                         "processing_recipes"
                 ),
                 new DAI_RecipeLoader()
+        );
+
+        /*
+         * ------------------------------------------------------------
+         * REACTIONS
+         * ------------------------------------------------------------
+         */
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(
+                        DAI_Core.MODID,
+                        "reactions"
+                ),
+                new DAI_ReactionLoader()
         );
 
         /*

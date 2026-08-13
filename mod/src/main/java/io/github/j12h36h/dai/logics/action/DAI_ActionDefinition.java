@@ -19,7 +19,9 @@ public record DAI_ActionDefinition(
         int ticks,
         int slot,
         boolean state,
-        double value
+        double value,
+        DAI_SpriteOverlayDefinition sprite,
+        DAI_SpriteSheetOverlayDefinition spriteSheet
 ) {
 
     public static final Codec<DAI_ActionDefinition> CODEC =
@@ -143,6 +145,22 @@ public record DAI_ActionDefinition(
                                     )
                                     .forGetter(
                                             DAI_ActionDefinition::value
+                                    ),
+                            DAI_SpriteOverlayDefinition.CODEC
+                                    .optionalFieldOf(
+                                            "sprite",
+                                            DAI_SpriteOverlayDefinition.EMPTY
+                                    )
+                                    .forGetter(
+                                            DAI_ActionDefinition::sprite
+                                    ),
+                            DAI_SpriteSheetOverlayDefinition.CODEC
+                                    .optionalFieldOf(
+                                            "sprite_sheet",
+                                            DAI_SpriteSheetOverlayDefinition.EMPTY
+                                    )
+                                    .forGetter(
+                                            DAI_ActionDefinition::spriteSheet
                                     )
                     ).apply(
                             instance,
@@ -219,6 +237,16 @@ public record DAI_ActionDefinition(
                     "Action value must be finite."
             );
         }
+
+        sprite =
+                sprite == null
+                        ? DAI_SpriteOverlayDefinition.EMPTY
+                        : sprite;
+
+        spriteSheet =
+                spriteSheet == null
+                        ? DAI_SpriteSheetOverlayDefinition.EMPTY
+                        : spriteSheet;
     }
 
     public DAI_ActionDefinition(
@@ -248,7 +276,34 @@ public record DAI_ActionDefinition(
                 ticks,
                 slot,
                 false,
-                0.0D
+                0.0D,
+                DAI_SpriteOverlayDefinition.EMPTY,
+                DAI_SpriteSheetOverlayDefinition.EMPTY
+        );
+    }
+
+
+    public DAI_ActionDefinition(
+            String type,
+            String action,
+            List<DAI_ConditionDefinition> conditions,
+            List<DAI_ActionDefinition> sequence,
+            String menu,
+            String open,
+            float yaw,
+            float pitch,
+            String direction,
+            int ticks,
+            int slot,
+            boolean state,
+            double value
+    ) {
+
+        this(
+                type, action, conditions, sequence, menu, open,
+                yaw, pitch, direction, ticks, slot, state, value,
+                DAI_SpriteOverlayDefinition.EMPTY,
+                DAI_SpriteSheetOverlayDefinition.EMPTY
         );
     }
 

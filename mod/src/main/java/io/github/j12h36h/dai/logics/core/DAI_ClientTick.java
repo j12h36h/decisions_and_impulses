@@ -21,6 +21,7 @@ import io.github.j12h36h.dai.logics.controller.DAI_ScaffoldController;
 import io.github.j12h36h.dai.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.menus.DAI_ScreenManager;
+import io.github.j12h36h.dai.overlays.DAI_OverlayManager;
 import net.minecraft.client.Minecraft;
 
 public final class DAI_ClientTick {
@@ -53,6 +54,7 @@ public final class DAI_ClientTick {
         ) {
 
             DAI_ClientRuntime.resetSession();
+            DAI_OverlayManager.clear();
 
             sessionActive =
                     false;
@@ -80,6 +82,7 @@ public final class DAI_ClientTick {
 
         DAI_ClientRuntime.tick();
         DAI_ScreenManager.tick();
+        DAI_OverlayManager.tick();
 
         /*
          * Persistent navigation advances before queue dispatch so controller
@@ -149,5 +152,7 @@ public final class DAI_ClientTick {
 
         sessionActive =
                 false;
+
+        DAI_OverlayManager.clear();
     }
 }

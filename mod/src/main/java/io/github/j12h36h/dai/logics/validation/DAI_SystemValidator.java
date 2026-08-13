@@ -187,20 +187,61 @@ public final class DAI_SystemValidator {
             DAI_SystemButton button
     ) {
 
-        /*
-         * Button-specific validation belongs here.
-         *
-         * Once DAI_SystemButton's current fields are confirmed, this
-         * method should validate:
-         *
-         * - slot range
-         * - blank button ID
-         * - blank display text
-         * - unknown action reference
-         * - unknown menu destination
-         * - invalid open/category value
-         * - category-specific requirements
-         */
+        validateStyleColor(
+                source,
+                "background",
+                button.style().background()
+        );
+
+        validateStyleColor(
+                source,
+                "hover",
+                button.style().hover()
+        );
+
+        validateStyleColor(
+                source,
+                "selected",
+                button.style().selected()
+        );
+
+        validateStyleColor(
+                source,
+                "text",
+                button.style().text()
+        );
+
+        validateStyleColor(
+                source,
+                "border",
+                button.style().border()
+        );
+    }
+
+    private static void validateStyleColor(
+            String source,
+            String field,
+            String color
+    ) {
+
+        if (color == null || color.isBlank()) {
+            return;
+        }
+
+        String normalized =
+                color.startsWith("#")
+                        ? color.substring(1)
+                        : color;
+
+        if (!normalized.matches("[0-9a-fA-F]{6}([0-9a-fA-F]{2})?")) {
+
+            DAI_ValidationReport.error(
+                    source,
+                    "Button style '"
+                            + field
+                            + "' must be #RRGGBB or #AARRGGBB."
+            );
+        }
     }
 
     private static String normalizeId(

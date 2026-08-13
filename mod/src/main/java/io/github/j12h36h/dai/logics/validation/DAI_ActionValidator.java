@@ -21,6 +21,7 @@ public final class DAI_ActionValidator {
             Set.of(
                     "all",
                     "any",
+                    "none",
                     "not"
             );
 
@@ -69,6 +70,42 @@ public final class DAI_ActionValidator {
                     new HashSet<>()
             );
         }
+    }
+
+
+    public static void validateInlineAction(
+            String source,
+            DAI_ActionDefinition action
+    ) {
+
+        validateAction(
+                source,
+                action,
+                0
+        );
+
+        if (action == null) {
+            return;
+        }
+
+        validateReferencesInNode(
+                source,
+                action,
+                new HashSet<>(),
+                new HashSet<>()
+        );
+    }
+
+    public static void validateInlineConditions(
+            String source,
+            Iterable<DAI_ConditionDefinition> conditions
+    ) {
+
+        validateConditions(
+                source,
+                conditions,
+                0
+        );
     }
 
     private static void validateAction(
@@ -168,6 +205,11 @@ public final class DAI_ActionValidator {
                 action
         );
 
+        validateOverlay(
+                source,
+                action
+        );
+
         if (
                 "hotbar_select".equals(
                         action.type()
@@ -207,6 +249,141 @@ public final class DAI_ActionValidator {
                     depth + 1
             );
         }
+    }
+
+
+    private static void validateOverlay(
+            String source,
+            DAI_ActionDefinition action
+    ) {
+        if ("overlay_sprite".equals(action.type())) {
+            var sprite = action.sprite();
+            if (sprite == null || sprite.isEmpty()) {
+                DAI_ValidationReport.error(source, "overlay_sprite requires a 'sprite' object.");
+                return;
+            }
+            validateOverlayCommon(
+                    source,
+                    sprite.id(),
+                    sprite.texture(),
+                    sprite.anchor(),
+                    sprite.width(),
+                    sprite.height(),
+                    sprite.ticks(),
+                    sprite.alpha(),
+                    sprite.color(),
+                    sprite.interactable(),
+                    sprite.clickAction(),
+                    sprite.consumeClick()
+            );
+        }
+
+        if ("overlay_sprite_sheet".equals(action.type())) {
+            var sheet = action.spriteSheet();
+            if (sheet == null || sheet.isEmpty()) {
+                DAI_ValidationReport.error(source, "overlay_sprite_sheet requires a 'sprite_sheet' object.");
+                return;
+            }
+            validateOverlayCommon(
+                    source,
+                    sheet.id(),
+                    sheet.texture(),
+                    sheet.anchor(),
+                    sheet.width(),
+                    sheet.height(),
+                    sheet.ticks(),
+                    sheet.alpha(),
+                    sheet.color(),
+                    sheet.interactable(),
+                    sheet.clickAction(),
+                    sheet.consumeClick()
+            );
+            if (sheet.animation().frameWidth() <= 0
+                    || sheet.animation().frameHeight() <= 0
+                    || sheet.animation().frameCount() <= 0
+                    || sheet.animation().columns() <= 0
+                    || sheet.animation().frameTicks() <= 0) {
+                DAI_ValidationReport.error(
+                        source,
+                        "Sprite sheet frame_width, frame_height, frame_count, columns, and frame_ticks must all be positive."
+                );
+            }
+        }
+
+        if ("overlay_remove".equals(action.type()) && action.action().isBlank()) {
+            DAI_ValidationReport.error(source, "overlay_remove requires action='<overlay id>'.");
+        }
+    }
+
+    private static void validateOverlayCommon(
+            String source,
+            String id,
+            String texture,
+            String anchor,
+            int width,
+            int height,
+            int ticks,
+            double alpha,
+            String color,
+            boolean interactable,
+            String clickAction,
+            boolean consumeClick
+    ) {
+        if (id == null || id.isBlank()) {
+            DAI_ValidationReport.error(source, "Overlay id cannot be blank.");
+        }
+        if (texture == null || texture.isBlank() || Identifier.tryParse(texture.trim()) == null) {
+            DAI_ValidationReport.error(source, "Overlay texture must be a valid resource identifier.");
+        }
+        if (width <= 0 || height <= 0) {
+            DAI_ValidationReport.error(source, "Overlay width and height must be positive.");
+        }
+        if (ticks < 0) {
+            DAI_ValidationReport.error(source, "Overlay ticks cannot be negative; use 0 for persistent overlays.");
+        }
+        if (!Double.isFinite(alpha) || alpha < 0.1D || alpha > 1.0D) {
+            DAI_ValidationReport.error(source, "Overlay alpha must be between 0.1 and 1.0.");
+        }
+        if (!validOverlayAnchor(anchor)) {
+            DAI_ValidationReport.error(source, "Unknown overlay anchor '" + anchor + "'.");
+        }
+        if (!validHexColor(color)) {
+            DAI_ValidationReport.error(source, "Overlay color must be #RRGGBB or #AARRGGBB.");
+        }
+        if (interactable) {
+            Identifier clickReference = parseReference(clickAction);
+            if (clickReference == null) {
+                DAI_ValidationReport.error(source, "Interactable overlay requires a valid click_action reference.");
+            } else if (!DAI_ActionLibrary.contains(clickReference)) {
+                DAI_ValidationReport.error(source, "Unknown overlay click_action reference '" + clickReference + "'.");
+            }
+        } else {
+            if (clickAction != null && !clickAction.isBlank()) {
+                DAI_ValidationReport.warning(source, "Overlay click_action is ignored while interactable=false.");
+            }
+            if (consumeClick) {
+                DAI_ValidationReport.warning(source, "Overlay consume_click is ignored while interactable=false.");
+            }
+        }
+    }
+
+    private static boolean validOverlayAnchor(String anchor) {
+        if (anchor == null) {
+            return false;
+        }
+        return Set.of(
+                "top_left", "top_center", "top_right",
+                "center_left", "center", "center_right",
+                "bottom_left", "bottom_center", "bottom_right"
+        ).contains(anchor.trim().toLowerCase());
+    }
+
+    private static boolean validHexColor(String color) {
+        if (color == null || color.isBlank()) {
+            return true;
+        }
+        String value = color.startsWith("#") ? color.substring(1) : color;
+        return value.matches("[0-9a-fA-F]{6}([0-9a-fA-F]{2})?");
     }
 
     private static void validateMovementDirection(

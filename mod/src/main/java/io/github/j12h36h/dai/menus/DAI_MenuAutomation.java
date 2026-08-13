@@ -131,6 +131,13 @@ public final class DAI_MenuAutomation {
                     Component.literal("[ Empty ]")
             );
 
+            if (selectedButton instanceof DAI_StyledButton styledButton) {
+                styledButton.setStyle(
+                        io.github.j12h36h.dai.menus.system.DAI_ButtonStyle.EMPTY
+                );
+                styledButton.setSelectedStyle(false);
+            }
+
             return;
         }
 
@@ -145,6 +152,13 @@ public final class DAI_MenuAutomation {
                         )
                 )
         );
+
+        if (selectedButton instanceof DAI_StyledButton styledButton) {
+            styledButton.setStyle(
+                    selected.style()
+            );
+            styledButton.setSelectedStyle(true);
+        }
     }
 
     private void previous() {

@@ -150,22 +150,20 @@ public final class DAI_MenuDatapack {
                 );
 
         Button button =
-                Button.builder(
-                                Component.literal(
-                                        definition.text()
+                new DAI_StyledButton(
+                        buttonLayout.x(),
+                        buttonLayout.y(),
+                        buttonLayout.width(),
+                        buttonLayout.height(),
+                        Component.literal(
+                                definition.text()
+                        ),
+                        pressedButton ->
+                                menu.runAction(
+                                        definition.action()
                                 ),
-                                pressedButton ->
-                                        menu.runAction(
-                                                definition.action()
-                                        )
-                        )
-                        .bounds(
-                                buttonLayout.x(),
-                                buttonLayout.y(),
-                                buttonLayout.width(),
-                                buttonLayout.height()
-                        )
-                        .build();
+                        definition.style()
+                );
 
         state.setSubButton(
                 category,

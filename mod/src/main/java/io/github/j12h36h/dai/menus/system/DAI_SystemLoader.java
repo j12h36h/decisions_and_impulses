@@ -400,7 +400,8 @@ public final class DAI_SystemLoader
                 button.id(),
                 button.text(),
                 button.action(),
-                button.conditions()
+                button.conditions(),
+                button.style()
         );
     }
 

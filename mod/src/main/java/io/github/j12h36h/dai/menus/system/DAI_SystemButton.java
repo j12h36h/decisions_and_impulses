@@ -11,7 +11,8 @@ public record DAI_SystemButton(
         String id,
         String text,
         String action,
-        List<DAI_ConditionDefinition> conditions
+        List<DAI_ConditionDefinition> conditions,
+        DAI_ButtonStyle style
 ) {
 
     public static final Codec<DAI_SystemButton> CODEC =
@@ -27,7 +28,13 @@ public record DAI_SystemButton(
                                             "conditions",
                                             List.of()
                                     )
-                                    .forGetter(DAI_SystemButton::conditions)
+                                    .forGetter(DAI_SystemButton::conditions),
+                            DAI_ButtonStyle.CODEC
+                                    .optionalFieldOf(
+                                            "style",
+                                            DAI_ButtonStyle.EMPTY
+                                    )
+                                    .forGetter(DAI_SystemButton::style)
                     ).apply(instance, DAI_SystemButton::new)
             );
 
@@ -42,8 +49,19 @@ public record DAI_SystemButton(
                 id,
                 text,
                 action,
-                List.of()
+                List.of(),
+                DAI_ButtonStyle.EMPTY
         );
+    }
+
+    public DAI_SystemButton(
+            int slot,
+            String id,
+            String text,
+            String action,
+            List<DAI_ConditionDefinition> conditions
+    ) {
+        this(slot, id, text, action, conditions, DAI_ButtonStyle.EMPTY);
     }
 
     public DAI_SystemButton {
@@ -53,6 +71,9 @@ public record DAI_SystemButton(
         conditions = conditions == null
                 ? List.of()
                 : List.copyOf(conditions);
+        style = style == null
+                ? DAI_ButtonStyle.EMPTY
+                : style;
 
         if (slot < 0) {
             throw new IllegalArgumentException(

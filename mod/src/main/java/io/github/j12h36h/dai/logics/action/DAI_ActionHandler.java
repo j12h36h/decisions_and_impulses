@@ -18,6 +18,7 @@ public final class DAI_ActionHandler {
         );
 
         registerMenuActions();
+        registerOverlayActions();
         registerLookActions();
         registerMovementActions();
         registerTargetActions();
@@ -64,6 +65,30 @@ public final class DAI_ActionHandler {
         register(
                 "close_screen",
                 DAI_MenuLogic::closeScreen
+        );
+    }
+
+
+    private static void registerOverlayActions() {
+
+        register(
+                "overlay_sprite",
+                DAI_OverlayLogic::sprite
+        );
+
+        register(
+                "overlay_sprite_sheet",
+                DAI_OverlayLogic::spriteSheet
+        );
+
+        register(
+                "overlay_remove",
+                DAI_OverlayLogic::remove
+        );
+
+        register(
+                "overlay_clear",
+                DAI_OverlayLogic::clear
         );
     }
 

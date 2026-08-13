@@ -84,17 +84,15 @@ public final class DAI_MenuSelector {
                 );
 
         Button button =
-                Button.builder(
-                                Component.literal(text),
-                                action
-                        )
-                        .bounds(
-                                buttonLayout.x(),
-                                buttonLayout.y(),
-                                buttonLayout.width(),
-                                buttonLayout.height()
-                        )
-                        .build();
+                new DAI_StyledButton(
+                        buttonLayout.x(),
+                        buttonLayout.y(),
+                        buttonLayout.width(),
+                        buttonLayout.height(),
+                        Component.literal(text),
+                        action,
+                        io.github.j12h36h.dai.menus.system.DAI_ButtonStyle.EMPTY
+                );
 
         state.setSubButton(
                 category,
