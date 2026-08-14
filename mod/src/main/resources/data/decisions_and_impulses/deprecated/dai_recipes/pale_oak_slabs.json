@@ -1,0 +1,15 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:pale_oak_planks"
+    }
+  },
+  "result": {
+    "item": "minecraft:pale_oak_slab",
+    "count": 6
+  }
+}

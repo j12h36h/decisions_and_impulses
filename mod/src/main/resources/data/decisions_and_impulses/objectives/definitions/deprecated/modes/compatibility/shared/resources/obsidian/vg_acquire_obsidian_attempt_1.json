@@ -1,0 +1,39 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 180,
+      "value": 20.0
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0,
+          "negate": true
+        }
+      ],
+      "ticks": 100,
+      "value": 7.0
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_acquire_obsidian_attempt_1_dispatch"
+    }
+  ]
+}

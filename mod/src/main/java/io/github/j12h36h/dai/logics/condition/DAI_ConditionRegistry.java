@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public final class DAI_ConditionRegistry {
 
@@ -144,6 +145,16 @@ public final class DAI_ConditionRegistry {
         return id != null
                 && CONDITIONS.containsKey(
                 normalize(id)
+        );
+    }
+
+    public static int size() {
+        return CONDITIONS.size();
+    }
+
+    public static Set<String> ids() {
+        return Set.copyOf(
+                CONDITIONS.keySet()
         );
     }
 

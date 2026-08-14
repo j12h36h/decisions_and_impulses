@@ -1,0 +1,11 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_impossible_signal"
+    },
+    {
+      "type": "automation_stop"
+    }
+  ]
+}

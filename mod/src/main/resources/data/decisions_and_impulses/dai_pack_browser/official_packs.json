@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "packs": [
+    {
+      "id": "decisions_and_impulses:fundamentals_survival",
+      "name": "DAI Fundamentals — Survival",
+      "summary": "Official external Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior.",
+      "version": "0a",
+      "type": "datapack",
+      "featured": true,
+      "info_url": "https://j12h36h.github.io/dai/packs/",
+      "icon_item": "minecraft:wooden_pickaxe",
+      "components": [
+        {
+          "id": "survival_data",
+          "type": "datapack",
+          "curseforge_file_id": 8641276,
+          "file_name": "DAI_Fun_0a.zip"
+        }
+      ]
+    },
+    {
+      "id": "decisions_and_impulses:comic_effects",
+      "name": "DAI Comic Effects",
+      "summary": "Condensed combo pack: installs the reaction datapack into the selected world and its companion visual resource pack client-wide.",
+      "version": "1.0",
+      "type": "combo",
+      "featured": true,
+      "info_url": "https://j12h36h.github.io/dai/packs/",
+      "icon_item": "minecraft:firework_star",
+      "components": [
+        {
+          "id": "comic_effects_data",
+          "type": "datapack",
+          "curseforge_file_id": 8642384,
+          "file_name": "DAI_ComicEffects_Data.zip"
+        },
+        {
+          "id": "comic_effects_resource",
+          "type": "resource_pack",
+          "curseforge_file_id": 8642408,
+          "file_name": "DAI_ComicEffects_Resource.zip"
+        }
+      ]
+    }
+  ]
+}

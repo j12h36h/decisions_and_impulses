@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:craft_planks_from_available_log"
+    }
+  ]
+}

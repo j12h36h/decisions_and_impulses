@@ -1,0 +1,18 @@
+{
+  "type": "craft_recipe",
+  "action": "minecraft:mangrove_planks",
+  "state": false,
+  "conditions": [
+    {
+      "type": "recipe_unlocked",
+      "operator": "is_true",
+      "parameter": "minecraft:mangrove_planks"
+    },
+    {
+      "type": "container_has_item",
+      "operator": "greater_than",
+      "parameter": "minecraft:mangrove_log",
+      "number_value": 0
+    }
+  ]
+}

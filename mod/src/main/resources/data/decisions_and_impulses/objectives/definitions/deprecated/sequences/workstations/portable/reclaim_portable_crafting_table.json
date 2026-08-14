@@ -1,0 +1,155 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "select_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 50,
+      "value": 3.2,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 50,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 20,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "mine_targeted_block",
+      "ticks": 55,
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:crafting_table",
+      "ticks": 15,
+      "value": 4.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

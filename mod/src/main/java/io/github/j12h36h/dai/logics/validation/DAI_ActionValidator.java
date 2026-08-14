@@ -6,6 +6,13 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionRegistry;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionDefinition;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionRegistry;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventDefinition;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
+import io.github.j12h36h.dai.reactions.DAI_ReactionPhase;
+import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
+import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
+import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
+import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import net.minecraft.resources.Identifier;
 
 import java.util.HashSet;
@@ -205,6 +212,11 @@ public final class DAI_ActionValidator {
                 action
         );
 
+        validateExtensionAction(
+                source,
+                action
+        );
+
         validateOverlay(
                 source,
                 action
@@ -251,6 +263,222 @@ public final class DAI_ActionValidator {
         }
     }
 
+
+    private static void validateExtensionAction(
+            String source,
+            DAI_ActionDefinition action
+    ) {
+
+        String type =
+                action.type();
+
+        if (
+                Set.of(
+                        "state_set_boolean",
+                        "state_set_number",
+                        "state_set_string",
+                        "state_add_number",
+                        "state_toggle_boolean",
+                        "state_clear",
+                        "capability_add",
+                        "capability_remove",
+                        "reference_remember_target_entity",
+                        "reference_remember_target_block",
+                        "reference_remember_reaction_entity",
+                        "reference_remember_player_position",
+                        "reference_select",
+                        "reference_clear",
+                        "emit_reaction_event",
+                        "attribute_set",
+                        "attribute_add",
+                        "attribute_reset",
+                        "attribute_modifier_add",
+                        "attribute_modifier_remove",
+                        "native_attribute_set",
+                        "native_attribute_modifier_add",
+                        "native_attribute_modifier_remove",
+                        "animation_play",
+                        "animation_stop",
+                        "animation_pause",
+                        "animation_resume",
+                        "wait_for_animation",
+                        "content_activate",
+                        "content_deactivate",
+                        "content_event",
+                        "content_give"
+                ).contains(type)
+                        && action.action().isBlank()
+        ) {
+
+            DAI_ValidationReport.error(
+                    source,
+                    "Action type '"
+                            + type
+                            + "' requires a non-blank 'action' value."
+            );
+
+            return;
+        }
+
+        if ("emit_reaction_event".equals(type)) {
+
+            DAI_ReactionEventDefinition event =
+                    DAI_ReactionEventRegistry.get(
+                            action.action()
+                    );
+
+            if (event == null) {
+
+                DAI_ValidationReport.error(
+                        source,
+                        "Unknown reaction event '"
+                                + action.action()
+                                + "'."
+                );
+
+                return;
+            }
+
+            DAI_ReactionPhase phase =
+                    action.direction().isBlank()
+                            ? DAI_ReactionPhase.DURING
+                            : DAI_ReactionPhase.parse(
+                                    action.direction()
+                            );
+
+            if (phase == DAI_ReactionPhase.UNKNOWN) {
+
+                DAI_ValidationReport.error(
+                        source,
+                        "emit_reaction_event direction must be pre, during, post, or blank."
+                );
+
+            } else if (!event.supports(phase)) {
+
+                DAI_ValidationReport.error(
+                        source,
+                        "Reaction event '"
+                                + action.action()
+                                + "' does not support phase '"
+                                + phase.id()
+                                + "'."
+                );
+            }
+        }
+
+        if (Set.of(
+                "attribute_set",
+                "attribute_add",
+                "attribute_reset",
+                "attribute_modifier_add",
+                "attribute_modifier_remove"
+        ).contains(type) && !DAI_AttributeRegistry.contains(action.action())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown custom attribute '" + action.action() + "'."
+            );
+        }
+
+        if (Set.of(
+                "native_attribute_set",
+                "native_attribute_modifier_add",
+                "native_attribute_modifier_remove"
+        ).contains(type) && DAI_NativeAttributeSupport.resolve(action.action()) == null) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown native attribute '" + action.action() + "'."
+            );
+        }
+
+        if (Set.of(
+                "attribute_modifier_add",
+                "attribute_modifier_remove",
+                "native_attribute_modifier_add",
+                "native_attribute_modifier_remove"
+        ).contains(type) && action.direction().isBlank()) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Action type '" + type + "' requires direction='<modifier id>'."
+            );
+        }
+
+        if ("attribute_modifier_add".equals(type)
+                && !Set.of(
+                "", "add", "add_value",
+                "multiply_base", "mul_base", "add_multiplied_base",
+                "multiply_total", "mul_total", "add_multiplied_total",
+                "set", "override"
+        ).contains(action.open().trim().toLowerCase())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown custom attribute modifier operation '" + action.open() + "'."
+            );
+        }
+
+        if ("native_attribute_modifier_add".equals(type)
+                && !Set.of(
+                "", "add", "add_value",
+                "multiply_base", "mul_base", "add_multiplied_base",
+                "multiply_total", "mul_total", "add_multiplied_total"
+        ).contains(action.open().trim().toLowerCase())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown native attribute modifier operation '" + action.open() + "'."
+            );
+        }
+
+        if (Set.of(
+                "animation_play",
+                "animation_stop",
+                "animation_pause",
+                "animation_resume",
+                "wait_for_animation"
+        ).contains(type) && !DAI_AnimationRegistry.contains(action.action())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown animation '" + action.action() + "'."
+            );
+        }
+
+        if (Set.of(
+                "content_activate",
+                "content_deactivate",
+                "content_event",
+                "content_give"
+        ).contains(type) && !DAI_ContentRegistry.contains(action.action())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown DAI content id '" + action.action() + "'."
+            );
+        }
+
+        if ("content_event".equals(type) && action.direction().isBlank()) {
+            DAI_ValidationReport.error(
+                    source,
+                    "content_event requires direction='<event name>'."
+            );
+        }
+
+        if ("content_event".equals(type) && !action.direction().isBlank()) {
+            DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(action.action());
+            if (entry != null && entry.definition().event(action.direction()).isBlank()) {
+                DAI_ValidationReport.error(
+                        source,
+                        "Content '" + action.action() + "' does not define event '" + action.direction() + "'."
+                );
+            }
+        }
+
+        if ("content_give".equals(type)) {
+            DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(action.action());
+            if (entry != null && entry.definition().carrier().isBlank()) {
+                DAI_ValidationReport.error(
+                        source,
+                        "content_give requires the content definition to declare a registered item carrier."
+                );
+            }
+        }
+    }
 
     private static void validateOverlay(
             String source,
@@ -545,6 +773,77 @@ public final class DAI_ActionValidator {
                     source,
                     "The 'not' condition requires exactly one child condition."
             );
+        }
+
+        if (
+                Set.of(
+                        "state",
+                        "state_exists",
+                        "capability",
+                        "reference_exists",
+                        "reference_type",
+                        "reference_age",
+                        "reference_distance",
+                        "reference_entity_alive",
+                        "attribute",
+                        "attribute_exists",
+                        "attribute_modifier",
+                        "native_attribute",
+                        "native_attribute_modifier",
+                        "animation_playing",
+                        "animation_finished",
+                        "animation_paused",
+                        "animation_tick",
+                        "content_exists",
+                        "content_active",
+                        "content_kind",
+                        "content_tag",
+                        "content_capability",
+                        "holding_content"
+                ).contains(type)
+                        && condition.parameter().isBlank()
+        ) {
+
+            DAI_ValidationReport.error(
+                    source,
+                    "Condition type '"
+                            + type
+                            + "' requires a non-blank 'parameter'."
+            );
+        }
+
+        if (Set.of("attribute", "attribute_exists", "attribute_modifier").contains(type)
+                && !condition.parameter().isBlank()
+                && !DAI_AttributeRegistry.contains(condition.parameter())) {
+            DAI_ValidationReport.error(source, "Unknown custom attribute '" + condition.parameter() + "'.");
+        }
+
+        if (Set.of("native_attribute", "native_attribute_modifier").contains(type)
+                && !condition.parameter().isBlank()
+                && DAI_NativeAttributeSupport.resolve(condition.parameter()) == null) {
+            DAI_ValidationReport.error(source, "Unknown native attribute '" + condition.parameter() + "'.");
+        }
+
+        if (Set.of("attribute_modifier", "native_attribute_modifier").contains(type)
+                && condition.stringValue().isBlank()) {
+            DAI_ValidationReport.error(source, "Condition type '" + type + "' requires string_value='<modifier id>'.");
+        }
+
+        if (Set.of("animation_playing", "animation_finished", "animation_paused", "animation_tick").contains(type)
+                && !condition.parameter().isBlank()
+                && !DAI_AnimationRegistry.contains(condition.parameter())) {
+            DAI_ValidationReport.error(source, "Unknown animation '" + condition.parameter() + "'.");
+        }
+
+        if (Set.of("content_exists", "content_active", "content_kind", "content_tag", "content_capability", "holding_content").contains(type)
+                && !condition.parameter().isBlank()
+                && !DAI_ContentRegistry.contains(condition.parameter())) {
+            DAI_ValidationReport.error(source, "Unknown DAI content id '" + condition.parameter() + "'.");
+        }
+
+        if (Set.of("content_tag", "content_capability").contains(type)
+                && condition.stringValue().isBlank()) {
+            DAI_ValidationReport.error(source, "Condition type '" + type + "' requires string_value.");
         }
 
         validateConditions(

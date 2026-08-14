@@ -1,0 +1,38 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "add_look",
+      "pitch": -55.0
+    },
+    {
+      "type": "delay",
+      "ticks": 8
+    },
+    {
+      "type": "add_look",
+      "pitch": 110.0
+    },
+    {
+      "type": "delay",
+      "ticks": 8
+    },
+    {
+      "type": "add_look",
+      "pitch": -55.0
+    },
+    {
+      "type": "delay",
+      "ticks": 6
+    },
+    {
+      "type": "input_stop_all"
+    }
+  ]
+}

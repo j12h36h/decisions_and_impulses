@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "options",
+      "text": "Options",
+      "action": "decisions_and_impulses:menu_open_pause"
+    },
+    {
+      "slot": 1,
+      "id": "inventory",
+      "text": "Inventory",
+      "action": "decisions_and_impulses:menu_open_inventory"
+    },
+    {
+      "slot": 2,
+      "id": "chat",
+      "text": "Chat",
+      "action": "decisions_and_impulses:menu_open_chat"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "packs": [
+    {
+      "id": "example_namespace:combo_pack",
+      "name": "Example Combo Pack",
+      "summary": "One browser card can install any number of datapack and resource-pack components together.",
+      "version": "1.0",
+      "type": "combo",
+      "info_url": "https://example.invalid/pack-info",
+      "icon_item": "minecraft:bundle",
+      "components": [
+        {
+          "id": "data",
+          "type": "datapack",
+          "curseforge_file_id": 1234567,
+          "file_name": "Example_Data.zip",
+          "sha256": ""
+        },
+        {
+          "id": "resources",
+          "type": "resource_pack",
+          "curseforge_file_id": 1234568,
+          "file_name": "Example_Resources.zip",
+          "sha256": ""
+        }
+      ]
+    }
+  ]
+}

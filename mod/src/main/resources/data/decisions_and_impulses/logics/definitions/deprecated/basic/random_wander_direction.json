@@ -1,0 +1,25 @@
+{
+  "type": "random_action",
+  "sequence": [
+    {
+      "type": "move",
+      "direction": "forward",
+      "ticks": 40
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "ticks": 30
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "ticks": 30
+    },
+    {
+      "type": "jump",
+      "direction": "forward",
+      "ticks": 5
+    }
+  ]
+}

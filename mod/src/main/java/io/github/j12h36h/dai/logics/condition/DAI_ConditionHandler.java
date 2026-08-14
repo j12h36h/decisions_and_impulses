@@ -44,5 +44,7 @@ public final class DAI_ConditionHandler {
 
         DAI_ConditionsWaypoint.registerAll();
         DAI_ConditionsSpatial.registerAll();
+
+        DAI_ConditionsExtension.registerAll();
     }
 }

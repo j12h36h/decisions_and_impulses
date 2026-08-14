@@ -1,0 +1,204 @@
+{
+  "enabled": true,
+  "priority": 100,
+  "title": "DECISIONS & IMPULSES",
+  "subtitle": "The interface between humanity and automation.",
+  "background": {
+    "top": "#FF061018",
+    "bottom": "#FF142A38"
+  },
+  "title_color": "#FFF2F7FA",
+  "subtitle_color": "#FF9CB7C7",
+  "buttons": [
+    {
+      "id": "singleplayer",
+      "label": "SINGLEPLAYER",
+      "action": "open_singleplayer",
+      "anchor": "center",
+      "x": 0,
+      "y": -74,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:grass_block",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B8182A32",
+        "hover": "#E02F5A43",
+        "border": "#FF5E9770",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "bob",
+        "speed": 1.2,
+        "amount": 2.0
+      }
+    },
+    {
+      "id": "multiplayer",
+      "label": "MULTIPLAYER",
+      "action": "open_multiplayer",
+      "anchor": "center",
+      "x": 0,
+      "y": -44,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:compass",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B8172936",
+        "hover": "#E028536D",
+        "border": "#FF5685A0",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "orbit",
+        "speed": 0.65,
+        "amount": 1.5
+      }
+    },
+    {
+      "id": "official_packs",
+      "label": "OFFICIAL PACKS",
+      "action": "open_official_packs",
+      "anchor": "center",
+      "x": 0,
+      "y": -14,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:chest",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B82E2718",
+        "hover": "#E05D4D22",
+        "border": "#FFB59A4D",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "pulse",
+        "speed": 1.15,
+        "amount": 1.0
+      }
+    },
+    {
+      "id": "mods",
+      "label": "MODS",
+      "action": "open_mods",
+      "anchor": "center",
+      "x": 0,
+      "y": 16,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:carrot",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B82D2118",
+        "hover": "#E06B3D1B",
+        "border": "#FFE8893E",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "spin",
+        "speed": 0.85,
+        "amount": 1.0
+      }
+    },
+    {
+      "id": "options",
+      "label": "OPTIONS",
+      "action": "open_options",
+      "anchor": "center",
+      "x": 0,
+      "y": 46,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:comparator",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B82C1A21",
+        "hover": "#E05E2D42",
+        "border": "#FFA65B78",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "bob",
+        "speed": 1.8,
+        "amount": 1.5
+      }
+    },
+    {
+      "id": "website",
+      "label": "DAI WEBSITE",
+      "action": "open_url",
+      "url": "https://j12h36h.github.io/dai/",
+      "anchor": "center",
+      "x": 0,
+      "y": 76,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:book",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B81E2130",
+        "hover": "#E0384268",
+        "border": "#FF6C7BB5",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "pulse",
+        "speed": 0.8,
+        "amount": 1.3
+      }
+    },
+    {
+      "id": "quit",
+      "label": "QUIT",
+      "action": "quit",
+      "anchor": "center",
+      "x": 0,
+      "y": 106,
+      "width": 230,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:barrier",
+        "scale": 1.0,
+        "offset_x": 9
+      },
+      "style": {
+        "background": "#B82C1616",
+        "hover": "#E0632929",
+        "border": "#FFB65B5B",
+        "text": "#FFFFFFFF"
+      },
+      "hover_animation": {
+        "type": "spin",
+        "speed": 0.35,
+        "amount": 1.0
+      }
+    }
+  ]
+}

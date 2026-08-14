@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:nether_quartz_ore",
+  "value": 16.0
+}

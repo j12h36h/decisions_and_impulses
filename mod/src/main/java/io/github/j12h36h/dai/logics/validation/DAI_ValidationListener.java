@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.logics.validation;
 
+import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -31,6 +32,8 @@ public final class DAI_ValidationListener
             ProfilerFiller profiler
     ) {
 
-        DAI_DatapackValidator.validate();
+        if (DAI_DatapackValidator.validate()) {
+            DAI_RegistryPreflight.evaluate();
+        }
     }
 }

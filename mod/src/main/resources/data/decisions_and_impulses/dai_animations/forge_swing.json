@@ -1,0 +1,59 @@
+{
+  "duration_ticks": 16,
+  "loop": false,
+  "channel": "upper_body",
+  "priority": 20,
+  "interruptible": true,
+  "markers": {
+    "windup": 4,
+    "impact": 8,
+    "recover": 13
+  },
+  "marker_actions": {
+    "windup": "decisions_and_impulses:showcase_animation_windup_marker",
+    "impact": "decisions_and_impulses:showcase_animation_impact_marker",
+    "recover": "decisions_and_impulses:showcase_animation_recover_marker"
+  },
+  "tracks": {
+    "right_arm": [
+      {
+        "tick": 0,
+        "pitch": 0.0,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      {
+        "tick": 4,
+        "pitch": -70.0,
+        "yaw": -25.0,
+        "roll": 10.0
+      },
+      {
+        "tick": 8,
+        "pitch": 35.0,
+        "yaw": 55.0,
+        "roll": -15.0
+      },
+      {
+        "tick": 16,
+        "pitch": 0.0,
+        "yaw": 0.0,
+        "roll": 0.0
+      }
+    ],
+    "body": [
+      {
+        "tick": 0,
+        "yaw": 0.0
+      },
+      {
+        "tick": 8,
+        "yaw": 18.0
+      },
+      {
+        "tick": 16,
+        "yaw": 0.0
+      }
+    ]
+  }
+}

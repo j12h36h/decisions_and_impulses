@@ -1,0 +1,11 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "play_creative_builder",
+      "text": "Build Desert Pyramid (Creative)",
+      "action": "decisions_and_impulses:play_creative_builder"
+    }
+  ]
+}

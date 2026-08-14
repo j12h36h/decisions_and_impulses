@@ -1,0 +1,38 @@
+{
+  "type": "default",
+  "event": "decisions_and_impulses:showcase_pulse",
+  "phase": "during",
+  "priority": 25,
+  "conditions": [
+    {
+      "type": "state_exists",
+      "parameter": "decisions_and_impulses:demo_counter"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "state_add_number",
+      "action": "decisions_and_impulses:reaction_count",
+      "value": 1.0
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:reaction_pulse",
+        "texture": "minecraft:textures/item/redstone.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -40,
+        "width": 40,
+        "height": 40,
+        "alpha": 1.0,
+        "color": "#FF7777",
+        "z": 30,
+        "ticks": 36,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

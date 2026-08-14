@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "animation_play",
+      "action": "decisions_and_impulses:forge_swing",
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:weapon_attack",
+        "texture": "minecraft:textures/item/iron_sword.png",
+        "anchor": "center",
+        "x": 48,
+        "y": 0,
+        "width": 32,
+        "height": 32,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 32,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

@@ -20,6 +20,7 @@ public record DAI_ActionDefinition(
         int slot,
         boolean state,
         double value,
+        String target,
         DAI_SpriteOverlayDefinition sprite,
         DAI_SpriteSheetOverlayDefinition spriteSheet
 ) {
@@ -146,6 +147,14 @@ public record DAI_ActionDefinition(
                                     .forGetter(
                                             DAI_ActionDefinition::value
                                     ),
+                            Codec.STRING
+                                    .optionalFieldOf(
+                                            "target",
+                                            ""
+                                    )
+                                    .forGetter(
+                                            DAI_ActionDefinition::target
+                                    ),
                             DAI_SpriteOverlayDefinition.CODEC
                                     .optionalFieldOf(
                                             "sprite",
@@ -175,6 +184,7 @@ public record DAI_ActionDefinition(
         menu = normalize(menu);
         open = normalize(open);
         direction = normalize(direction);
+        target = normalize(target);
 
         conditions =
                 conditions == null
@@ -277,6 +287,7 @@ public record DAI_ActionDefinition(
                 slot,
                 false,
                 0.0D,
+                "",
                 DAI_SpriteOverlayDefinition.EMPTY,
                 DAI_SpriteSheetOverlayDefinition.EMPTY
         );
@@ -302,8 +313,37 @@ public record DAI_ActionDefinition(
         this(
                 type, action, conditions, sequence, menu, open,
                 yaw, pitch, direction, ticks, slot, state, value,
+                "",
                 DAI_SpriteOverlayDefinition.EMPTY,
                 DAI_SpriteSheetOverlayDefinition.EMPTY
+        );
+    }
+
+    /**
+     * Compatibility overload for callers compiled against the pre-target
+     * action schema. New datapacks may use the optional top-level target field.
+     */
+    public DAI_ActionDefinition(
+            String type,
+            String action,
+            List<DAI_ConditionDefinition> conditions,
+            List<DAI_ActionDefinition> sequence,
+            String menu,
+            String open,
+            float yaw,
+            float pitch,
+            String direction,
+            int ticks,
+            int slot,
+            boolean state,
+            double value,
+            DAI_SpriteOverlayDefinition sprite,
+            DAI_SpriteSheetOverlayDefinition spriteSheet
+    ) {
+        this(
+                type, action, conditions, sequence, menu, open,
+                yaw, pitch, direction, ticks, slot, state, value,
+                "", sprite, spriteSheet
         );
     }
 

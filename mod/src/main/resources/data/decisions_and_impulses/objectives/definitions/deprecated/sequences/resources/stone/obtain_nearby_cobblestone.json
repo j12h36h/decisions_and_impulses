@@ -1,0 +1,140 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:stone",
+      "ticks": 55,
+      "value": 6.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:cobblestone",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:stone",
+      "ticks": 55,
+      "value": 6.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:cobblestone",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "mine_nearest_block",
+      "action": "minecraft:stone",
+      "ticks": 55,
+      "value": 6.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "collect_nearby_items",
+      "action": "minecraft:cobblestone",
+      "ticks": 8,
+      "value": 3.0,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    }
+  ]
+}

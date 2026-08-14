@@ -1,0 +1,69 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:polished_flint",
+      "slot": 1
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:carved_tuff_bricks",
+      "slot": 8
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:tempered_iron_blade",
+      "slot": 1
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:reinforced_chainmail",
+      "slot": 1
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:surefooted",
+      "slot": 1
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:miners_draught",
+      "slot": 1
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:weighted_arrow",
+      "slot": 16
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:copper_spark",
+      "slot": 4
+    },
+    {
+      "type": "content_give",
+      "action": "decisions_and_impulses:steady_edge",
+      "slot": 1
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:content_given",
+        "texture": "minecraft:textures/item/bundle.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 36,
+        "height": 36,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 42,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

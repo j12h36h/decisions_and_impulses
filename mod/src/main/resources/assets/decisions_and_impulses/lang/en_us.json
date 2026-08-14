@@ -1,5 +1,13 @@
 {
   "menu.decisions_and_impulses.system": "System",
   "menu.decisions_and_impulses.impulses": "Impulses",
-  "menu.decisions_and_impulses.decisions": "Decisions"
+  "menu.decisions_and_impulses.decisions": "Decisions",
+  "item.decisions_and_impulses.polished_flint": "Polished Flint",
+  "block.decisions_and_impulses.carved_tuff_bricks": "Carved Tuff Bricks",
+  "item.decisions_and_impulses.tempered_iron_blade": "Tempered Iron Blade",
+  "item.decisions_and_impulses.reinforced_chainmail": "Reinforced Chainmail",
+  "item.decisions_and_impulses.miners_draught": "Miner's Draught",
+  "item.decisions_and_impulses.weighted_arrow": "Weighted Arrow",
+  "item.decisions_and_impulses.copper_spark": "Copper Spark",
+  "item.decisions_and_impulses.steady_edge": "Enchanted Book - Steady Edge"
 }

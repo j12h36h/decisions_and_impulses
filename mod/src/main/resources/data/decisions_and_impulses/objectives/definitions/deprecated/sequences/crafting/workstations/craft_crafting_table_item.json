@@ -1,0 +1,19 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:craft_crafting_table_once"
+    },
+    {
+      "action": "decisions_and_impulses:craft_crafting_table_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:crafting_table",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_020_gate",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|12,0,1"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_021_clear",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|12,0,1",
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

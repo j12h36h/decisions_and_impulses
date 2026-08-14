@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_add_number",
+      "action": "decisions_and_impulses:projectile_impacts",
+      "value": 1.0
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:projectile_impact",
+        "texture": "minecraft:textures/item/arrow.png",
+        "anchor": "center",
+        "x": 48,
+        "y": 0,
+        "width": 32,
+        "height": 32,
+        "alpha": 1.0,
+        "color": "#FFCC88",
+        "z": 20,
+        "ticks": 26,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

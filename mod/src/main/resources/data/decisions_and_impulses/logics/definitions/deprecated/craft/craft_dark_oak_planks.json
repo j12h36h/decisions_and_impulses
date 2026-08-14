@@ -1,0 +1,18 @@
+{
+  "type": "craft_recipe",
+  "action": "minecraft:dark_oak_planks",
+  "state": false,
+  "conditions": [
+    {
+      "type": "recipe_unlocked",
+      "operator": "is_true",
+      "parameter": "minecraft:dark_oak_planks"
+    },
+    {
+      "type": "container_has_item",
+      "operator": "greater_than",
+      "parameter": "minecraft:dark_oak_log",
+      "number_value": 0
+    }
+  ]
+}

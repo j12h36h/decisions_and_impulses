@@ -1,0 +1,16 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "L"
+  ],
+  "key": {
+    "L": {
+      "tag": "minecraft:birch_logs"
+    }
+  },
+  "result": {
+    "item": "minecraft:birch_planks",
+    "count": 4
+  },
+  "container": "minecraft:inventory"
+}

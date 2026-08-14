@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:potatoes",
+  "value": 16.0
+}

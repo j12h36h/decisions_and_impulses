@@ -3,6 +3,10 @@ package io.github.j12h36h.dai.logics;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.controller.DAI_CombatController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.content.DAI_ContentRegistry;
+import io.github.j12h36h.dai.content.DAI_ContentRuntime;
+import io.github.j12h36h.dai.content.DAI_ContentStack;
+import net.minecraft.client.Minecraft;
 import io.github.j12h36h.dai.menus.system.DAI_TargetState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,6 +24,7 @@ public final class DAI_CombatLogic {
             DAI_ActionDefinition action
     ) {
 
+        emitHeldContentEvent("attack");
         DAI_CombatController.requestAttack();
     }
 
@@ -62,6 +67,7 @@ public final class DAI_CombatLogic {
             return;
         }
 
+        emitHeldContentEvent("attack");
         DAI_CombatController.engage(
                 livingTarget
         );
@@ -85,5 +91,14 @@ public final class DAI_CombatLogic {
     ) {
 
         DAI_CombatController.stopAttack();
+    }
+
+    private static void emitHeldContentEvent(String eventName) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.player == null) return;
+        String contentId = DAI_ContentStack.id(minecraft.player.getMainHandItem());
+        if (!contentId.isBlank() && DAI_ContentRegistry.contains(contentId)) {
+            DAI_ContentRuntime.emit(minecraft.player, contentId, eventName);
+        }
     }
 }

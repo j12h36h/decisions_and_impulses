@@ -8,6 +8,8 @@ import io.github.j12h36h.dai.menus.DAI_MenuCore;
 import io.github.j12h36h.dai.menus.DAI_ScreenManager;
 import io.github.j12h36h.dai.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.overlays.DAI_OverlayManager;
+import io.github.j12h36h.dai.packs.DAI_ManagedResourcePackBootstrap;
+import io.github.j12h36h.dai.title.DAI_TitleScreenController;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -53,6 +55,8 @@ public final class DAI_ClientBootstrap {
                 IConfigScreenFactory.class,
                 ConfigurationScreen::new
         );
+
+        DAI_ManagedResourcePackBootstrap.initialize(modBus);
 
         modBus.addListener(
                 DAI_ClientBootstrap::onClientSetup
@@ -120,13 +124,16 @@ public final class DAI_ClientBootstrap {
             ClientTickEvent.Post event
     ) {
 
+        DAI_TitleScreenController.tick();
+
         while (MENU_KEY.consumeClick()) {
 
             Minecraft minecraft =
                     Minecraft.getInstance();
 
             if (
-                    !(minecraft.gui.screen()
+                    minecraft.player != null
+                            && !(minecraft.gui.screen()
                             instanceof DAI_MenuCore)
             ) {
 

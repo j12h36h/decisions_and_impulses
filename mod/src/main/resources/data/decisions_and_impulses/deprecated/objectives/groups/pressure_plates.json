@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "entries": [
+    "@wood_pressure_plates",
+    "minecraft:stone_pressure_plate",
+    "minecraft:light_weighted_pressure_plate",
+    "minecraft:heavy_weighted_pressure_plate",
+    "minecraft:polished_blackstone_pressure_plate"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "attribute_set",
+      "action": "decisions_and_impulses:craftsmanship",
+      "value": 50.0,
+      "target": "self"
+    },
+    {
+      "type": "attribute_modifier_add",
+      "action": "decisions_and_impulses:craftsmanship",
+      "direction": "decisions_and_impulses:masterwork_bonus",
+      "open": "add",
+      "value": 10.0,
+      "slot": 10,
+      "target": "self"
+    },
+    {
+      "type": "attribute_add",
+      "action": "decisions_and_impulses:stamina",
+      "value": -15.0,
+      "target": "self"
+    },
+    {
+      "type": "native_attribute_modifier_add",
+      "action": "minecraft:movement_speed",
+      "direction": "decisions_and_impulses:short_speed_boost",
+      "open": "add_value",
+      "value": 0.02,
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:attribute_demo",
+        "texture": "minecraft:textures/item/feather.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 34,
+        "height": 34,
+        "alpha": 1.0,
+        "color": "#DDEEFF",
+        "z": 20,
+        "ticks": 40,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    },
+    {
+      "type": "delay",
+      "ticks": 30
+    },
+    {
+      "type": "native_attribute_modifier_remove",
+      "action": "minecraft:movement_speed",
+      "direction": "decisions_and_impulses:short_speed_boost",
+      "target": "self"
+    },
+    {
+      "type": "attribute_modifier_remove",
+      "action": "decisions_and_impulses:craftsmanship",
+      "direction": "decisions_and_impulses:masterwork_bonus",
+      "target": "self"
+    },
+    {
+      "type": "attribute_set",
+      "action": "decisions_and_impulses:stride",
+      "value": 0.115,
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 20
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:stride",
+      "target": "self"
+    }
+  ]
+}

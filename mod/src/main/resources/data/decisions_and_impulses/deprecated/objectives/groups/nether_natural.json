@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "entries": [
+    "@netherrack",
+    "@nylium",
+    "@blackstone",
+    "@basalt",
+    "@crimson",
+    "@warped",
+    "@glowstone",
+    "@magma",
+    "@soul",
+    "minecraft:nether_quartz_ore",
+    "minecraft:nether_gold_ore",
+    "minecraft:ancient_debris",
+    "minecraft:bone_block"
+  ]
+}

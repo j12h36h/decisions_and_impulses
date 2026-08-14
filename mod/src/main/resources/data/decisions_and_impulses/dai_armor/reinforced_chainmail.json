@@ -1,0 +1,31 @@
+{
+  "carrier": "minecraft:chainmail_chestplate",
+  "display_name": "Reinforced Chainmail",
+  "description": "A custom armor identity using only the vanilla chainmail model.",
+  "model": "minecraft:chainmail_chestplate",
+  "registry_backed": true,
+  "native_registry": "item",
+  "slot": "chest",
+  "capabilities": [
+    "decisions_and_impulses:reinforced_armor"
+  ],
+  "tags": [
+    "showcase",
+    "armor",
+    "chest",
+    "vanilla_style"
+  ],
+  "attributes": {
+    "decisions_and_impulses:stamina": 5.0
+  },
+  "events": {
+    "equip": "decisions_and_impulses:showcase_event_armor_equip",
+    "activate": "decisions_and_impulses:showcase_event_armor_activate"
+  },
+  "stats": {
+    "stack_size": 1,
+    "durability": 300,
+    "armor": 2.0,
+    "armor_toughness": 1.0
+  }
+}

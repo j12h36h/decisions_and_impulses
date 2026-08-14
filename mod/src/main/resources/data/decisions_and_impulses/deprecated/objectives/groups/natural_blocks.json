@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "entries": [
+    "@natural_stone",
+    "@dirt",
+    "@sand",
+    "@gravel",
+    "@mud",
+    "@clay",
+    "@ores",
+    "@ice",
+    "@snow",
+    "@fluids",
+    "@vegetation",
+    "@nether_natural",
+    "@end_natural",
+    "@sculk",
+    "@speleothems"
+  ]
+}

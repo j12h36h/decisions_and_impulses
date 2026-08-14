@@ -1,0 +1,29 @@
+{
+  "carrier": "minecraft:enchanted_book",
+  "display_name": "Enchanted Book - Steady Edge",
+  "description": "A DAI enchantment identity backed by a vanilla enchanted book.",
+  "model": "minecraft:enchanted_book",
+  "registry_backed": true,
+  "native_registry": "item",
+  "capabilities": [
+    "decisions_and_impulses:steady_edge"
+  ],
+  "tags": [
+    "showcase",
+    "enchantment",
+    "weapon",
+    "vanilla_style"
+  ],
+  "attributes": {
+    "decisions_and_impulses:craftsmanship": 4.0
+  },
+  "native_attributes": {
+    "minecraft:attack_speed": 0.05
+  },
+  "events": {
+    "activate": "decisions_and_impulses:showcase_event_enchantment_activate"
+  },
+  "stats": {
+    "stack_size": 1
+  }
+}

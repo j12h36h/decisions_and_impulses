@@ -1,0 +1,91 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:polished_flint",
+      "direction": "use",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:carved_tuff_bricks",
+      "direction": "place",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:tempered_iron_blade",
+      "direction": "attack",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 18
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:reinforced_chainmail",
+      "direction": "equip",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:miners_draught",
+      "direction": "consume",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:weighted_arrow",
+      "direction": "launch",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:weighted_arrow",
+      "direction": "impact",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:copper_spark",
+      "direction": "emit",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "content_event",
+      "action": "decisions_and_impulses:steady_edge",
+      "direction": "activate",
+      "target": "self"
+    }
+  ]
+}

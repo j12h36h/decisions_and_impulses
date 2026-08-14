@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:crimson_nylium",
+    "minecraft:crimson_stem",
+    "minecraft:stripped_crimson_stem",
+    "minecraft:crimson_hyphae",
+    "minecraft:stripped_crimson_hyphae",
+    "minecraft:crimson_planks",
+    "minecraft:crimson_fungus",
+    "minecraft:crimson_roots",
+    "minecraft:nether_wart_block",
+    "minecraft:weeping_vines",
+    "minecraft:weeping_vines_plant"
+  ]
+}

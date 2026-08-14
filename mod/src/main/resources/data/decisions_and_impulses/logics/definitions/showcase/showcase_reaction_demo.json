@@ -1,0 +1,46 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:reaction_count",
+      "value": 0.0
+    },
+    {
+      "type": "emit_reaction_event",
+      "action": "decisions_and_impulses:showcase_pulse",
+      "direction": "during"
+    },
+    {
+      "type": "delay",
+      "ticks": 3
+    },
+    {
+      "type": "overlay_sprite",
+      "conditions": [
+        {
+          "type": "state",
+          "parameter": "decisions_and_impulses:reaction_count",
+          "operator": "greater_than_or_equal",
+          "number_value": 1.0
+        }
+      ],
+      "sprite": {
+        "id": "decisions_and_impulses:reaction_verified",
+        "texture": "minecraft:textures/item/repeater.png",
+        "anchor": "center",
+        "x": 44,
+        "y": -44,
+        "width": 30,
+        "height": 30,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 26,
+        "ticks": 38,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

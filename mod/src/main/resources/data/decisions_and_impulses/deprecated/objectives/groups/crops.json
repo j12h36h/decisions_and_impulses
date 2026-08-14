@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:wheat",
+    "minecraft:carrots",
+    "minecraft:potatoes",
+    "minecraft:beetroots",
+    "minecraft:nether_wart",
+    "minecraft:cocoa",
+    "minecraft:torchflower_crop",
+    "minecraft:pitcher_crop",
+    "minecraft:melon_stem",
+    "minecraft:attached_melon_stem",
+    "minecraft:pumpkin_stem",
+    "minecraft:attached_pumpkin_stem"
+  ]
+}

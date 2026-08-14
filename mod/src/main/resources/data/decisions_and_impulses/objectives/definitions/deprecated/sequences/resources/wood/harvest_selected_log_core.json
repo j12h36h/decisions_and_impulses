@@ -1,0 +1,70 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "action": "decisions_and_impulses:harvest_selected_log_once",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_explorer"
+    },
+    {
+      "action": "decisions_and_impulses:harvest_selected_log_once",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_explorer"
+    },
+    {
+      "action": "decisions_and_impulses:harvest_selected_log_once",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        },
+        {
+          "type": "target_block_selected"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_explorer"
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    }
+  ]
+}

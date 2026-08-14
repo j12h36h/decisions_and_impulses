@@ -1,0 +1,46 @@
+{
+  "enabled": false,
+  "priority": 200,
+  "title": "A MINIMAL DAI TITLE",
+  "subtitle": "Copy this file into a datapack and enable it to replace the default showcase.",
+  "background": {
+    "top": "#FF0A0A0A",
+    "bottom": "#FF202020"
+  },
+  "buttons": [
+    {
+      "id": "play",
+      "label": "PLAY",
+      "action": "open_singleplayer",
+      "x": 0,
+      "y": -15,
+      "width": 180,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:diamond",
+        "scale": 1.25,
+        "offset_x": 8
+      },
+      "hover_animation": {
+        "type": "pulse",
+        "speed": 1.0,
+        "amount": 1.0
+      }
+    },
+    {
+      "id": "quit",
+      "label": "QUIT",
+      "action": "quit",
+      "x": 0,
+      "y": 15,
+      "width": 180,
+      "height": 24,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:barrier",
+        "offset_x": 8
+      }
+    }
+  ]
+}

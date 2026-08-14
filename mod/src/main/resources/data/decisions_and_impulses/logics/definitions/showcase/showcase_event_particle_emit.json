@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_add_number",
+      "action": "decisions_and_impulses:particle_emissions",
+      "value": 1.0
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:particle_emit",
+        "texture": "minecraft:textures/item/copper_ingot.png",
+        "anchor": "center",
+        "x": 0,
+        "y": 0,
+        "width": 24,
+        "height": 24,
+        "alpha": 1.0,
+        "color": "#FFD0A0",
+        "z": 20,
+        "ticks": 24,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

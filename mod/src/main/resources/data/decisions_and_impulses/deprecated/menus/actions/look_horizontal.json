@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "left",
+      "text": "Left",
+      "action": "decisions_and_impulses:look_add_left"
+    },
+    {
+      "slot": 1,
+      "id": "right",
+      "text": "Right",
+      "action": "decisions_and_impulses:look_add_right"
+    },
+    {
+      "slot": 2,
+      "id": "center",
+      "text": "Center",
+      "action": "decisions_and_impulses:look_horizontal_center"
+    }
+  ]
+}

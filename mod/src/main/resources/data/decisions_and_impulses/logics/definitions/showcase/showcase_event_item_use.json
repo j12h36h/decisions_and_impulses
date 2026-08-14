@@ -1,0 +1,19 @@
+{
+  "type": "overlay_sprite",
+  "sprite": {
+    "id": "decisions_and_impulses:item_use",
+    "texture": "minecraft:textures/item/flint.png",
+    "anchor": "center",
+    "x": 0,
+    "y": 0,
+    "width": 32,
+    "height": 32,
+    "alpha": 1.0,
+    "color": "#FFFFFF",
+    "z": 20,
+    "ticks": 80,
+    "interactable": true,
+    "click_action": "decisions_and_impulses:showcase_overlay_clicked",
+    "consume_click": false
+  }
+}

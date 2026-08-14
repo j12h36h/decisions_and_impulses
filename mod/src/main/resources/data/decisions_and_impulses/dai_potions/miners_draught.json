@@ -1,0 +1,28 @@
+{
+  "carrier": "minecraft:potion",
+  "display_name": "Miner's Draught",
+  "description": "A virtual potion identity that restores a little health and boosts focus.",
+  "model": "minecraft:potion",
+  "registry_backed": true,
+  "native_registry": "item",
+  "capabilities": [
+    "decisions_and_impulses:tonic"
+  ],
+  "tags": [
+    "showcase",
+    "potion",
+    "beneficial",
+    "vanilla_style"
+  ],
+  "attributes": {
+    "decisions_and_impulses:craftsmanship": 8.0
+  },
+  "events": {
+    "consume": "decisions_and_impulses:showcase_event_potion_consume",
+    "activate": "decisions_and_impulses:showcase_event_potion_activate"
+  },
+  "stats": {
+    "stack_size": 1,
+    "duration_ticks": 120
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "forward",
+      "text": "Forward",
+      "action": "decisions_and_impulses:move_direction_forward"
+    },
+    {
+      "slot": 1,
+      "id": "backward",
+      "text": "Backward",
+      "action": "decisions_and_impulses:move_direction_backward"
+    },
+    {
+      "slot": 2,
+      "id": "strafe",
+      "text": "Strafe",
+      "action": "decisions_and_impulses:menu_open_strafe"
+    }
+  ]
+}

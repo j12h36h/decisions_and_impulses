@@ -1,0 +1,255 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "type": "select_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 60,
+      "value": 3.2,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 60,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 20,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "open_container",
+      "ticks": 30,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:craft_wooden_pickaxe_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "close_container"
+    },
+    {
+      "type": "target_clear",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "type": "select_waypoint",
+      "action": "crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        }
+      ]
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 60,
+      "value": 3.2,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 60,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 20,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "open_container",
+      "ticks": 30,
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:craft_wooden_pickaxe_once",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "last_action_success"
+        }
+      ]
+    },
+    {
+      "type": "close_container"
+    }
+  ]
+}

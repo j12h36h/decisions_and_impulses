@@ -1,0 +1,34 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "random_action",
+      "sequence": [
+        {
+          "type": "move",
+          "direction": "forward",
+          "ticks": 30
+        },
+        {
+          "type": "jump",
+          "direction": "forward",
+          "ticks": 5
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "ticks": 20
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "ticks": 20
+        }
+      ]
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    }
+  ]
+}

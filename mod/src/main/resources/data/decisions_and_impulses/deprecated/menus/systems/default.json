@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "queue",
+      "text": "Queue",
+      "action": "decisions_and_impulses:menu_open_queue"
+    },
+    {
+      "slot": 1,
+      "id": "gamemode",
+      "text": "Game Mode",
+      "action": "decisions_and_impulses:menu_open_gamemode"
+    },
+    {
+      "slot": 2,
+      "id": "vanilla",
+      "text": "Vanilla",
+      "action": "decisions_and_impulses:menu_open_system"
+    }
+  ]
+}

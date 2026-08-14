@@ -1,0 +1,6 @@
+{
+  "type": "mine_nearest_block",
+  "action": "minecraft:stone",
+  "ticks": 240,
+  "value": 24.0
+}

@@ -1,0 +1,16 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_impossible_signal"
+    },
+    {
+      "type": "delay",
+      "ticks": 20
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:vg_decide"
+    }
+  ]
+}

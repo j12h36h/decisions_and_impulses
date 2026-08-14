@@ -1,0 +1,64 @@
+{
+  "type": "structure",
+  "scan": {
+    "mode": "bounded_region",
+    "origin": "nearest_match",
+    "max_blocks": 4096,
+    "max_radius": 16,
+    "horizontal_radius": 10,
+    "upward_range": 12,
+    "downward_range": 3
+  },
+  "groups": {
+    "wood": {
+      "registry": "decisions_and_impulses:wood",
+      "minimum": 16,
+      "maximum": 4096
+    },
+    "doors": {
+      "registry": "decisions_and_impulses:wood_doors",
+      "minimum": 0,
+      "maximum": 8
+    },
+    "lighting": {
+      "registry": "decisions_and_impulses:lighting",
+      "minimum": 0,
+      "maximum": 64
+    }
+  },
+  "requirements": [
+    {
+      "type": "dimensions",
+      "parameters": {
+        "minimum_width": 3,
+        "minimum_height": 2,
+        "minimum_depth": 3,
+        "maximum_width": 32,
+        "maximum_height": 24,
+        "maximum_depth": 32
+      }
+    },
+    {
+      "type": "contains_group",
+      "group": "wood",
+      "parameters": {
+        "minimum": 16
+      }
+    },
+    {
+      "type": "touches_ground",
+      "group": "wood"
+    },
+    {
+      "type": "group_ratio",
+      "group": "wood",
+      "parameters": {
+        "minimum_ratio": 0.35,
+        "maximum_ratio": 1.0
+      }
+    }
+  ],
+  "result": {
+    "id": "decisions_and_impulses:wooden_structure"
+  }
+}

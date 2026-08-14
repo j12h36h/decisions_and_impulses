@@ -1,0 +1,68 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "capability_clear",
+      "action": "decisions_and_impulses:all"
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:craftsmanship",
+      "target": "self"
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:stamina",
+      "target": "self"
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:stride",
+      "target": "self"
+    },
+    {
+      "type": "native_attribute_modifier_remove",
+      "action": "minecraft:movement_speed",
+      "direction": "decisions_and_impulses:short_speed_boost",
+      "target": "self"
+    },
+    {
+      "type": "state_clear",
+      "action": "decisions_and_impulses:demo_enabled"
+    },
+    {
+      "type": "state_clear",
+      "action": "decisions_and_impulses:demo_counter"
+    },
+    {
+      "type": "state_clear",
+      "action": "decisions_and_impulses:demo_mode"
+    },
+    {
+      "type": "reference_clear",
+      "action": "decisions_and_impulses:showcase_home"
+    },
+    {
+      "type": "overlay_clear"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:reset_done",
+        "texture": "minecraft:textures/item/barrier.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 30,
+        "height": 30,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 28,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

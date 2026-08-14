@@ -1,0 +1,9 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_019_clear_attempt_1"
+    }
+  ]
+}

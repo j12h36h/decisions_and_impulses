@@ -1,0 +1,265 @@
+package io.github.j12h36h.dai.registry;
+
+import io.github.j12h36h.dai.logics.core.DAI_Core;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.RegisterEvent;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Discovers DAI native ids at the earliest mod-bootstrap point and registers
+ * them during NeoForge's normal static registry window.
+ *
+ * Definitions already installed on disk are discovered directly before world
+ * selection, so they do not require a discovery restart. The persistent cache
+ * is retained only for tombstones/save compatibility and for ids first added
+ * while the JVM is already running.
+ */
+public final class DAI_DynamicRegistryBootstrap {
+
+    private static Map<String, DAI_RegistrySpec> bootSpecs = Map.of();
+    private static Set<String> startupConflicts = Set.of();
+
+    private static final Set<String> REGISTERED_KEYS = new LinkedHashSet<>();
+    private static final Set<String> REGISTERED_BLOCK_KEYS = new LinkedHashSet<>();
+    private static final Map<String, Block> REGISTERED_BLOCKS = new LinkedHashMap<>();
+
+    private DAI_DynamicRegistryBootstrap() {}
+
+    public static void initialize(IEventBus modBus) {
+        DAI_EarlyRegistryScanner.ScanResult scan = DAI_EarlyRegistryScanner.scan();
+        Map<String, DAI_RegistrySpec> cached = DAI_RegistryCache.load();
+
+        LinkedHashMap<String, DAI_RegistrySpec> plan = new LinkedHashMap<>();
+
+        // Current on-disk definitions win over historical cache entries. This
+        // allows static properties to change between JVM launches while still
+        // retaining removed ids as tombstones.
+        for (DAI_RegistrySpec spec : scan.specs().values()) {
+            removeSameId(plan, spec.id());
+            plan.put(spec.key(), spec);
+        }
+
+        for (DAI_RegistrySpec spec : cached.values()) {
+            if (spec == null || containsId(plan, spec.id())) continue;
+            plan.put(spec.key(), spec);
+        }
+
+        bootSpecs = Collections.unmodifiableMap(plan);
+        startupConflicts = Collections.unmodifiableSet(
+                new LinkedHashSet<>(scan.conflicts())
+        );
+
+        // Refresh the tombstone cache with anything found before registration
+        // and create the client aliases before the resource repository exists.
+        DAI_RegistryCache.merge(scan.specs().values());
+        DAI_GeneratedAssetsPack.rebuild(bootSpecs.values());
+        DAI_GeneratedAssetsPack.initialize(modBus);
+
+        modBus.addListener(DAI_DynamicRegistryBootstrap::register);
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Early registry scan prepared {} native id(s): {} active from disk, {} retained/cached.",
+                bootSpecs.size(),
+                scan.specs().size(),
+                Math.max(0, bootSpecs.size() - scan.specs().size())
+        );
+
+        if (!scan.sources().isEmpty()) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Early registry scanner inspected {} DAI content source(s).",
+                    scan.sources().size()
+            );
+        }
+
+        for (String conflict : startupConflicts) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Early registry conflict: {}.",
+                    conflict
+            );
+        }
+    }
+
+    public static Map<String, DAI_RegistrySpec> bootSpecs() {
+        return bootSpecs;
+    }
+
+    public static Set<String> startupConflicts() {
+        return startupConflicts;
+    }
+
+    /** Returns true only when DAI itself successfully registered this id. */
+    public static boolean registeredByDai(DAI_RegistrySpec spec) {
+        return spec != null && REGISTERED_KEYS.contains(spec.key());
+    }
+
+    private static void register(RegisterEvent event) {
+        for (DAI_RegistrySpec spec : bootSpecs.values()) {
+            Identifier id = spec.identifier();
+            if (id == null) continue;
+
+            if (spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.BLOCK) {
+                registerBlock(event, spec, id);
+                registerBlockItem(event, spec, id);
+            } else {
+                registerItem(event, spec, id);
+            }
+        }
+    }
+
+    private static void registerBlock(
+            RegisterEvent event,
+            DAI_RegistrySpec spec,
+            Identifier id
+    ) {
+        if (!event.getRegistryKey().equals(Registries.BLOCK)) return;
+
+        try {
+            Block block = createBlock(spec, id);
+            event.register(Registries.BLOCK, id, () -> block);
+            REGISTERED_BLOCKS.put(spec.key(), block);
+            REGISTERED_BLOCK_KEYS.add(spec.key());
+            DAI_Core.LOGGER.info("<DAI>: Registered early DAI block '{}'.", id);
+        } catch (RuntimeException exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not register early DAI block '{}'. The id may already be owned by another mod.",
+                    id,
+                    exception
+            );
+        }
+    }
+
+    private static void registerItem(
+            RegisterEvent event,
+            DAI_RegistrySpec spec,
+            Identifier id
+    ) {
+        if (!event.getRegistryKey().equals(Registries.ITEM)) return;
+
+        try {
+            event.register(
+                    Registries.ITEM,
+                    id,
+                    () -> new Item(itemProperties(spec, id, false))
+            );
+            REGISTERED_KEYS.add(spec.key());
+            DAI_Core.LOGGER.info("<DAI>: Registered early DAI item '{}'.", id);
+        } catch (RuntimeException exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not register early DAI item '{}'. The id may already be owned by another mod.",
+                    id,
+                    exception
+            );
+        }
+    }
+
+    private static void registerBlockItem(
+            RegisterEvent event,
+            DAI_RegistrySpec spec,
+            Identifier id
+    ) {
+        if (!event.getRegistryKey().equals(Registries.ITEM)) return;
+
+        if (!REGISTERED_BLOCK_KEYS.contains(spec.key())) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Cannot register early block item '{}' because DAI did not successfully register its block.",
+                    id
+            );
+            return;
+        }
+
+        Block block = REGISTERED_BLOCKS.get(spec.key());
+        if (block == null) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Cannot register early block item '{}' because its block instance is unavailable.",
+                    id
+            );
+            return;
+        }
+
+        try {
+            event.register(
+                    Registries.ITEM,
+                    id,
+                    () -> new BlockItem(block, itemProperties(spec, id, true))
+            );
+            REGISTERED_KEYS.add(spec.key());
+            DAI_Core.LOGGER.info("<DAI>: Registered early DAI block item '{}'.", id);
+        } catch (RuntimeException exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not register early DAI block item '{}'. The id may already be owned by another mod.",
+                    id,
+                    exception
+            );
+        }
+    }
+
+    private static Block createBlock(DAI_RegistrySpec spec, Identifier id) {
+        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, id);
+        return new Block(
+                BlockBehaviour.Properties.of()
+                        .setId(key)
+                        .destroyTime(1.5F)
+                        .explosionResistance(6.0F)
+                        .sound(SoundType.STONE)
+        );
+    }
+
+    private static Item.Properties itemProperties(
+            DAI_RegistrySpec spec,
+            Identifier id,
+            boolean blockItem
+    ) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
+        Item.Properties properties = new Item.Properties().setId(key);
+
+        if (blockItem) properties.useBlockDescriptionPrefix();
+
+        if (spec.durability() > 0) {
+            properties.durability(spec.durability());
+        } else {
+            properties.stacksTo(spec.stackSize());
+        }
+
+        Identifier model = Identifier.tryParse(spec.model());
+        if (model != null) {
+            properties.component(DataComponents.ITEM_MODEL, model);
+        }
+
+        if (!spec.displayName().isBlank()) {
+            properties.component(
+                    DataComponents.ITEM_NAME,
+                    Component.literal(spec.displayName())
+            );
+        }
+
+        return properties;
+    }
+
+    private static boolean containsId(Map<String, DAI_RegistrySpec> map, String id) {
+        for (DAI_RegistrySpec spec : map.values()) {
+            if (spec != null && spec.id().equals(id)) return true;
+        }
+        return false;
+    }
+
+    private static void removeSameId(Map<String, DAI_RegistrySpec> map, String id) {
+        map.entrySet().removeIf(entry ->
+                entry.getValue() != null && entry.getValue().id().equals(id)
+        );
+    }
+}

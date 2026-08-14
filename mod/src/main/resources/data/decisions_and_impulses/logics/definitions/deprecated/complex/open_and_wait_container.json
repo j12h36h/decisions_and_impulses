@@ -1,0 +1,13 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "open_container",
+      "value": 8.0
+    },
+    {
+      "type": "wait_for_container",
+      "ticks": 40
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:craft_oak_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_spruce_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_birch_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_jungle_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_acacia_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_dark_oak_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_mangrove_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_cherry_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_pale_oak_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_crimson_planks"
+    },
+    {
+      "action": "decisions_and_impulses:craft_warped_planks"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "status_heal",
+      "value": 2.0,
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:potion_consume",
+        "texture": "minecraft:textures/item/potion.png",
+        "anchor": "center",
+        "x": 0,
+        "y": 0,
+        "width": 32,
+        "height": 32,
+        "alpha": 1.0,
+        "color": "#99CCFF",
+        "z": 20,
+        "ticks": 34,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

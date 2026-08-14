@@ -1,0 +1,5 @@
+{
+  "type": "crouch_set",
+  "state": true,
+  "conditions": []
+}

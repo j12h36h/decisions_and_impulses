@@ -1,0 +1,29 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_add_number",
+      "action": "decisions_and_impulses:animation_impacts",
+      "value": 1.0
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:anim_impact",
+        "texture": "minecraft:textures/item/fire_charge.png",
+        "anchor": "center",
+        "x": 0,
+        "y": 0,
+        "width": 38,
+        "height": 38,
+        "alpha": 1.0,
+        "color": "#FFAA66",
+        "z": 32,
+        "ticks": 18,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

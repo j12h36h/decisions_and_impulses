@@ -1,0 +1,24 @@
+{
+  "carrier": "minecraft:chiseled_tuff",
+  "display_name": "Carved Tuff Bricks",
+  "description": "A virtual DAI block identity backed by vanilla chiseled tuff.",
+  "model": "minecraft:chiseled_tuff",
+  "registry_backed": true,
+  "native_registry": "block",
+  "capabilities": [
+    "decisions_and_impulses:building_block"
+  ],
+  "tags": [
+    "showcase",
+    "block",
+    "stone",
+    "vanilla_style"
+  ],
+  "events": {
+    "place": "decisions_and_impulses:showcase_event_block_place",
+    "activate": "decisions_and_impulses:showcase_event_block_activate"
+  },
+  "stats": {
+    "stack_size": 64
+  }
+}

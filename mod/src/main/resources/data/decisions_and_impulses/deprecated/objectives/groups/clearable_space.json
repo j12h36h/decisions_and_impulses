@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "@clearable_vegetation",
+    "@clearable_terrain",
+    "@clearable_wood"
+  ]
+}

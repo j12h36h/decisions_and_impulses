@@ -1,0 +1,40 @@
+{
+  "type": "sequence",
+  "conditions": [
+    {
+      "type": "targeted_block_exists",
+      "operator": "is_true"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "equip_best_tool_for_block"
+    },
+    {
+      "type": "delay",
+      "ticks": 2
+    },
+    {
+      "type": "approach_target_block",
+      "ticks": 200,
+      "value": 3.25
+    },
+    {
+      "type": "wait_for_approach",
+      "ticks": 200
+    },
+    {
+      "type": "wait_for_target_block",
+      "ticks": 20
+    },
+    {
+      "type": "mine_targeted_block",
+      "ticks": 20
+    },
+    {
+      "type": "collect_nearby_items",
+      "ticks": 120,
+      "value": 6.0
+    }
+  ]
+}

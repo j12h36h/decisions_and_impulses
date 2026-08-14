@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:campfire",
+    "minecraft:soul_campfire"
+  ]
+}

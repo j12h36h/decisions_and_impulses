@@ -1,0 +1,31 @@
+{
+  "carrier": "minecraft:rabbit_foot",
+  "display_name": "Surefooted",
+  "description": "A timed DAI effect that slightly increases movement speed.",
+  "model": "minecraft:rabbit_foot",
+  "registry_backed": false,
+  "capabilities": [
+    "decisions_and_impulses:surefooted"
+  ],
+  "tags": [
+    "showcase",
+    "effect",
+    "beneficial",
+    "vanilla_style"
+  ],
+  "attributes": {
+    "decisions_and_impulses:stamina": 10.0
+  },
+  "native_attributes": {
+    "minecraft:movement_speed": 0.03
+  },
+  "events": {
+    "start": "decisions_and_impulses:showcase_event_effect_start",
+    "tick": "decisions_and_impulses:showcase_event_effect_tick",
+    "end": "decisions_and_impulses:showcase_event_effect_end"
+  },
+  "stats": {
+    "duration_ticks": 160,
+    "tick_interval": 40
+  }
+}

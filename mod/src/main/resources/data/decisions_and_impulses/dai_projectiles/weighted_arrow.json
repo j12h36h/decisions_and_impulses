@@ -1,0 +1,26 @@
+{
+  "carrier": "minecraft:arrow",
+  "display_name": "Weighted Arrow",
+  "description": "A projectile metadata example with speed and gravity values.",
+  "model": "minecraft:arrow",
+  "registry_backed": true,
+  "native_registry": "item",
+  "capabilities": [
+    "decisions_and_impulses:projectile"
+  ],
+  "tags": [
+    "showcase",
+    "projectile",
+    "arrow",
+    "vanilla_style"
+  ],
+  "events": {
+    "launch": "decisions_and_impulses:showcase_event_projectile_launch",
+    "impact": "decisions_and_impulses:showcase_event_projectile_impact"
+  },
+  "stats": {
+    "stack_size": 64,
+    "projectile_speed": 2.2,
+    "gravity": 0.05
+  }
+}

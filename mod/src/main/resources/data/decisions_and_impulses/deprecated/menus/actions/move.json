@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "direction",
+      "text": "Direction",
+      "action": "decisions_and_impulses:menu_open_direction"
+    },
+    {
+      "slot": 1,
+      "id": "jump",
+      "text": "Jump",
+      "action": "decisions_and_impulses:menu_open_jump"
+    },
+    {
+      "slot": 2,
+      "id": "stance",
+      "text": "Stance",
+      "action": "decisions_and_impulses:menu_open_stance"
+    }
+  ]
+}

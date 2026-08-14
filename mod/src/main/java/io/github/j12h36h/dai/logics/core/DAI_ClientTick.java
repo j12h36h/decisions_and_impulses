@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.logics.core;
 
 import io.github.j12h36h.dai.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.logics.DAI_CreativeInputState;
+import io.github.j12h36h.dai.animations.DAI_AnimationRuntime;
+import io.github.j12h36h.dai.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.logics.action.DAI_ActionGovernor;
 import io.github.j12h36h.dai.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionMemory;
@@ -22,6 +24,8 @@ import io.github.j12h36h.dai.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.menus.DAI_ScreenManager;
 import io.github.j12h36h.dai.overlays.DAI_OverlayManager;
+import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
+import io.github.j12h36h.dai.registry.DAI_RegistryClientNotice;
 import net.minecraft.client.Minecraft;
 
 public final class DAI_ClientTick {
@@ -83,6 +87,20 @@ public final class DAI_ClientTick {
         DAI_ClientRuntime.tick();
         DAI_ScreenManager.tick();
         DAI_OverlayManager.tick();
+        DAI_RegistryClientNotice.tick();
+
+        /*
+         * Native ids discovered from this world cannot be created after the
+         * registry phase. Fail closed for the remainder of this process so a
+         * pending definition cannot leak an unknown id into inventories,
+         * networking, or world data before the requested restart.
+         */
+        if (DAI_RegistryPreflight.restartRequired()) {
+            return;
+        }
+
+        DAI_AnimationRuntime.tick();
+        DAI_ContentRuntime.tick();
 
         /*
          * Persistent navigation advances before queue dispatch so controller

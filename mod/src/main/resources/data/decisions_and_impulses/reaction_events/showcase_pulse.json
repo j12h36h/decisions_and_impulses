@@ -1,0 +1,9 @@
+{
+  "phases": [
+    "pre",
+    "during",
+    "post"
+  ],
+  "cancellable": true,
+  "overrideable": true
+}

@@ -1,0 +1,101 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "select_waypoint_offset",
+      "action": "mine_origin",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        }
+      ],
+      "direction": "8,2,1"
+    },
+    {
+      "type": "approach_target_block",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 100,
+      "value": 3.1
+    },
+    {
+      "type": "wait_for_approach",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 100
+    },
+    {
+      "type": "wait_for_target_block",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        }
+      ],
+      "ticks": 24
+    },
+    {
+      "type": "mine_targeted_block",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        },
+        {
+          "type": "last_action_success"
+        },
+        {
+          "type": "targeted_block_breakable"
+        }
+      ],
+      "ticks": 48
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_009_gate",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_009_clear_attempt_2",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|8,2,1",
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

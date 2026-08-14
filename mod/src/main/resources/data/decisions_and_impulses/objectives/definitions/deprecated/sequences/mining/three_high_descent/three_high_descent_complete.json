@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "remember_offset_waypoint",
+      "action": "mine_origin",
+      "direction": "13,-2,1",
+      "open": "mineshaft_ready",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "mineshaft_ready",
+          "operator": "is_false"
+        }
+      ]
+    },
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    }
+  ]
+}

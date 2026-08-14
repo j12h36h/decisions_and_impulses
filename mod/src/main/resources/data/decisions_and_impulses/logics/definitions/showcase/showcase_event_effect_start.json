@@ -1,0 +1,19 @@
+{
+  "type": "overlay_sprite",
+  "sprite": {
+    "id": "decisions_and_impulses:effect_start",
+    "texture": "minecraft:textures/item/rabbit_foot.png",
+    "anchor": "center",
+    "x": -48,
+    "y": 0,
+    "width": 32,
+    "height": 32,
+    "alpha": 1.0,
+    "color": "#AAFFAA",
+    "z": 20,
+    "ticks": 30,
+    "interactable": false,
+    "click_action": "",
+    "consume_click": false
+  }
+}

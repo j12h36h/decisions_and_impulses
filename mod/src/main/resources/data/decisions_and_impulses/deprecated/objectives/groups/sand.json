@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:sand",
+    "minecraft:red_sand",
+    "minecraft:suspicious_sand"
+  ]
+}

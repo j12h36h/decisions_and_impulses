@@ -1,0 +1,6 @@
+{
+  "type": "mine_nearest_block",
+  "action": "#minecraft:logs",
+  "ticks": 240,
+  "value": 24.0
+}

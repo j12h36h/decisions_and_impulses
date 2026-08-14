@@ -1,0 +1,9 @@
+{
+  "type": "hotbar_select",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ],
+  "slot": 6
+}

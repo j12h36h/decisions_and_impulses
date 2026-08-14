@@ -1,11 +1,14 @@
 package io.github.j12h36h.dai.logics;
 
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
+import io.github.j12h36h.dai.content.DAI_ContentRegistry;
+import io.github.j12h36h.dai.content.DAI_ContentRuntime;
+import io.github.j12h36h.dai.content.DAI_ContentStack;
+import net.minecraft.client.Minecraft;
 import io.github.j12h36h.dai.logics.controller.DAI_ItemController;
 import io.github.j12h36h.dai.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.menus.DAI_ScreenManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 
 public final class DAI_InventoryLogic {
@@ -68,6 +71,14 @@ public final class DAI_InventoryLogic {
     public static void useItem(
             DAI_ActionDefinition action
     ) {
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft != null && minecraft.player != null) {
+            String contentId = DAI_ContentStack.id(minecraft.player.getMainHandItem());
+            if (!contentId.isBlank() && DAI_ContentRegistry.contains(contentId)) {
+                DAI_ContentRuntime.emit(minecraft.player, contentId, "use");
+            }
+        }
 
         DAI_UseController.requestUse();
     }

@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:warped_nylium",
+    "minecraft:warped_stem",
+    "minecraft:stripped_warped_stem",
+    "minecraft:warped_hyphae",
+    "minecraft:stripped_warped_hyphae",
+    "minecraft:warped_planks",
+    "minecraft:warped_fungus",
+    "minecraft:warped_roots",
+    "minecraft:warped_wart_block",
+    "minecraft:nether_sprouts",
+    "minecraft:twisting_vines",
+    "minecraft:twisting_vines_plant"
+  ]
+}

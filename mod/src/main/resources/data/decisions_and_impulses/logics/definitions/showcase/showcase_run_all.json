@@ -1,0 +1,64 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:showcase_setup_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_give_all_content"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_content_events_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_activate_content_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_attributes_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_status_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_state_memory_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_animation_demo"
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "action": "decisions_and_impulses:showcase_reaction_demo"
+    }
+  ]
+}

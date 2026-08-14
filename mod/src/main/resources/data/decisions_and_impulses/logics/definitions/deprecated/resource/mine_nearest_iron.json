@@ -1,0 +1,6 @@
+{
+  "type": "mine_nearest_block",
+  "action": "#minecraft:iron_ores",
+  "ticks": 240,
+  "value": 24.0
+}

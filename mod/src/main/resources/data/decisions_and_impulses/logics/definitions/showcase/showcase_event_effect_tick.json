@@ -1,0 +1,5 @@
+{
+  "type": "state_add_number",
+  "action": "decisions_and_impulses:effect_ticks",
+  "value": 1.0
+}

@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_smelt_shield_attempt_1"
+    }
+  ]
+}

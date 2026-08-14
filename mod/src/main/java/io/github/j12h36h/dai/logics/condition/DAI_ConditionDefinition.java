@@ -15,6 +15,7 @@ public record DAI_ConditionDefinition(
         boolean negate,
         String parameter,
         double parameterNumber,
+        String target,
         List<DAI_ConditionDefinition> conditions
 ) {
 
@@ -90,6 +91,15 @@ public record DAI_ConditionDefinition(
                                             DAI_ConditionDefinition::parameterNumber
                                     ),
 
+                            Codec.STRING
+                                    .optionalFieldOf(
+                                            "target",
+                                            ""
+                                    )
+                                    .forGetter(
+                                            DAI_ConditionDefinition::target
+                                    ),
+
                             Codec.lazyInitialized(
                                             () -> DAI_ConditionDefinition.CODEC
                                     )
@@ -135,6 +145,13 @@ public record DAI_ConditionDefinition(
                 Locale.ROOT
         );
 
+        target = normalizeOptional(
+                target,
+                ""
+        ).toLowerCase(
+                Locale.ROOT
+        );
+
         conditions = conditions == null
                 ? List.of()
                 : List.copyOf(conditions);
@@ -173,6 +190,7 @@ public record DAI_ConditionDefinition(
                 false,
                 "",
                 0.0D,
+                "",
                 List.of()
         );
     }
@@ -194,6 +212,7 @@ public record DAI_ConditionDefinition(
                 negate,
                 "",
                 0.0D,
+                "",
                 List.of()
         );
     }
@@ -217,7 +236,25 @@ public record DAI_ConditionDefinition(
                 negate,
                 parameter,
                 parameterNumber,
+                "",
                 List.of()
+        );
+    }
+
+    public DAI_ConditionDefinition(
+            String type,
+            String operator,
+            boolean booleanValue,
+            double numberValue,
+            String stringValue,
+            boolean negate,
+            String parameter,
+            double parameterNumber,
+            List<DAI_ConditionDefinition> conditions
+    ) {
+        this(
+                type, operator, booleanValue, numberValue, stringValue, negate,
+                parameter, parameterNumber, "", conditions
         );
     }
 

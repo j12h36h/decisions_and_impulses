@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "controls",
+      "text": "Controls",
+      "action": "decisions_and_impulses:menu_open_controls"
+    },
+    {
+      "slot": 1,
+      "id": "automation",
+      "text": "Automation",
+      "action": "decisions_and_impulses:menu_open_automation"
+    },
+    {
+      "slot": 2,
+      "id": "world",
+      "text": "World",
+      "action": "decisions_and_impulses:menu_open_world"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "break_stop",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

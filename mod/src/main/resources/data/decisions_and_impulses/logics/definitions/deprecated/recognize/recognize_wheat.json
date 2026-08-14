@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:wheat",
+  "value": 16.0
+}

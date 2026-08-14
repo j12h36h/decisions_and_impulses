@@ -1,0 +1,67 @@
+{
+  "enabled": false,
+  "priority": 300,
+  "title": "ITEM ICON UI SHOWCASE",
+  "subtitle": "Every button below uses a normal Minecraft item model as live UI art.",
+  "background": {
+    "top": "#FF09151C",
+    "bottom": "#FF1C1028"
+  },
+  "buttons": [
+    {
+      "id": "spin_example",
+      "label": "SPIN · CARROT",
+      "action": "open_mods",
+      "x": -125,
+      "y": -40,
+      "width": 220,
+      "height": 28,
+      "icon": { "type": "item", "id": "minecraft:carrot", "scale": 1.2, "offset_x": 8 },
+      "hover_animation": { "type": "spin", "speed": 1.0, "amount": 1.0 }
+    },
+    {
+      "id": "orbit_example",
+      "label": "ORBIT · COMPASS",
+      "action": "open_multiplayer",
+      "x": 125,
+      "y": -40,
+      "width": 220,
+      "height": 28,
+      "icon": { "type": "item", "id": "minecraft:compass", "scale": 1.15, "offset_x": 8 },
+      "hover_animation": { "type": "orbit", "speed": 0.7, "amount": 3.0 }
+    },
+    {
+      "id": "bob_example",
+      "label": "BOB · GRASS BLOCK",
+      "action": "open_singleplayer",
+      "x": -125,
+      "y": 0,
+      "width": 220,
+      "height": 28,
+      "icon": { "type": "item", "id": "minecraft:grass_block", "offset_x": 8 },
+      "hover_animation": { "type": "bob", "speed": 1.3, "amount": 3.0 }
+    },
+    {
+      "id": "pulse_example",
+      "label": "PULSE · CHEST",
+      "action": "open_official_packs",
+      "x": 125,
+      "y": 0,
+      "width": 220,
+      "height": 28,
+      "icon": { "type": "item", "id": "minecraft:chest", "offset_x": 8 },
+      "hover_animation": { "type": "pulse", "speed": 1.1, "amount": 1.6 }
+    },
+    {
+      "id": "reload",
+      "label": "RELOAD TITLE JSON",
+      "action": "reload_title_json",
+      "x": 0,
+      "y": 48,
+      "width": 230,
+      "height": 26,
+      "icon": { "type": "item", "id": "minecraft:clock", "offset_x": 8 },
+      "hover_animation": { "type": "spin", "speed": 0.45, "amount": 1.0 }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "priority": 100,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "attributes",
+      "text": "Attributes",
+      "action": "decisions_and_impulses:showcase_attributes_demo",
+      "style": {
+        "background": "#6A5524",
+        "hover": "#8A7132",
+        "selected": "#AA914A",
+        "text": "#FFF3C4",
+        "border": "#332811"
+      }
+    },
+    {
+      "slot": 1,
+      "id": "state_memory",
+      "text": "State + Memory",
+      "action": "decisions_and_impulses:showcase_state_memory_demo",
+      "style": {
+        "background": "#355E3B",
+        "hover": "#4D7A52",
+        "selected": "#6A946F",
+        "text": "#FFFFFF",
+        "border": "#1E3522"
+      }
+    },
+    {
+      "slot": 2,
+      "id": "runtime",
+      "text": "Runtime Systems",
+      "action": "decisions_and_impulses:showcase_menu_open_runtime",
+      "style": {
+        "background": "#4A4A4A",
+        "hover": "#626262",
+        "selected": "#7A7A7A",
+        "text": "#FFFFFF",
+        "border": "#202020"
+      }
+    }
+  ]
+}

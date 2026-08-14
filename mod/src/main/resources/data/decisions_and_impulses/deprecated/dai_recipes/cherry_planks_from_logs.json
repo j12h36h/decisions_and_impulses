@@ -1,0 +1,16 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "L"
+  ],
+  "key": {
+    "L": {
+      "tag": "minecraft:cherry_logs"
+    }
+  },
+  "result": {
+    "item": "minecraft:cherry_planks",
+    "count": 4
+  },
+  "container": "minecraft:inventory"
+}

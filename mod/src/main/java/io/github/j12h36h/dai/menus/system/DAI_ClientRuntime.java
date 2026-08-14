@@ -1,5 +1,11 @@
 package io.github.j12h36h.dai.menus.system;
 
+import io.github.j12h36h.dai.api.DAI_CapabilityStore;
+import io.github.j12h36h.dai.api.DAI_ReferenceStore;
+import io.github.j12h36h.dai.api.DAI_StateStore;
+import io.github.j12h36h.dai.attributes.DAI_AttributeStore;
+import io.github.j12h36h.dai.animations.DAI_AnimationRuntime;
+import io.github.j12h36h.dai.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionMemory;
@@ -26,6 +32,8 @@ import io.github.j12h36h.dai.logics.navigation.DAI_ExplorationMemory;
 import io.github.j12h36h.dai.menus.system.DAI_FailedTargetMemory;
 import io.github.j12h36h.dai.logics.input.DAI_KeyboardInput;
 import io.github.j12h36h.dai.menus.DAI_ScreenManager;
+import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
+import io.github.j12h36h.dai.registry.DAI_RegistryClientNotice;
 import net.minecraft.client.Minecraft;
 
 public final class DAI_ClientRuntime {
@@ -232,6 +240,20 @@ public final class DAI_ClientRuntime {
         DAI_SpatialState.clear();
 
         DAI_ConditionMemory.clear();
+
+        /*
+         * Third-party extension state is session-scoped by design. Clear it
+         * with other world-bound memory so one world cannot leak tactical,
+         * capability, or remembered-reference state into another.
+         */
+        DAI_StateStore.clear();
+        DAI_CapabilityStore.clear();
+        DAI_ReferenceStore.clear();
+        DAI_AttributeStore.clear();
+        DAI_AnimationRuntime.clear();
+        DAI_ContentRuntime.clear();
+        DAI_RegistryClientNotice.resetSession();
+
         DAI_ScreenManager.clear();
 
         DAI_Core.debug(

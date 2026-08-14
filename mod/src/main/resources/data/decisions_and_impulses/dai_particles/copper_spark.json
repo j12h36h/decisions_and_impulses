@@ -1,0 +1,23 @@
+{
+  "carrier": "minecraft:copper_ingot",
+  "display_name": "Copper Spark",
+  "description": "A custom particle identity whose demo event uses a vanilla copper visual.",
+  "model": "minecraft:copper_ingot",
+  "registry_backed": true,
+  "native_registry": "item",
+  "capabilities": [
+    "decisions_and_impulses:visual_effect"
+  ],
+  "tags": [
+    "showcase",
+    "particle",
+    "copper",
+    "vanilla_style"
+  ],
+  "events": {
+    "emit": "decisions_and_impulses:showcase_event_particle_emit"
+  },
+  "stats": {
+    "duration_ticks": 20
+  }
+}

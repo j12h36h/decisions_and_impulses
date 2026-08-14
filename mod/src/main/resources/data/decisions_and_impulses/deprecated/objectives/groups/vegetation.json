@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "entries": [
+    "@grass",
+    "@flowers",
+    "@crops",
+    "@saplings",
+    "@tall_plants",
+    "@bamboo",
+    "@cactus",
+    "@sugar_cane",
+    "@aquatic_plants",
+    "@pumpkins",
+    "@melons",
+    "@berries",
+    "@mushrooms",
+    "@vines",
+    "@moss",
+    "@nether_plants"
+  ]
+}

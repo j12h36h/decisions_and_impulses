@@ -1,0 +1,63 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "status_set_health",
+      "value": 20.0,
+      "target": "self"
+    },
+    {
+      "type": "status_set_absorption",
+      "value": 4.0,
+      "target": "self"
+    },
+    {
+      "type": "status_damage",
+      "value": 1.0,
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 5
+    },
+    {
+      "type": "status_heal",
+      "value": 1.0,
+      "target": "self"
+    },
+    {
+      "type": "status_set_food",
+      "value": 20.0,
+      "target": "self"
+    },
+    {
+      "type": "status_set_air",
+      "value": 300.0,
+      "target": "self"
+    },
+    {
+      "type": "status_set_fire_ticks",
+      "value": 0.0,
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:showcase_status_demo",
+        "texture": "minecraft:textures/item/golden_apple.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 34,
+        "height": 34,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 38,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

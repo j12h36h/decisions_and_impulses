@@ -1,0 +1,66 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:polished_flint",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:carved_tuff_bricks",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:tempered_iron_blade",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:reinforced_chainmail",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:surefooted",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:miners_draught",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "content_activate",
+      "action": "decisions_and_impulses:steady_edge",
+      "target": "self",
+      "ticks": 100
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:content_active",
+        "texture": "minecraft:textures/item/golden_apple.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 36,
+        "height": 36,
+        "alpha": 1.0,
+        "color": "#FFF0A0",
+        "z": 20,
+        "ticks": 42,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

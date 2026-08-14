@@ -6,6 +6,7 @@ import io.github.j12h36h.dai.logics.core.DAI_RuntimeTelemetry;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class DAI_ActionRegistry {
@@ -205,6 +206,12 @@ public final class DAI_ActionRegistry {
 
     public static int size() {
         return ACTIONS.size();
+    }
+
+    public static Set<String> ids() {
+        return Set.copyOf(
+                ACTIONS.keySet()
+        );
     }
 
     public static void clear() {

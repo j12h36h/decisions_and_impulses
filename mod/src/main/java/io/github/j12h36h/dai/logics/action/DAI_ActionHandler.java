@@ -39,6 +39,7 @@ public final class DAI_ActionHandler {
         registerObjectiveActions();
         registerAutomationActions();
         registerGameModeActions();
+        registerExtensionActions();
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Action handlers registered."
@@ -368,6 +369,209 @@ public final class DAI_ActionHandler {
         register(
                 "wait_for_creative_build",
                 DAI_CreativeBuildLogic::waitForBlueprint
+        );
+    }
+
+    private static void registerExtensionActions() {
+
+        register(
+                "state_set_boolean",
+                DAI_ExtensionLogic::setStateBoolean
+        );
+
+        register(
+                "state_set_number",
+                DAI_ExtensionLogic::setStateNumber
+        );
+
+        register(
+                "state_set_string",
+                DAI_ExtensionLogic::setStateString
+        );
+
+        register(
+                "state_add_number",
+                DAI_ExtensionLogic::addStateNumber
+        );
+
+        register(
+                "state_toggle_boolean",
+                DAI_ExtensionLogic::toggleStateBoolean
+        );
+
+        register(
+                "state_clear",
+                DAI_ExtensionLogic::clearState
+        );
+
+        register(
+                "capability_add",
+                DAI_ExtensionLogic::addCapability
+        );
+
+        register(
+                "capability_remove",
+                DAI_ExtensionLogic::removeCapability
+        );
+
+        register(
+                "capability_clear",
+                DAI_ExtensionLogic::clearCapabilities
+        );
+
+        register(
+                "reference_remember_target_entity",
+                DAI_ExtensionLogic::rememberTargetEntity
+        );
+
+        register(
+                "reference_remember_target_block",
+                DAI_ExtensionLogic::rememberTargetBlock
+        );
+
+        register(
+                "reference_remember_reaction_entity",
+                DAI_ExtensionLogic::rememberReactionEntity
+        );
+
+        register(
+                "reference_remember_player_position",
+                DAI_ExtensionLogic::rememberPlayerPosition
+        );
+
+        register(
+                "reference_select",
+                DAI_ExtensionLogic::selectReference
+        );
+
+        register(
+                "reference_clear",
+                DAI_ExtensionLogic::clearReference
+        );
+
+        register(
+                "emit_reaction_event",
+                DAI_ExtensionLogic::emitReactionEvent
+        );
+
+        register(
+                "attribute_set",
+                DAI_AttributeLogic::set
+        );
+
+        register(
+                "attribute_add",
+                DAI_AttributeLogic::add
+        );
+
+        register(
+                "attribute_reset",
+                DAI_AttributeLogic::reset
+        );
+
+        register(
+                "attribute_modifier_add",
+                DAI_AttributeLogic::addModifier
+        );
+
+        register(
+                "attribute_modifier_remove",
+                DAI_AttributeLogic::removeModifier
+        );
+
+        register(
+                "native_attribute_set",
+                DAI_AttributeLogic::nativeSet
+        );
+
+        register(
+                "native_attribute_modifier_add",
+                DAI_AttributeLogic::nativeAddModifier
+        );
+
+        register(
+                "native_attribute_modifier_remove",
+                DAI_AttributeLogic::nativeRemoveModifier
+        );
+
+        register(
+                "status_set_health",
+                DAI_StatusLogic::setHealth
+        );
+
+        register(
+                "status_heal",
+                DAI_StatusLogic::heal
+        );
+
+        register(
+                "status_damage",
+                DAI_StatusLogic::damage
+        );
+
+        register(
+                "status_set_absorption",
+                DAI_StatusLogic::setAbsorption
+        );
+
+        register(
+                "status_set_food",
+                DAI_StatusLogic::setFood
+        );
+
+        register(
+                "status_set_air",
+                DAI_StatusLogic::setAir
+        );
+
+        register(
+                "status_set_fire_ticks",
+                DAI_StatusLogic::setFireTicks
+        );
+
+        register(
+                "animation_play",
+                DAI_AnimationLogic::play
+        );
+
+        register(
+                "animation_stop",
+                DAI_AnimationLogic::stop
+        );
+
+        register(
+                "animation_pause",
+                DAI_AnimationLogic::pause
+        );
+
+        register(
+                "animation_resume",
+                DAI_AnimationLogic::resume
+        );
+
+        register(
+                "wait_for_animation",
+                DAI_AnimationLogic::waitFor
+        );
+
+        register(
+                "content_activate",
+                DAI_ContentLogic::activate
+        );
+
+        register(
+                "content_deactivate",
+                DAI_ContentLogic::deactivate
+        );
+
+        register(
+                "content_event",
+                DAI_ContentLogic::emitEvent
+        );
+
+        register(
+                "content_give",
+                DAI_ContentLogic::giveCarrier
         );
     }
 

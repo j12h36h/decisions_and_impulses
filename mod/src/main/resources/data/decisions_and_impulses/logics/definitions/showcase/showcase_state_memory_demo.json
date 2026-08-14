@@ -1,0 +1,71 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_set_boolean",
+      "action": "decisions_and_impulses:demo_enabled",
+      "state": true
+    },
+    {
+      "type": "state_toggle_boolean",
+      "action": "decisions_and_impulses:demo_enabled"
+    },
+    {
+      "type": "state_toggle_boolean",
+      "action": "decisions_and_impulses:demo_enabled"
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:demo_counter",
+      "value": 6.0
+    },
+    {
+      "type": "state_set_string",
+      "action": "decisions_and_impulses:demo_mode",
+      "direction": "memory_test"
+    },
+    {
+      "type": "capability_add",
+      "action": "decisions_and_impulses:memory_demo"
+    },
+    {
+      "type": "reference_remember_player_position",
+      "action": "decisions_and_impulses:showcase_home"
+    },
+    {
+      "type": "reference_select",
+      "action": "decisions_and_impulses:showcase_home"
+    },
+    {
+      "type": "overlay_sprite",
+      "conditions": [
+        {
+          "type": "state",
+          "parameter": "decisions_and_impulses:demo_counter",
+          "operator": "greater_than",
+          "number_value": 5.0
+        },
+        {
+          "type": "reference_exists",
+          "parameter": "decisions_and_impulses:showcase_home"
+        }
+      ],
+      "sprite": {
+        "id": "decisions_and_impulses:memory_verified",
+        "texture": "minecraft:textures/block/lodestone_top.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 34,
+        "height": 34,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 25,
+        "ticks": 42,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

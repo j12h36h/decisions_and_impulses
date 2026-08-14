@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:cobblestone",
+    "minecraft:mossy_cobblestone"
+  ]
+}

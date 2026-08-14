@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "minecraft:crafting_table",
+  "value": 16.0
+}

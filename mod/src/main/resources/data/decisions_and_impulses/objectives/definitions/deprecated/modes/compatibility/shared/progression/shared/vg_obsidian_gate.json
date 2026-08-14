@@ -1,0 +1,16 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_acquire_obsidian",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:obsidian",
+          "number_value": 10.0
+        }
+      ]
+    }
+  ]
+}

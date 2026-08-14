@@ -1,0 +1,92 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "state_set_boolean",
+      "action": "decisions_and_impulses:demo_enabled",
+      "state": true
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:demo_counter",
+      "value": 1.0
+    },
+    {
+      "type": "state_add_number",
+      "action": "decisions_and_impulses:demo_counter",
+      "value": 4.0
+    },
+    {
+      "type": "state_set_string",
+      "action": "decisions_and_impulses:demo_mode",
+      "direction": "showcase"
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:reaction_count",
+      "value": 0.0
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:effect_ticks",
+      "value": 0.0
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:projectile_impacts",
+      "value": 0.0
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:particle_emissions",
+      "value": 0.0
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:overlay_clicks",
+      "value": 0.0
+    },
+    {
+      "type": "state_set_number",
+      "action": "decisions_and_impulses:animation_impacts",
+      "value": 0.0
+    },
+    {
+      "type": "capability_add",
+      "action": "decisions_and_impulses:showcase_access"
+    },
+    {
+      "type": "reference_remember_player_position",
+      "action": "decisions_and_impulses:showcase_home"
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:craftsmanship",
+      "target": "self"
+    },
+    {
+      "type": "attribute_reset",
+      "action": "decisions_and_impulses:stamina",
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:setup_complete",
+        "texture": "minecraft:textures/item/book.png",
+        "anchor": "center",
+        "x": 0,
+        "y": -44,
+        "width": 34,
+        "height": 34,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 40,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    }
+  ]
+}

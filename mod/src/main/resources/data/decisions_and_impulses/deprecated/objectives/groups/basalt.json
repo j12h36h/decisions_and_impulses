@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:basalt",
+    "minecraft:polished_basalt",
+    "minecraft:smooth_basalt"
+  ]
+}

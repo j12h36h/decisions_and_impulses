@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "entries": [
+    "minecraft:vine",
+    "minecraft:cave_vines",
+    "minecraft:cave_vines_plant",
+    "minecraft:weeping_vines",
+    "minecraft:weeping_vines_plant",
+    "minecraft:twisting_vines",
+    "minecraft:twisting_vines_plant"
+  ]
+}

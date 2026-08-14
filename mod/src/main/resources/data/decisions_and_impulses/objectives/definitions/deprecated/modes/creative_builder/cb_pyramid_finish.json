@@ -1,0 +1,16 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "creative_hover",
+      "ticks": 10
+    },
+    {
+      "type": "remember_waypoint",
+      "action": "desert_pyramid_complete"
+    },
+    {
+      "type": "automation_stop"
+    }
+  ]
+}

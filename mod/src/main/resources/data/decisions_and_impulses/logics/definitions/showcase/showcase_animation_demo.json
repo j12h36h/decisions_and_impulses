@@ -1,0 +1,66 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "animation_play",
+      "action": "decisions_and_impulses:forge_swing",
+      "target": "self"
+    },
+    {
+      "type": "wait_for_animation",
+      "action": "decisions_and_impulses:forge_swing",
+      "target": "self"
+    },
+    {
+      "type": "animation_play",
+      "action": "decisions_and_impulses:breathing_idle",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "animation_pause",
+      "action": "decisions_and_impulses:breathing_idle",
+      "target": "self"
+    },
+    {
+      "type": "overlay_sprite",
+      "sprite": {
+        "id": "decisions_and_impulses:animation_paused",
+        "texture": "minecraft:textures/block/redstone_block.png",
+        "anchor": "center",
+        "x": -32,
+        "y": 0,
+        "width": 24,
+        "height": 24,
+        "alpha": 1.0,
+        "color": "#FFFFFF",
+        "z": 20,
+        "ticks": 16,
+        "interactable": false,
+        "click_action": "",
+        "consume_click": false
+      }
+    },
+    {
+      "type": "delay",
+      "ticks": 6
+    },
+    {
+      "type": "animation_resume",
+      "action": "decisions_and_impulses:breathing_idle",
+      "target": "self"
+    },
+    {
+      "type": "delay",
+      "ticks": 12
+    },
+    {
+      "type": "animation_stop",
+      "action": "decisions_and_impulses:breathing_idle",
+      "target": "self"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ public final class DAI_DatapackValidator {
         DAI_ValidationReport.clear();
 
         DAI_ActionValidator.validate();
+        DAI_ExtensionValidator.validate();
         DAI_SystemValidator.validate();
         DAI_GroupValidator.validate();
         DAI_RecognitionValidator.validate();

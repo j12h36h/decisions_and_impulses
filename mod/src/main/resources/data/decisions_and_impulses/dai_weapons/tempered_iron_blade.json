@@ -1,0 +1,32 @@
+{
+  "carrier": "minecraft:iron_sword",
+  "display_name": "Tempered Iron Blade",
+  "description": "A vanilla-styled weapon definition with DAI combat modifiers.",
+  "model": "minecraft:iron_sword",
+  "registry_backed": true,
+  "native_registry": "item",
+  "capabilities": [
+    "decisions_and_impulses:melee_weapon",
+    "decisions_and_impulses:precision_strike"
+  ],
+  "tags": [
+    "showcase",
+    "weapon",
+    "melee",
+    "vanilla_style"
+  ],
+  "attributes": {
+    "decisions_and_impulses:craftsmanship": 5.0
+  },
+  "events": {
+    "attack": "decisions_and_impulses:showcase_event_weapon_attack",
+    "activate": "decisions_and_impulses:showcase_event_weapon_activate"
+  },
+  "stats": {
+    "stack_size": 1,
+    "durability": 325,
+    "attack_damage": 2.0,
+    "attack_speed": 0.1,
+    "attack_range": 0.5
+  }
+}

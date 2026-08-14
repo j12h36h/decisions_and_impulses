@@ -1,0 +1,19 @@
+{
+  "type": "overlay_sprite",
+  "sprite": {
+    "id": "decisions_and_impulses:anim_windup",
+    "texture": "minecraft:textures/item/iron_ingot.png",
+    "anchor": "center",
+    "x": -36,
+    "y": 0,
+    "width": 20,
+    "height": 20,
+    "alpha": 1.0,
+    "color": "#FFFFFF",
+    "z": 20,
+    "ticks": 10,
+    "interactable": false,
+    "click_action": "",
+    "consume_click": false
+  }
+}

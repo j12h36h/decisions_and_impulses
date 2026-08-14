@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.logics.action;
 import io.github.j12h36h.dai.logics.DAI_ActionLogic;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionEvaluator;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -457,6 +458,14 @@ public final class DAI_ActionQueue {
     public static void interruptAndDispatch(
             List<DAI_ActionDefinition> actions
     ) {
+
+        if (DAI_RegistryPreflight.restartRequired()) {
+            clear();
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Ignored priority action because registry-backed content is pending a restart."
+            );
+            return;
+        }
 
         clear();
         DAI_ActionGovernor.resetForPriorityInterrupt();

@@ -1,0 +1,8 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:vg_acquire_raw_iron_iron_shovel_attempt_1"
+    }
+  ]
+}

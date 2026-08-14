@@ -1,23 +1,44 @@
 {
-  "priority": 0,
+  "priority": 100,
   "buttons": [
     {
       "slot": 0,
       "id": "options",
       "text": "Options",
-      "action": "decisions_and_impulses:menu_open_pause"
+      "action": "decisions_and_impulses:showcase_menu_open_pause",
+      "style": {
+        "background": "#4A4A4A",
+        "hover": "#626262",
+        "selected": "#7A7A7A",
+        "text": "#FFFFFF",
+        "border": "#202020"
+      }
     },
     {
       "slot": 1,
       "id": "inventory",
       "text": "Inventory",
-      "action": "decisions_and_impulses:menu_open_inventory"
+      "action": "decisions_and_impulses:showcase_menu_open_inventory",
+      "style": {
+        "background": "#4A4A4A",
+        "hover": "#626262",
+        "selected": "#7A7A7A",
+        "text": "#FFFFFF",
+        "border": "#202020"
+      }
     },
     {
       "slot": 2,
       "id": "chat",
       "text": "Chat",
-      "action": "decisions_and_impulses:menu_open_chat"
+      "action": "decisions_and_impulses:showcase_menu_open_chat",
+      "style": {
+        "background": "#4A4A4A",
+        "hover": "#626262",
+        "selected": "#7A7A7A",
+        "text": "#FFFFFF",
+        "border": "#202020"
+      }
     }
   ]
 }

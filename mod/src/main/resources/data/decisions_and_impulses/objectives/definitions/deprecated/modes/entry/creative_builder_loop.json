@@ -1,0 +1,31 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "set_gamemode",
+      "action": "creative"
+    },
+    {
+      "type": "delay",
+      "ticks": 10
+    },
+    {
+      "type": "creative_flight_set",
+      "state": true
+    },
+    {
+      "type": "remember_waypoint",
+      "action": "cb_player_origin"
+    },
+    {
+      "type": "remember_surface_offset_waypoint",
+      "action": "cb_player_origin",
+      "direction": "8,0,8",
+      "open": "cb_build_origin"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:cb_cycle"
+    }
+  ]
+}

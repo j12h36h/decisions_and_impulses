@@ -1,0 +1,12 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "equip_best_block"
+    },
+    {
+      "type": "delay",
+      "ticks": 2
+    }
+  ]
+}

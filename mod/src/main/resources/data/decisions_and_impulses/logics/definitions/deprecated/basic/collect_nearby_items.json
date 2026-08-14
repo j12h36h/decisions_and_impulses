@@ -1,0 +1,5 @@
+{
+  "type": "collect_nearby_items",
+  "ticks": 120,
+  "value": 6.0
+}

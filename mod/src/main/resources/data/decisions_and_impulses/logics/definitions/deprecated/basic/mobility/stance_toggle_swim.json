@@ -1,0 +1,9 @@
+{
+  "type": "swim_toggle",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ],
+  "ticks": 0
+}

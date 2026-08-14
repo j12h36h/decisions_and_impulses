@@ -1,0 +1,75 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "input_stop_all"
+    },
+    {
+      "type": "target_clear"
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "iron_descent_active",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "iron_descent_active"
+        }
+      ]
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "iron_descent_seed",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "iron_descent_seed"
+        }
+      ]
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "mineshaft_ready",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "mineshaft_ready"
+        }
+      ]
+    },
+    {
+      "type": "forget_waypoint",
+      "action": "mine_origin",
+      "conditions": [
+        {
+          "type": "waypoint_known",
+          "parameter": "mine_origin"
+        }
+      ]
+    },
+    {
+      "action": "decisions_and_impulses:recover_damaged_miner"
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:obtain_nearby_raw_iron",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:raw_iron",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:verify_raw_iron_for_pickaxe"
+    }
+  ]
+}

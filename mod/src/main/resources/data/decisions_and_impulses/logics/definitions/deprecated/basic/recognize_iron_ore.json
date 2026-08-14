@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "#minecraft:iron_ores",
+  "value": 24.0
+}

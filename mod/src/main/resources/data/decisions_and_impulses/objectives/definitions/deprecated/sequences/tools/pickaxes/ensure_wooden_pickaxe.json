@@ -1,0 +1,214 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:ensure_crafting_table",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table",
+          "operator": "is_false"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:explore_for_wood",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:craft_planks_from_available_log",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:craft_sticks_from_planks",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 2.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:explore_for_wood",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:craft_planks_from_available_log",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "less_than",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:logs",
+          "number_value": 1.0
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:craft_wooden_pickaxe",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:wooden_pickaxe",
+          "number_value": 1.0
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "crafting_table"
+        },
+        {
+          "type": "inventory_item_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:stick",
+          "number_value": 2.0
+        },
+        {
+          "type": "inventory_item_tag_count",
+          "operator": "greater_than_or_equal",
+          "parameter": "minecraft:planks",
+          "number_value": 3.0
+        }
+      ]
+    }
+  ]
+}

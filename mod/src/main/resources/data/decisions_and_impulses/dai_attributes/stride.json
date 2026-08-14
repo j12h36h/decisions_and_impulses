@@ -1,0 +1,6 @@
+{
+  "default": 0.1,
+  "minimum": 0.05,
+  "maximum": 0.2,
+  "native_binding": "minecraft:movement_speed"
+}

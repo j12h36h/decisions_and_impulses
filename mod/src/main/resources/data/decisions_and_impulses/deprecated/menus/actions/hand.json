@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "hotbar",
+      "text": "Hotbar",
+      "action": "decisions_and_impulses:menu_open_hotbar"
+    },
+    {
+      "slot": 1,
+      "id": "weapon",
+      "text": "Weapon",
+      "action": "decisions_and_impulses:menu_open_weapon"
+    },
+    {
+      "slot": 2,
+      "id": "item",
+      "text": "Item",
+      "action": "decisions_and_impulses:menu_open_item"
+    }
+  ]
+}

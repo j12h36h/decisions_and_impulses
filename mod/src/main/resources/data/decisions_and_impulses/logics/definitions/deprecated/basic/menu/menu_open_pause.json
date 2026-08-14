@@ -1,0 +1,8 @@
+{
+  "type": "pause_menu",
+  "conditions": [
+    {
+      "type": "always"
+    }
+  ]
+}

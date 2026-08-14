@@ -1,0 +1,22 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:descend_for_cobblestone",
+      "conditions": [
+        {
+          "type": "inventory_item_count",
+          "operator": "less_than",
+          "parameter": "minecraft:cobblestone",
+          "number_value": 3.0
+        },
+        {
+          "type": "player_health",
+          "operator": "greater_than_or_equal",
+          "number_value": 18.0
+        }
+      ]
+    }
+  ]
+}

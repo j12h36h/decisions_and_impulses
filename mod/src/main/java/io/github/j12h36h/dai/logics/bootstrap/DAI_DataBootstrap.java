@@ -1,6 +1,10 @@
 package io.github.j12h36h.dai.logics.bootstrap;
 
 import io.github.j12h36h.dai.logics.creation.DAI_RecipeLoader;
+import io.github.j12h36h.dai.attributes.DAI_AttributeLoader;
+import io.github.j12h36h.dai.animations.DAI_AnimationLoader;
+import io.github.j12h36h.dai.content.DAI_ContentKind;
+import io.github.j12h36h.dai.content.DAI_ContentLoader;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.validation.DAI_ValidationListener;
@@ -9,6 +13,7 @@ import io.github.j12h36h.dai.menus.DAI_ScreenProfileLoader;
 import io.github.j12h36h.dai.menus.system.DAI_SystemLoader;
 import io.github.j12h36h.dai.objectives.recognition.DAI_RecogGroupLoader;
 import io.github.j12h36h.dai.objectives.recognition.DAI_RecogLoader;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventLoader;
 import io.github.j12h36h.dai.reactions.DAI_ReactionLoader;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.NeoForge;
@@ -162,6 +167,54 @@ public final class DAI_DataBootstrap {
                         "processing_recipes"
                 ),
                 new DAI_RecipeLoader()
+        );
+
+        /*
+         * ------------------------------------------------------------
+         * DATAPACK EXTENSIONS
+         * ------------------------------------------------------------
+         *
+         * These are ordinary DAI datapack folders. Attributes, animations,
+         * and virtual content identities are loaded before reactions and the
+         * final validator so action/condition references can be checked in a
+         * single reload pass.
+         */
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_attributes"),
+                new DAI_AttributeLoader()
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_animations"),
+                new DAI_AnimationLoader()
+        );
+
+        for (DAI_ContentKind kind : DAI_ContentKind.values()) {
+            event.addListener(
+                    Identifier.fromNamespaceAndPath(
+                            DAI_Core.MODID,
+                            kind.folder()
+                    ),
+                    new DAI_ContentLoader(kind)
+            );
+        }
+
+        /*
+         * ------------------------------------------------------------
+         * REACTION EVENTS
+         * ------------------------------------------------------------
+         *
+         * Third-party datapacks may declare their own event vocabulary in
+         * data/<namespace>/reaction_events/*.json before reactions validate.
+         */
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(
+                        DAI_Core.MODID,
+                        "reaction_events"
+                ),
+                new DAI_ReactionEventLoader()
         );
 
         /*

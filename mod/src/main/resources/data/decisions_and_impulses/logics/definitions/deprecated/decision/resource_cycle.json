@@ -1,0 +1,35 @@
+{
+  "type": "random_action",
+  "sequence": [
+    {
+      "action": "decisions_and_impulses:mine_nearest_logs"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_stone"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_coal"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_iron"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_copper"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_gold"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_redstone"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_lapis"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_diamond"
+    },
+    {
+      "action": "decisions_and_impulses:mine_nearest_emerald"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "duration_ticks": 40,
+  "loop": true,
+  "channel": "full_body",
+  "priority": 1,
+  "interruptible": true,
+  "markers": {
+    "breath": 20
+  },
+  "marker_actions": {
+    "breath": "decisions_and_impulses:showcase_animation_breath_marker"
+  },
+  "tracks": {
+    "body": [
+      {
+        "tick": 0,
+        "y": 0.0,
+        "scale_y": 1.0
+      },
+      {
+        "tick": 20,
+        "y": 0.025,
+        "scale_y": 1.01
+      },
+      {
+        "tick": 40,
+        "y": 0.0,
+        "scale_y": 1.0
+      }
+    ]
+  }
+}

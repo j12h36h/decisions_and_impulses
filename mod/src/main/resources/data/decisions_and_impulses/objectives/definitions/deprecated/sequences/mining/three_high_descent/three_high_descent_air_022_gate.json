@@ -1,0 +1,69 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:finish_iron_descent_chunk",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|13,-2,1"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "iron_descent_active"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:finish_cobblestone_descent_chunk",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|13,-2,1"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "iron_descent_active",
+          "operator": "is_false"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "cobblestone_descent_active"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_finalize",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|13,-2,1"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "iron_descent_active",
+          "operator": "is_false"
+        },
+        {
+          "type": "waypoint_known",
+          "parameter": "cobblestone_descent_active",
+          "operator": "is_false"
+        }
+      ]
+    },
+    {
+      "type": "enqueue_action",
+      "action": "decisions_and_impulses:three_high_descent_air_022_clear",
+      "conditions": [
+        {
+          "type": "waypoint_offset_strict_air",
+          "parameter": "mine_origin|13,-2,1",
+          "negate": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "type": "sequence",
+  "sequence": [
+    {
+      "type": "add_look",
+      "yaw": -90.0
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "type": "add_look",
+      "yaw": 180.0
+    },
+    {
+      "type": "delay",
+      "ticks": 4
+    },
+    {
+      "type": "add_look",
+      "yaw": -90.0
+    }
+  ]
+}

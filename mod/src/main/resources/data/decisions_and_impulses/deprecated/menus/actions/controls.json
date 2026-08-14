@@ -1,0 +1,23 @@
+{
+  "priority": 0,
+  "buttons": [
+    {
+      "slot": 0,
+      "id": "move",
+      "text": "Move",
+      "action": "decisions_and_impulses:menu_open_move"
+    },
+    {
+      "slot": 1,
+      "id": "look",
+      "text": "Look",
+      "action": "decisions_and_impulses:menu_open_look"
+    },
+    {
+      "slot": 2,
+      "id": "hand",
+      "text": "Hand",
+      "action": "decisions_and_impulses:menu_open_hand"
+    }
+  ]
+}

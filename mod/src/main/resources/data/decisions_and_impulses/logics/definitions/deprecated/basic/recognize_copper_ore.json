@@ -1,0 +1,5 @@
+{
+  "type": "recognize_block",
+  "action": "#minecraft:copper_ores",
+  "value": 24.0
+}
