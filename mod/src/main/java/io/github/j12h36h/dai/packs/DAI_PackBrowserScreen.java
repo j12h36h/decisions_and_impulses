@@ -1,15 +1,14 @@
 package io.github.j12h36h.dai.packs;
 
 import io.github.j12h36h.dai.title.DAI_TitleActionDispatcher;
+import io.github.j12h36h.dai.title.DAI_TitleIconTextures;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.renderer.RenderPipelines;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -18,7 +17,11 @@ import java.util.Optional;
 /** Curated in-game browser for official D.A.I. datapacks/resource packs. */
 public final class DAI_PackBrowserScreen extends Screen {
 
-    private static final int PAGE_SIZE = 3;
+    private static final int MAX_PAGE_SIZE = 3;
+    private static final int CARD_TOP = 84;
+    private static final int CARD_HEIGHT = 88;
+    private static final int CARD_STRIDE = 96;
+    private static final int FOOTER_RESERVED = 72;
 
     private final Screen parent;
     private final boolean allowRefresh;
@@ -82,8 +85,10 @@ public final class DAI_PackBrowserScreen extends Screen {
                 .bounds(left + cardWidth - 24, 48, 24, 20)
                 .build());
 
+        page = Math.min(page, maxPage());
+
         List<DAI_OfficialPackCatalog.PackEntry> visible = visiblePacks();
-        int y = 84;
+        int y = CARD_TOP;
         for (DAI_OfficialPackCatalog.PackEntry pack : visible) {
             int installWidth = 94;
             int infoWidth = 70;
@@ -104,7 +109,7 @@ public final class DAI_PackBrowserScreen extends Screen {
                     .bounds(left + cardWidth - installWidth - 8, buttonY, installWidth, 20)
                     .build());
 
-            y += 96;
+            y += CARD_STRIDE;
         }
 
         int maxPage = maxPage();
@@ -184,10 +189,10 @@ public final class DAI_PackBrowserScreen extends Screen {
         );
 
         List<DAI_OfficialPackCatalog.PackEntry> visible = visiblePacks();
-        int y = 84;
+        int y = CARD_TOP;
         for (DAI_OfficialPackCatalog.PackEntry pack : visible) {
             drawCard(graphics, pack, left, y, cardWidth);
-            y += 96;
+            y += CARD_STRIDE;
         }
 
         String status = working
@@ -197,7 +202,7 @@ public final class DAI_PackBrowserScreen extends Screen {
                 font,
                 Component.literal(status),
                 width / 2,
-                height - 72,
+                height - 66,
                 working ? 0xFFFFD782 : 0xFF91A8B7
         );
 
@@ -249,12 +254,24 @@ public final class DAI_PackBrowserScreen extends Screen {
             int width
     ) {
         boolean installed = DAI_PackInstallManager.installed(pack.id(), selectedWorld()).isPresent();
-        graphics.fill(x, y, x + width, y + 88, 0xB8162732);
-        graphics.outline(x, y, width, 88, installed ? 0xFF6EA76A : 0xFF35566B);
+        graphics.fill(x, y, x + width, y + CARD_HEIGHT, 0xB8162732);
+        graphics.outline(x, y, width, CARD_HEIGHT, installed ? 0xFF6EA76A : 0xFF35566B);
 
-        ItemStack icon = icon(pack.iconItem());
-        if (!icon.isEmpty()) {
-            graphics.fakeItem(icon, x + 10, y + 10);
+        Identifier icon = DAI_TitleIconTextures.item(pack.iconItem());
+        if (icon != null) {
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    icon,
+                    x + 10,
+                    y + 10,
+                    0.0F,
+                    0.0F,
+                    16,
+                    16,
+                    16,
+                    16,
+                    0xFFFFFFFF
+            );
         }
 
         graphics.text(font, Component.literal(pack.name()), x + 36, y + 10, 0xFFFFFFFF);
@@ -347,15 +364,27 @@ public final class DAI_PackBrowserScreen extends Screen {
 
     private List<DAI_OfficialPackCatalog.PackEntry> visiblePacks() {
         List<DAI_OfficialPackCatalog.PackEntry> packs = catalog.packs();
-        int from = Math.min(page * PAGE_SIZE, packs.size());
-        int to = Math.min(from + PAGE_SIZE, packs.size());
+        int pageSize = pageSize();
+        int from = Math.min(page * pageSize, packs.size());
+        int to = Math.min(from + pageSize, packs.size());
         return packs.subList(from, to);
     }
 
     private int maxPage() {
         int size = catalog.packs().size();
         if (size <= 1) return 0;
-        return Math.max(0, (size - 1) / PAGE_SIZE);
+        return Math.max(0, (size - 1) / pageSize());
+    }
+
+    /**
+     * High GUI scales produce a short logical screen even in a large window.
+     * Only render as many cards as can fit above the fixed footer controls.
+     */
+    private int pageSize() {
+        int usableBottom = Math.max(CARD_TOP + CARD_HEIGHT, height - FOOTER_RESERVED);
+        int usableHeight = Math.max(CARD_HEIGHT, usableBottom - CARD_TOP);
+        int count = Math.max(1, (usableHeight + (CARD_STRIDE - CARD_HEIGHT)) / CARD_STRIDE);
+        return Math.min(MAX_PAGE_SIZE, count);
     }
 
     private String selectedWorld() {
@@ -363,10 +392,4 @@ public final class DAI_PackBrowserScreen extends Screen {
         return worlds.get(Math.min(worldIndex, worlds.size() - 1));
     }
 
-    private static ItemStack icon(String raw) {
-        Identifier id = Identifier.tryParse(raw);
-        if (id == null) return ItemStack.EMPTY;
-        Item item = BuiltInRegistries.ITEM.getValue(id);
-        return item == null ? ItemStack.EMPTY : new ItemStack(item);
-    }
 }

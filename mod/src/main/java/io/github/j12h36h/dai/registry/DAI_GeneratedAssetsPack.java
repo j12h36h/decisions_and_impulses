@@ -131,7 +131,12 @@ public final class DAI_GeneratedAssetsPack {
         String visual = firstNonBlank(spec.model(), spec.carrier());
         if (visual.isBlank()) return;
 
-        String modelLocation = asModelLocation(visual, "item");
+        String modelLocation = asModelLocation(
+                visual,
+                spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.BLOCK
+                        ? "block"
+                        : "item"
+        );
 
         JsonObject model = new JsonObject();
         model.addProperty("type", "minecraft:model");

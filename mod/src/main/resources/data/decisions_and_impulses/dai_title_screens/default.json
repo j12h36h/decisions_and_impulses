@@ -21,7 +21,7 @@
       "height": 24,
       "icon": {
         "type": "item",
-        "id": "minecraft:grass_block",
+        "id": "minecraft:wooden_pickaxe",
         "scale": 1.0,
         "offset_x": 9
       },
@@ -48,7 +48,7 @@
       "height": 24,
       "icon": {
         "type": "item",
-        "id": "minecraft:compass",
+        "id": "minecraft:ender_pearl",
         "scale": 1.0,
         "offset_x": 9
       },
@@ -75,7 +75,7 @@
       "height": 24,
       "icon": {
         "type": "item",
-        "id": "minecraft:chest",
+        "id": "minecraft:paper",
         "scale": 1.0,
         "offset_x": 9
       },
@@ -129,7 +129,7 @@
       "height": 24,
       "icon": {
         "type": "item",
-        "id": "minecraft:comparator",
+        "id": "minecraft:redstone",
         "scale": 1.0,
         "offset_x": 9
       },

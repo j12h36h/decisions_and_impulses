@@ -91,17 +91,22 @@ public final class DAI_TitleActionDispatcher {
                 throw new IllegalStateException(className + " is not a Screen.");
             }
 
-            Constructor<?>[] constructors = rawClass.getConstructors();
-            for (Constructor<?> constructor : constructors) {
-                Object[] arguments = resolveArguments(constructor.getParameterTypes(), parent, minecraft);
-                if (arguments == null) continue;
+            Constructor<?>[] constructors = rawClass.getDeclaredConstructors();
 
-                Object instance = constructor.newInstance(arguments);
-                minecraft.gui.setScreen((Screen) instance);
+            // First prefer constructors whose parameters we can resolve exactly.
+            if (tryConstruct(constructors, parent, minecraft, false)) {
                 return;
             }
 
-            throw new NoSuchMethodException("No compatible public constructor found.");
+            // 26.x moved some vanilla screen constructors away from the older
+            // public signatures. A second pass permits safe/default values for
+            // optional reference/primitive parameters while still preferring
+            // parent, Minecraft and Options whenever their types match.
+            if (tryConstruct(constructors, parent, minecraft, true)) {
+                return;
+            }
+
+            throw new NoSuchMethodException("No compatible constructor found.");
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
                     "<DAI>: Failed to open Minecraft screen '{}'.",
@@ -111,28 +116,62 @@ public final class DAI_TitleActionDispatcher {
         }
     }
 
+    private static boolean tryConstruct(
+            Constructor<?>[] constructors,
+            Screen parent,
+            Minecraft minecraft,
+            boolean allowDefaults
+    ) {
+        for (Constructor<?> constructor : constructors) {
+            Object[] arguments = resolveArguments(
+                    constructor.getParameterTypes(),
+                    parent,
+                    minecraft,
+                    allowDefaults
+            );
+            if (arguments == null) continue;
+
+            try {
+                if (!constructor.canAccess(null) && !constructor.trySetAccessible()) {
+                    continue;
+                }
+
+                Object instance = constructor.newInstance(arguments);
+                minecraft.gui.setScreen((Screen) instance);
+                return true;
+            } catch (ReflectiveOperationException | RuntimeException exception) {
+                DAI_Core.debug(
+                        "<DAI>: Screen constructor '{}' rejected resolved arguments: {}",
+                        constructor,
+                        exception.getClass().getSimpleName()
+                );
+            }
+        }
+
+        return false;
+    }
+
     private static Object[] resolveArguments(
             Class<?>[] types,
             Screen parent,
-            Minecraft minecraft
+            Minecraft minecraft,
+            boolean allowDefaults
     ) {
         Object[] arguments = new Object[types.length];
 
         for (int index = 0; index < types.length; index++) {
             Class<?> type = types[index];
-            Object value = null;
+            Object value = resolveKnownArgument(type, parent, minecraft);
 
-            if (parent != null && type.isInstance(parent)) {
-                value = parent;
-            } else if (type.isInstance(minecraft)) {
-                value = minecraft;
-            } else if (minecraft.options != null && type.isInstance(minecraft.options)) {
-                value = minecraft.options;
-            } else if (!type.isPrimitive() && type.isAssignableFrom(Screen.class)) {
-                value = parent;
+            if (value == null && allowDefaults) {
+                value = defaultArgument(type);
             }
 
-            if (value == null) {
+            if (value == null && type.isPrimitive()) {
+                return null;
+            }
+
+            if (value == null && !allowDefaults) {
                 return null;
             }
 
@@ -140,5 +179,37 @@ public final class DAI_TitleActionDispatcher {
         }
 
         return arguments;
+    }
+
+    private static Object resolveKnownArgument(
+            Class<?> type,
+            Screen parent,
+            Minecraft minecraft
+    ) {
+        if (parent != null && type.isInstance(parent)) {
+            return parent;
+        }
+        if (type.isInstance(minecraft)) {
+            return minecraft;
+        }
+        if (minecraft.options != null && type.isInstance(minecraft.options)) {
+            return minecraft.options;
+        }
+        return null;
+    }
+
+    private static Object defaultArgument(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return null;
+        }
+        if (type == boolean.class) return false;
+        if (type == byte.class) return (byte) 0;
+        if (type == short.class) return (short) 0;
+        if (type == int.class) return 0;
+        if (type == long.class) return 0L;
+        if (type == float.class) return 0.0F;
+        if (type == double.class) return 0.0D;
+        if (type == char.class) return '\0';
+        return null;
     }
 }

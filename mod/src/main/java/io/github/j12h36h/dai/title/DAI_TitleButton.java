@@ -3,17 +3,26 @@ package io.github.j12h36h.dai.title;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
-/** Button capable of rendering/animating a normal in-game item as its icon. */
+/**
+ * JSON-driven title button with a title-safe texture icon.
+ *
+ * Minecraft 26.x does not permit constructing ItemStacks before item
+ * components are bound / a level exists. The title screen necessarily exists
+ * before a level, so "item" icons intentionally resolve to the item's normal
+ * resource-pack texture path instead of allocating an ItemStack. This keeps
+ * the main menu safe while still allowing vanilla/resource-pack item art to be
+ * used and animated.
+ */
 public final class DAI_TitleButton extends Button.Plain {
 
+    private static final int ICON_SIZE = 16;
+
     private final DAI_TitleScreenDefinition.ButtonDefinition definition;
-    private final ItemStack icon;
+    private final Identifier iconTexture;
 
     public DAI_TitleButton(
             int x,
@@ -31,7 +40,7 @@ public final class DAI_TitleButton extends Button.Plain {
                 DEFAULT_NARRATION
         );
         this.definition = definition;
-        this.icon = resolveIcon(definition.icon());
+        this.iconTexture = resolveIconTexture(definition.icon());
     }
 
     @Override
@@ -65,7 +74,7 @@ public final class DAI_TitleButton extends Button.Plain {
                 + Math.max(0, (getHeight() - Minecraft.getInstance().font.lineHeight) / 2);
 
         int textX = getX() + getWidth() / 2;
-        if (!icon.isEmpty()) {
+        if (iconTexture != null) {
             textX += 7;
             extractIcon(graphics, hovered);
         }
@@ -83,9 +92,11 @@ public final class DAI_TitleButton extends Button.Plain {
             GuiGraphicsExtractor graphics,
             boolean hovered
     ) {
+        if (iconTexture == null) return;
+
         DAI_TitleScreenDefinition.IconDefinition iconDefinition = definition.icon();
         int iconX = getX() + iconDefinition.offsetX();
-        int iconY = getY() + (getHeight() - 16) / 2 + iconDefinition.offsetY();
+        int iconY = getY() + (getHeight() - ICON_SIZE) / 2 + iconDefinition.offsetY();
 
         float scale = iconDefinition.scale();
         float rotation = 0.0F;
@@ -113,8 +124,8 @@ public final class DAI_TitleButton extends Button.Plain {
             }
         }
 
-        float centerX = iconX + 8.0F;
-        float centerY = iconY + 8.0F;
+        float centerX = iconX + ICON_SIZE / 2.0F;
+        float centerY = iconY + ICON_SIZE / 2.0F;
 
         graphics.pose().pushMatrix();
         graphics.pose().translate(centerX + dx, centerY + dy);
@@ -125,20 +136,29 @@ public final class DAI_TitleButton extends Button.Plain {
             graphics.pose().scale(scale, scale);
         }
         graphics.pose().translate(-centerX, -centerY);
-        graphics.fakeItem(icon, iconX, iconY);
+
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                iconTexture,
+                iconX,
+                iconY,
+                0.0F,
+                0.0F,
+                ICON_SIZE,
+                ICON_SIZE,
+                ICON_SIZE,
+                ICON_SIZE,
+                0xFFFFFFFF
+        );
+
         graphics.pose().popMatrix();
     }
 
-    private static ItemStack resolveIcon(DAI_TitleScreenDefinition.IconDefinition definition) {
-        if (definition == null || !"item".equals(definition.type()) || definition.id().isBlank()) {
-            return ItemStack.EMPTY;
-        }
-
-        Identifier id = Identifier.tryParse(definition.id());
-        if (id == null) return ItemStack.EMPTY;
-
-        Item item = BuiltInRegistries.ITEM.getValue(id);
-        if (item == null) return ItemStack.EMPTY;
-        return new ItemStack(item);
+    private static Identifier resolveIconTexture(
+            DAI_TitleScreenDefinition.IconDefinition definition
+    ) {
+        if (definition == null) return null;
+        return DAI_TitleIconTextures.resolve(definition.type(), definition.id());
     }
+
 }
