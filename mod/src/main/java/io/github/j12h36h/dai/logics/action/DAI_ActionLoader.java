@@ -38,6 +38,16 @@ public final class DAI_ActionLoader
             ResourceManager resourceManager,
             ProfilerFiller profiler
     ) {
+        applyDefinitions(definitions, clearBeforeApply, folder);
+    }
+
+    /** Shared by the logical-server reload listener and client-local datapack loader. */
+    public static void applyDefinitions(
+            Map<Identifier, DAI_ActionDefinition> definitions,
+            boolean clearBeforeApply,
+            String sourceFolder
+    ) {
+        String folder = sourceFolder == null ? "local" : sourceFolder;
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Reloading action definitions from '{}'.",
@@ -51,18 +61,10 @@ public final class DAI_ActionLoader
                 new HashMap<>();
 
         definitions.forEach((sourceIdentifier, action) -> {
-
-            Identifier actionIdentifier =
-                    flattenIdentifier(sourceIdentifier);
-
-            Identifier previousSource =
-                    sourceIdentifiers.putIfAbsent(
-                            actionIdentifier,
-                            sourceIdentifier
-                    );
+            Identifier actionIdentifier = flattenIdentifier(sourceIdentifier);
+            Identifier previousSource = sourceIdentifiers.putIfAbsent(actionIdentifier, sourceIdentifier);
 
             if (previousSource != null) {
-
                 throw new IllegalStateException(
                         String.format(
                                 Locale.ROOT,
@@ -74,18 +76,12 @@ public final class DAI_ActionLoader
                 );
             }
 
-            flattenedDefinitions.put(
-                    actionIdentifier,
-                    action
-            );
+            flattenedDefinitions.put(actionIdentifier, action);
         });
 
-        if (clearBeforeApply) {
-            DAI_ActionLibrary.clear();
-        }
+        if (clearBeforeApply) DAI_ActionLibrary.clear();
 
         flattenedDefinitions.forEach((identifier, action) -> {
-
             DAI_Core.debug(
                     "<DAI>: Registering action '{}' with type='{}', reference='{}', conditions={}, sequence={}, ticks={}.",
                     identifier,
@@ -95,11 +91,7 @@ public final class DAI_ActionLoader
                     action.sequence().size(),
                     action.ticks()
             );
-
-            DAI_ActionLibrary.register(
-                    identifier,
-                    action
-            );
+            DAI_ActionLibrary.register(identifier, action);
         });
 
         DAI_Core.LOGGER.info(

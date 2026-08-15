@@ -12,7 +12,9 @@ public final class DAI_ContentStack {
     public static String id(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return "";
 
-        String explicit = stack.get(DAI_ContentComponents.CONTENT_ID.get());
+        String explicit = DAI_ContentComponents.isInitialized()
+                ? stack.get(DAI_ContentComponents.CONTENT_ID.get())
+                : null;
         if (explicit != null && !explicit.isBlank()) {
             return explicit.trim().toLowerCase();
         }

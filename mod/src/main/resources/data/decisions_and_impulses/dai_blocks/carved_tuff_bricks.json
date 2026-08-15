@@ -3,7 +3,7 @@
   "display_name": "Carved Tuff Bricks",
   "description": "A virtual DAI block identity backed by vanilla chiseled tuff.",
   "model": "minecraft:chiseled_tuff",
-  "registry_backed": true,
+  "registry_backed": false,
   "native_registry": "block",
   "capabilities": [
     "decisions_and_impulses:building_block"

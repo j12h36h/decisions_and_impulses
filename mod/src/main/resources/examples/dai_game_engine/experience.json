@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "priority": 1000,
+  "save_id": "Example Journey",
+  "save_name": "Example Journey",
+  "create_if_missing": true,
+  "load_if_existing": true,
+  "auto_create": true,
+  "worldgen": "example:journey_world",
+  "on_first_join": "example:journey/first_join",
+  "on_join": "example:journey/resume",
+  "ui": {
+    "auto_enable": true,
+    "grave_cursor_toggle": true,
+    "open_dai_menu_on_grave": false
+  }
+}

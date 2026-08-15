@@ -24,7 +24,6 @@ public final class DAI_ContentLoader extends SimpleJsonResourceReloadListener<DA
             ResourceManager resourceManager,
             ProfilerFiller profiler
     ) {
-        DAI_ContentRuntime.clear();
         DAI_ContentRegistry.clear(kind);
         definitions.forEach((id, definition) -> DAI_ContentRegistry.register(kind, id, definition));
         DAI_Core.LOGGER.info(

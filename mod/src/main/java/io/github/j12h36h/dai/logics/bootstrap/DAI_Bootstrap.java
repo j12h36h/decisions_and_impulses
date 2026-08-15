@@ -1,60 +1,43 @@
 package io.github.j12h36h.dai.logics.bootstrap;
 
-import io.github.j12h36h.dai.logics.action.DAI_ActionHandler;
-import io.github.j12h36h.dai.logics.condition.DAI_ConditionHandler;
-import io.github.j12h36h.dai.logics.core.DAI_Core;
-import io.github.j12h36h.dai.objectives.recognition.DAI_RecognitionHandler;
-import io.github.j12h36h.dai.network.DAI_NetworkBootstrap;
 import io.github.j12h36h.dai.content.DAI_ContentComponents;
+import io.github.j12h36h.dai.entity.DAI_EntityBootstrap;
+import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
 import io.github.j12h36h.dai.registry.DAI_DynamicRegistryBootstrap;
-import io.github.j12h36h.dai.registry.DAI_RegistryWorldStore;
+import io.github.j12h36h.dai.server.bootstrap.DAI_ServerBootstrap;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 
+/**
+ * Physical-side-neutral bootstrap. Client-only classes are deliberately not
+ * referenced here so the same DAI jar can load on dedicated servers.
+ */
 public final class DAI_Bootstrap {
 
-    private DAI_Bootstrap() {
-        // Utility class.
-    }
+    private DAI_Bootstrap() {}
 
-    public static void initialize(
-            IEventBus modBus,
-            ModContainer container
-    ) {
+    public static void initialize(IEventBus modBus, ModContainer container) {
+        DAI_Core.LOGGER.info("<DAI>: Initializing common DAI bootstrap...");
 
-        DAI_Core.LOGGER.info(
-                "<DAI>: Initializing DAI..."
-        );
-
-        // Native content discovery must happen before every other DAI
-        // subsystem so the complete registry plan exists before NeoForge
-        // begins firing static RegisterEvent instances.
+        // Registry declarations must be known on every physical side that is
+        // participating in full DAI content mode.
         DAI_DynamicRegistryBootstrap.initialize(modBus);
+        if (DAI_DynamicRegistryBootstrap.hasNativeContent()) {
+            DAI_EntityBootstrap.initialize(modBus);
+            DAI_ContentComponents.initialize(modBus);
+            DAI_Core.LOGGER.info("<DAI>: Native-content mode enabled for this JVM.");
+        } else {
+            DAI_Core.LOGGER.info("<DAI>: Native-content mode inactive; client-only compatibility remains available.");
+        }
 
-        DAI_ConfigBootstrap.initialize(
-                modBus,
-                container
-        );
-
-        DAI_ContentComponents.initialize(modBus);
-        DAI_RegistryWorldStore.initialize();
-
-        DAI_ConditionHandler.initialize();
-        DAI_ActionHandler.initialize();
-        DAI_RecognitionHandler.initialize();
+        DAI_ConfigBootstrap.initialize(modBus, container);
         DAI_ReactionEventRegistry.initialize();
-        DAI_NetworkBootstrap.initialize(modBus);
 
-        DAI_DataBootstrap.initialize();
+        // Registers logical-server lifecycle hooks. On a client-only remote
+        // connection these hooks simply never receive a local server.
+        DAI_ServerBootstrap.initialize(modBus);
 
-        DAI_ClientBootstrap.initialize(
-                modBus,
-                container
-        );
-
-        DAI_Core.LOGGER.info(
-                "<DAI>: Bootstrap complete."
-        );
+        DAI_Core.LOGGER.info("<DAI>: Common bootstrap complete.");
     }
 }

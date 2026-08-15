@@ -1,6 +1,0 @@
--proc:none
-io/github/j12h36h/dai/logics/DAI_ExactPlacementLogic.java
-io/github/j12h36h/dai/logics/DAI_ExactPlacementSupport.java
-io/github/j12h36h/dai/logics/core/DAI_RuntimeTelemetry.java
-io/github/j12h36h/dai/logics/core/DAI_Debug.java
-io/github/j12h36h/dai/logics/action/DAI_ActionHandler.java

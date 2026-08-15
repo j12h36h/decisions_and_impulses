@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 /** Persistent identity component attached to carrier ItemStacks. */
 public final class DAI_ContentComponents {
 
+    private static boolean initialized;
+
     public static final DeferredRegister.DataComponents REGISTRAR =
             DeferredRegister.createDataComponents(
                     Registries.DATA_COMPONENT_TYPE,
@@ -29,7 +31,13 @@ public final class DAI_ContentComponents {
 
     private DAI_ContentComponents() {}
 
-    public static void initialize(IEventBus modBus) {
+    public static synchronized void initialize(IEventBus modBus) {
+        if (initialized) return;
+        initialized = true;
         REGISTRAR.register(modBus);
+    }
+
+    public static boolean isInitialized() {
+        return initialized;
     }
 }

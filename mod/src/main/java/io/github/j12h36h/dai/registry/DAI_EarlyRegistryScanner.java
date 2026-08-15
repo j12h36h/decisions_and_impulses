@@ -355,6 +355,24 @@ public final class DAI_EarlyRegistryScanner {
             String model = string(object, "model");
             if (model.isBlank()) model = carrier;
 
+            JsonObject entity = object.has("entity") && object.get("entity").isJsonObject()
+                    ? object.getAsJsonObject("entity")
+                    : new JsonObject();
+
+            String entityCategory = string(entity, "category");
+            if (entityCategory.isBlank()) entityCategory = "creature";
+
+            LinkedHashMap<String, Double> nativeAttributes = new LinkedHashMap<>();
+            if (object.has("native_attributes") && object.get("native_attributes").isJsonObject()) {
+                for (var attribute : object.getAsJsonObject("native_attributes").entrySet()) {
+                    try {
+                        nativeAttributes.put(attribute.getKey(), attribute.getValue().getAsDouble());
+                    } catch (Exception ignored) {
+                        // Malformed attribute entries are ignored here and diagnosed by normal reload validation.
+                    }
+                }
+            }
+
             DAI_RegistrySpec spec = new DAI_RegistrySpec(
                     id,
                     nativeRegistry,
@@ -362,8 +380,17 @@ public final class DAI_EarlyRegistryScanner {
                     string(object, "display_name"),
                     model,
                     carrier,
-                    integer(stats, "stack_size", 64),
-                    integer(stats, "durability", 0)
+                    integer(stats, "stack_size", 1),
+                    integer(stats, "durability", 0),
+                    entityCategory,
+                    decimal(entity, "width", 0.6F),
+                    decimal(entity, "height", 1.0F),
+                    integer(entity, "tracking_range", 8),
+                    integer(entity, "update_interval", 3),
+                    bool(entity, "fire_immune", false),
+                    bool(entity, "summonable", true),
+                    bool(entity, "saveable", true),
+                    nativeAttributes
             );
 
             state.accept(spec, source);
@@ -413,6 +440,11 @@ public final class DAI_EarlyRegistryScanner {
     private static int integer(JsonObject object, String key, int fallback) {
         JsonElement value = object.get(key);
         return value == null || value.isJsonNull() ? fallback : value.getAsInt();
+    }
+
+    private static float decimal(JsonObject object, String key, float fallback) {
+        JsonElement value = object.get(key);
+        return value == null || value.isJsonNull() ? fallback : value.getAsFloat();
     }
 
     private static Map<String, DAI_ContentKind> buildKinds() {

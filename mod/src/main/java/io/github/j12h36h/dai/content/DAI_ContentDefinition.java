@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.content;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.j12h36h.dai.entity.DAI_EntitySettings;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,8 @@ public record DAI_ContentDefinition(
         Map<String, String> events,
         boolean registryBacked,
         String nativeRegistry,
-        DAI_ContentStats stats
+        DAI_ContentStats stats,
+        DAI_EntitySettings entity
 ) {
 
     private static final Codec<Map<String, Double>> DOUBLE_MAP =
@@ -52,7 +54,8 @@ public record DAI_ContentDefinition(
                     STRING_MAP.optionalFieldOf("events", Map.of()).forGetter(DAI_ContentDefinition::events),
                     Codec.BOOL.optionalFieldOf("registry_backed", false).forGetter(DAI_ContentDefinition::registryBacked),
                     Codec.STRING.optionalFieldOf("native_registry", "").forGetter(DAI_ContentDefinition::nativeRegistry),
-                    DAI_ContentStats.CODEC.optionalFieldOf("stats", DAI_ContentStats.EMPTY).forGetter(DAI_ContentDefinition::stats)
+                    DAI_ContentStats.CODEC.optionalFieldOf("stats", DAI_ContentStats.EMPTY).forGetter(DAI_ContentDefinition::stats),
+                    DAI_EntitySettings.CODEC.optionalFieldOf("entity", DAI_EntitySettings.DEFAULT).forGetter(DAI_ContentDefinition::entity)
             ).apply(instance, DAI_ContentDefinition::new));
 
     public DAI_ContentDefinition {
@@ -68,6 +71,7 @@ public record DAI_ContentDefinition(
         events = events == null ? Map.of() : Map.copyOf(events);
         nativeRegistry = normalize(nativeRegistry);
         stats = stats == null ? DAI_ContentStats.EMPTY : stats;
+        entity = entity == null ? DAI_EntitySettings.DEFAULT : entity;
     }
 
     public String event(String name) {

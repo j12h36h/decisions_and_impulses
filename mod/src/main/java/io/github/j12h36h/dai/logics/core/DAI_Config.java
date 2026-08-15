@@ -1,6 +1,5 @@
 package io.github.j12h36h.dai.logics.core;
 
-import io.github.j12h36h.dai.menus.DAI_Position;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class DAI_Config {

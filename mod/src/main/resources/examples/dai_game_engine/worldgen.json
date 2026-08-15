@@ -1,0 +1,28 @@
+{
+  "enabled": true,
+  "world_preset": "example:journey",
+  "seed": 0,
+  "spawn": {
+    "x": 0,
+    "y": 200,
+    "z": 0,
+    "yaw": 0,
+    "pitch": 0
+  },
+  "generation_commands": [
+    "gamerule minecraft:keep_inventory true"
+  ],
+  "initial_structures": [
+    {
+      "structure": "example:starter_platform",
+      "x": 0,
+      "y": 199,
+      "z": 0,
+      "rotation": "none",
+      "mirror": "none"
+    }
+  ],
+  "bootstrap_actions": [
+    "example:journey/build_home"
+  ]
+}

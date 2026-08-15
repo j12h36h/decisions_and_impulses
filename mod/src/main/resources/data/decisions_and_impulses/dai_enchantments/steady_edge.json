@@ -3,7 +3,7 @@
   "display_name": "Enchanted Book - Steady Edge",
   "description": "A DAI enchantment identity backed by a vanilla enchanted book.",
   "model": "minecraft:enchanted_book",
-  "registry_backed": true,
+  "registry_backed": false,
   "native_registry": "item",
   "capabilities": [
     "decisions_and_impulses:steady_edge"

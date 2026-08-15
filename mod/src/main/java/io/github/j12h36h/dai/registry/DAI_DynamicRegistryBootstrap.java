@@ -1,11 +1,15 @@
 package io.github.j12h36h.dai.registry;
 
+import io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -31,18 +35,26 @@ import java.util.Set;
  */
 public final class DAI_DynamicRegistryBootstrap {
 
+    private static boolean initialized;
+
     private static Map<String, DAI_RegistrySpec> bootSpecs = Map.of();
     private static Set<String> startupConflicts = Set.of();
 
     private static final Set<String> REGISTERED_KEYS = new LinkedHashSet<>();
     private static final Set<String> REGISTERED_BLOCK_KEYS = new LinkedHashSet<>();
     private static final Map<String, Block> REGISTERED_BLOCKS = new LinkedHashMap<>();
+    private static final Map<String, EntityType<? extends Mob>> REGISTERED_ENTITY_TYPES = new LinkedHashMap<>();
 
     private DAI_DynamicRegistryBootstrap() {}
 
-    public static void initialize(IEventBus modBus) {
+    public static synchronized void initialize(IEventBus modBus) {
+        if (initialized) return;
+        initialized = true;
+
         DAI_EarlyRegistryScanner.ScanResult scan = DAI_EarlyRegistryScanner.scan();
-        Map<String, DAI_RegistrySpec> cached = DAI_RegistryCache.load();
+        Map<String, DAI_RegistrySpec> cached = scan.specs().isEmpty()
+                ? Map.of()
+                : DAI_RegistryCache.load();
 
         LinkedHashMap<String, DAI_RegistrySpec> plan = new LinkedHashMap<>();
 
@@ -64,11 +76,10 @@ public final class DAI_DynamicRegistryBootstrap {
                 new LinkedHashSet<>(scan.conflicts())
         );
 
-        // Refresh the tombstone cache with anything found before registration
-        // and create the client aliases before the resource repository exists.
+        // Refresh the tombstone cache with anything found before registration.
+        // Client-only generated model aliases are prepared separately by the
+        // physical-client bootstrap so dedicated servers never load that path.
         DAI_RegistryCache.merge(scan.specs().values());
-        DAI_GeneratedAssetsPack.rebuild(bootSpecs.values());
-        DAI_GeneratedAssetsPack.initialize(modBus);
 
         modBus.addListener(DAI_DynamicRegistryBootstrap::register);
 
@@ -98,8 +109,17 @@ public final class DAI_DynamicRegistryBootstrap {
         return bootSpecs;
     }
 
+    public static boolean hasNativeContent() {
+        return !bootSpecs.isEmpty();
+    }
+
     public static Set<String> startupConflicts() {
         return startupConflicts;
+    }
+
+    public static EntityType<? extends Mob> entityType(DAI_RegistrySpec spec) {
+        if (spec == null) return null;
+        return REGISTERED_ENTITY_TYPES.get(spec.key());
     }
 
     /** Returns true only when DAI itself successfully registered this id. */
@@ -112,12 +132,62 @@ public final class DAI_DynamicRegistryBootstrap {
             Identifier id = spec.identifier();
             if (id == null) continue;
 
-            if (spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.BLOCK) {
-                registerBlock(event, spec, id);
-                registerBlockItem(event, spec, id);
-            } else {
-                registerItem(event, spec, id);
+            switch (spec.nativeRegistry()) {
+                case BLOCK -> {
+                    registerBlock(event, spec, id);
+                    registerBlockItem(event, spec, id);
+                }
+                case ENTITY -> registerEntity(event, spec, id);
+                case ITEM -> registerItem(event, spec, id);
             }
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void registerEntity(
+            RegisterEvent event,
+            DAI_RegistrySpec spec,
+            Identifier id
+    ) {
+        if (!event.getRegistryKey().equals(Registries.ENTITY_TYPE)) return;
+
+        if (!DAI_EntityTemplateRegistry.supports(spec.carrier())) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Cannot register custom entity '{}' because carrier/model template '{}' is unsupported.",
+                    id, spec.carrier()
+            );
+            return;
+        }
+
+        try {
+            ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+            MobCategory category = DAI_EntityTemplateRegistry.category(spec.entityCategory(), spec.carrier());
+
+            EntityType.Builder<Mob> builder = EntityType.Builder.<Mob>of(
+                    (type, level) -> DAI_EntityTemplateRegistry.create(type, level, spec.carrier()),
+                    category
+            )
+                    .sized(spec.entityWidth(), spec.entityHeight())
+                    .clientTrackingRange(spec.entityTrackingRange())
+                    .updateInterval(spec.entityUpdateInterval());
+
+            if (spec.entityFireImmune()) builder.fireImmune();
+            if (!spec.entitySummonable()) builder.noSummon();
+            if (!spec.entitySaveable()) builder.noSave();
+
+            EntityType<Mob> entityType = builder.build((ResourceKey) key);
+            event.register(Registries.ENTITY_TYPE, id, () -> entityType);
+            REGISTERED_ENTITY_TYPES.put(spec.key(), entityType);
+            REGISTERED_KEYS.add(spec.key());
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Registered early DAI entity '{}' using vanilla template '{}'.",
+                    id, spec.carrier()
+            );
+        } catch (RuntimeException exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not register early DAI entity '{}'. The id may already be owned by another mod.",
+                    id, exception
+            );
         }
     }
 

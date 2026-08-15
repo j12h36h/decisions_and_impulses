@@ -3,7 +3,7 @@
   "display_name": "Weighted Arrow",
   "description": "A projectile metadata example with speed and gravity values.",
   "model": "minecraft:arrow",
-  "registry_backed": true,
+  "registry_backed": false,
   "native_registry": "item",
   "capabilities": [
     "decisions_and_impulses:projectile"

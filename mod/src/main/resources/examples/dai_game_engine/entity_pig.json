@@ -1,0 +1,41 @@
+{
+  "carrier": "minecraft:pig",
+  "display_name": "Example Friend",
+  "description": "A JSON-defined native entity using the vanilla pig template.",
+  "registry_backed": true,
+  "native_registry": "entity",
+  "native_attributes": {
+    "minecraft:max_health": 30.0,
+    "minecraft:movement_speed": 0.28,
+    "minecraft:follow_range": 32.0
+  },
+  "entity": {
+    "category": "creature",
+    "width": 0.9,
+    "height": 0.9,
+    "tracking_range": 10,
+    "update_interval": 3,
+    "fire_immune": false,
+    "summonable": true,
+    "saveable": true,
+    "behavior_sequence": "example:friend_behavior",
+    "behavior_interval": 10,
+    "vanilla_ai": true,
+    "spawning": {
+      "natural": true,
+      "biomes": ["#minecraft:is_overworld"],
+      "placement": "on_ground",
+      "weight": 250,
+      "min_group": 1,
+      "max_group": 2,
+      "min_light": 8,
+      "max_light": 15,
+      "min_y": -64,
+      "max_y": 320,
+      "min_radius": 24,
+      "max_radius": 48,
+      "cap_per_player": 4,
+      "interval_ticks": 80
+    }
+  }
+}

@@ -1,31 +1,25 @@
 package io.github.j12h36h.dai.api;
 
-import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
-import io.github.j12h36h.dai.logics.action.DAI_ActionRegistry;
-import io.github.j12h36h.dai.logics.condition.DAI_ConditionProvider;
-import io.github.j12h36h.dai.logics.condition.DAI_ConditionRegistry;
-import io.github.j12h36h.dai.reactions.DAI_ReactionEventDefinition;
-import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
-import io.github.j12h36h.dai.attributes.DAI_AttributeDefinition;
-import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
 import io.github.j12h36h.dai.animations.DAI_AnimationDefinition;
 import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
-import io.github.j12h36h.dai.animations.DAI_AnimationRuntime;
-import io.github.j12h36h.dai.animations.DAI_AnimationSink;
+import io.github.j12h36h.dai.attributes.DAI_AttributeDefinition;
+import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
 import io.github.j12h36h.dai.content.DAI_ContentDefinition;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventDefinition;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
 import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import net.minecraft.resources.Identifier;
 
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
- * Stable entry point intended for third-party DAI integrations.
+ * Common/server-safe DAI integration facade.
  *
- * Internal packages may continue to evolve; external mods should prefer
- * registering through this facade wherever possible.
+ * Client automation extensions live in {@code DAI_ClientAPI}. Keeping the
+ * common facade free of client classes lets the same mod jar load on a
+ * dedicated server without classloading the client runtime.
  */
 public final class DAI_API {
 
@@ -33,43 +27,10 @@ public final class DAI_API {
         // Utility class.
     }
 
-    public static void registerActionType(
-            String id,
-            Consumer<DAI_ActionDefinition> executor
-    ) {
-
-        DAI_ActionRegistry.register(
-                id,
-                executor
-        );
-    }
-
-    public static void registerCondition(
-            String id,
-            DAI_ConditionProvider provider
-    ) {
-
-        DAI_ConditionRegistry.register(
-                id,
-                provider
-        );
-    }
-
     public static void registerReactionEvent(
             DAI_ReactionEventDefinition definition
     ) {
-
-        DAI_ReactionEventRegistry.register(
-                definition
-        );
-    }
-
-    public static Set<String> actionTypes() {
-        return DAI_ActionRegistry.ids();
-    }
-
-    public static Set<String> conditionTypes() {
-        return DAI_ConditionRegistry.ids();
+        DAI_ReactionEventRegistry.register(definition);
     }
 
     public static Set<String> reactionEvents() {
@@ -88,10 +49,6 @@ public final class DAI_API {
             DAI_AnimationDefinition definition
     ) {
         DAI_AnimationRegistry.register(id, definition);
-    }
-
-    public static void registerAnimationSink(DAI_AnimationSink sink) {
-        DAI_AnimationRuntime.registerSink(sink);
     }
 
     public static void registerContent(
@@ -133,5 +90,3 @@ public final class DAI_API {
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 }
-
-

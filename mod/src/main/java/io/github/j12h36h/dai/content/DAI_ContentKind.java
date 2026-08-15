@@ -9,7 +9,8 @@ public enum DAI_ContentKind {
     POTION("dai_potions"),
     PROJECTILE("dai_projectiles"),
     PARTICLE("dai_particles"),
-    ENCHANTMENT("dai_enchantments");
+    ENCHANTMENT("dai_enchantments"),
+    ENTITY("dai_entities");
 
     private final String folder;
 

@@ -3,7 +3,7 @@
   "display_name": "Copper Spark",
   "description": "A custom particle identity whose demo event uses a vanilla copper visual.",
   "model": "minecraft:copper_ingot",
-  "registry_backed": true,
+  "registry_backed": false,
   "native_registry": "item",
   "capabilities": [
     "decisions_and_impulses:visual_effect"

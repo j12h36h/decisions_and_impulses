@@ -1,0 +1,44 @@
+{
+  "sequence": [
+    {
+      "type": "look_at_player",
+      "conditions": [
+        {
+          "type": "nearest_player_distance",
+          "operator": "less_than_or_equal",
+          "number_value": 12.0
+        }
+      ]
+    },
+    {
+      "type": "follow_player",
+      "value": 1.0,
+      "conditions": [
+        {
+          "type": "nearest_player_distance",
+          "operator": "greater_than",
+          "number_value": 4.0
+        },
+        {
+          "type": "nearest_player_distance",
+          "operator": "less_than_or_equal",
+          "number_value": 24.0
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "ticks": 20
+    },
+    {
+      "type": "wander",
+      "value": 0.8,
+      "conditions": [
+        {
+          "type": "random_chance",
+          "number_value": 0.5
+        }
+      ]
+    }
+  ]
+}

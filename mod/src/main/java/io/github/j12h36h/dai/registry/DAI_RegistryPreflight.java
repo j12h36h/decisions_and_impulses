@@ -106,7 +106,13 @@ public final class DAI_RegistryPreflight {
         }
 
         DAI_RegistrySpec spec = DAI_RegistrySpec.from(entry);
-        if (spec == null || !registered.containsKey(spec.key())) return "";
+        if (
+                spec == null
+                        || spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.ENTITY
+                        || !registered.containsKey(spec.key())
+        ) {
+            return "";
+        }
         return spec.id();
     }
 
@@ -130,6 +136,7 @@ public final class DAI_RegistryPreflight {
             case ITEM -> BuiltInRegistries.ITEM.containsKey(id);
             case BLOCK -> BuiltInRegistries.BLOCK.containsKey(id)
                     && BuiltInRegistries.ITEM.containsKey(id);
+            case ENTITY -> BuiltInRegistries.ENTITY_TYPE.containsKey(id);
         };
     }
 }

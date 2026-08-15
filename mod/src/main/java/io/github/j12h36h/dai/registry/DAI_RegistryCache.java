@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public final class DAI_RegistryCache {
 
-    private static final int FORMAT = 1;
+    private static final int FORMAT = 2;
 
     private static final Gson GSON =
             new GsonBuilder()
@@ -150,6 +150,18 @@ public final class DAI_RegistryCache {
         object.addProperty("carrier", spec.carrier());
         object.addProperty("stack_size", spec.stackSize());
         object.addProperty("durability", spec.durability());
+        object.addProperty("entity_category", spec.entityCategory());
+        object.addProperty("entity_width", spec.entityWidth());
+        object.addProperty("entity_height", spec.entityHeight());
+        object.addProperty("entity_tracking_range", spec.entityTrackingRange());
+        object.addProperty("entity_update_interval", spec.entityUpdateInterval());
+        object.addProperty("entity_fire_immune", spec.entityFireImmune());
+        object.addProperty("entity_summonable", spec.entitySummonable());
+        object.addProperty("entity_saveable", spec.entitySaveable());
+
+        JsonObject attributes = new JsonObject();
+        spec.nativeAttributes().forEach(attributes::addProperty);
+        object.add("native_attributes", attributes);
         return object;
     }
 
@@ -164,12 +176,28 @@ public final class DAI_RegistryCache {
             String displayName = string(object, "display_name");
             String model = string(object, "model");
             String carrier = string(object, "carrier");
-            int stackSize = integer(object, "stack_size", 64);
+            int stackSize = integer(object, "stack_size", 1);
             int durability = integer(object, "durability", 0);
+            String entityCategory = string(object, "entity_category");
+            float entityWidth = decimal(object, "entity_width", 0.6F);
+            float entityHeight = decimal(object, "entity_height", 1.0F);
+            int entityTrackingRange = integer(object, "entity_tracking_range", 8);
+            int entityUpdateInterval = integer(object, "entity_update_interval", 3);
+            boolean entityFireImmune = bool(object, "entity_fire_immune", false);
+            boolean entitySummonable = bool(object, "entity_summonable", true);
+            boolean entitySaveable = bool(object, "entity_saveable", true);
+            java.util.LinkedHashMap<String, Double> nativeAttributes = new java.util.LinkedHashMap<>();
+            JsonObject attrs = object.getAsJsonObject("native_attributes");
+            if (attrs != null) {
+                for (var attr : attrs.entrySet()) {
+                    try { nativeAttributes.put(attr.getKey(), attr.getValue().getAsDouble()); } catch (Exception ignored) {}
+                }
+            }
 
             DAI_RegistrySpec.NativeRegistry nativeRegistry = switch (registry) {
                 case "item" -> DAI_RegistrySpec.NativeRegistry.ITEM;
                 case "block" -> DAI_RegistrySpec.NativeRegistry.BLOCK;
+                case "entity" -> DAI_RegistrySpec.NativeRegistry.ENTITY;
                 default -> null;
             };
 
@@ -183,7 +211,16 @@ public final class DAI_RegistryCache {
                     model,
                     carrier,
                     stackSize,
-                    durability
+                    durability,
+                    entityCategory,
+                    entityWidth,
+                    entityHeight,
+                    entityTrackingRange,
+                    entityUpdateInterval,
+                    entityFireImmune,
+                    entitySummonable,
+                    entitySaveable,
+                    nativeAttributes
             );
         } catch (Exception ignored) {
             return null;
@@ -203,4 +240,18 @@ public final class DAI_RegistryCache {
                 ? fallback
                 : element.getAsInt();
     }
+    private static float decimal(JsonObject object, String key, float fallback) {
+        JsonElement element = object.get(key);
+        return element == null || element.isJsonNull()
+                ? fallback
+                : element.getAsFloat();
+    }
+
+    private static boolean bool(JsonObject object, String key, boolean fallback) {
+        JsonElement element = object.get(key);
+        return element == null || element.isJsonNull()
+                ? fallback
+                : element.getAsBoolean();
+    }
+
 }

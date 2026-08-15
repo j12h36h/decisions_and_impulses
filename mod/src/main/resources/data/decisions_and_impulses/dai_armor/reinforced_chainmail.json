@@ -3,7 +3,7 @@
   "display_name": "Reinforced Chainmail",
   "description": "A custom armor identity using only the vanilla chainmail model.",
   "model": "minecraft:chainmail_chestplate",
-  "registry_backed": true,
+  "registry_backed": false,
   "native_registry": "item",
   "slot": "chest",
   "capabilities": [
