@@ -13,6 +13,18 @@ public final class DAI_ReactionEventRegistry {
     public static final String PLAYER_ATTACK_ENTITY =
             "player_attack_entity";
 
+    public static final String PLAYER_USE_BLOCK =
+            "player_use_block";
+
+    public static final String PLAYER_USE_ITEM =
+            "player_use_item";
+
+    public static final String PLAYER_INTERACT_ENTITY =
+            "player_interact_entity";
+
+    public static final String PLAYER_START_BREAK_BLOCK =
+            "player_start_break_block";
+
     private static final Map<String, DAI_ReactionEventDefinition> EVENTS =
             new HashMap<>();
 
@@ -31,6 +43,38 @@ public final class DAI_ReactionEventRegistry {
         registerBuiltIn(
                 DAI_ReactionEventDefinition.allPhases(
                         PLAYER_ATTACK_ENTITY,
+                        true,
+                        true
+                )
+        );
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_USE_BLOCK,
+                        true,
+                        true
+                )
+        );
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_USE_ITEM,
+                        true,
+                        true
+                )
+        );
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_INTERACT_ENTITY,
+                        true,
+                        true
+                )
+        );
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_START_BREAK_BLOCK,
                         true,
                         true
                 )

@@ -10,6 +10,7 @@ import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
+import io.github.j12h36h.dai.client.menus.DAI_MenuCore;
 import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenDefinition;
@@ -165,9 +166,12 @@ public final class DAI_ExperienceRuntime {
 
     public static boolean interceptsGraveKey() {
         DAI_ExperienceDefinition definition = active;
-        return definition != null
-                && definition.ui().graveCursorToggle()
-                && !definition.ui().openDaiMenuOnGrave();
+        if (definition == null || !definition.ui().graveCursorToggle()) {
+            return false;
+        }
+
+        DAI_ExperienceDefinition.Ui ui = definition.ui();
+        return !ui.openDaiMenuOnGrave() || hasTargetGraveMenu(ui);
     }
 
     /**
@@ -186,6 +190,10 @@ public final class DAI_ExperienceRuntime {
 
         DAI_ExperienceDefinition definition = active;
         DAI_ExperienceDefinition.Ui ui = definition.ui();
+
+        if (ui.openDaiMenuOnGrave() && hasTargetGraveMenu(ui)) {
+            return openTargetedDaiMenu(definition, ui);
+        }
 
         String openAction = resolveUiAction(ui.graveOpenAction(), "open");
         String closeAction = resolveUiAction(ui.graveCloseAction(), "close");
@@ -215,6 +223,44 @@ public final class DAI_ExperienceRuntime {
 
         // Legacy behavior for experiences that only request cursor release.
         toggleCursorMode();
+        return true;
+    }
+
+
+    private static boolean hasTargetGraveMenu(DAI_ExperienceDefinition.Ui ui) {
+        return ui != null
+                && !ui.graveMenu().isBlank()
+                && !ui.graveMenuOpen().isBlank();
+    }
+
+    /**
+     * Opens DAI's menu shell directly at an experience-owned menu definition.
+     * This keeps the familiar DAI menu renderer/layout while allowing a game
+     * experience to bypass the generic System/Actions navigation path.
+     */
+    private static boolean openTargetedDaiMenu(
+            DAI_ExperienceDefinition definition,
+            DAI_ExperienceDefinition.Ui ui
+    ) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.player == null) {
+            return false;
+        }
+
+        DAI_MenuCore menu = new DAI_MenuCore();
+        minecraft.gui.setScreen(menu);
+        menu.updateMenu(ui.graveMenu(), ui.graveMenuOpen());
+
+        DAI_InputState.setCursorReleased(true);
+        DAI_ClientRuntime.updateMouseCapture();
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Experience '{}' opened targeted grave menu '{}:{}'.",
+                definition.id(),
+                ui.graveMenu(),
+                ui.graveMenuOpen()
+        );
+
         return true;
     }
 

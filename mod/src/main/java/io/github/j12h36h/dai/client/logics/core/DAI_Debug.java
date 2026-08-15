@@ -89,6 +89,7 @@ public final class DAI_Debug {
             new AtomicBoolean(false);
 
     private static int heartbeatTicks;
+    private static int processHeartbeatTicks;
     private static int failureCooldown;
     private static long heartbeatSequence;
     private static DAI_ActionResult lastStatus = DAI_ActionResult.SUCCESS;
@@ -114,11 +115,22 @@ public final class DAI_Debug {
     }
 
     public static void tick() {
-        if (!isEnabled()) return;
+        // The process sentinel is intentionally tiny and is useful specifically
+        // when Minecraft disappears without a Java exception. Keep it active in
+        // production even when verbose DAI debugging is disabled.
+        ensureProcessSentinel();
+        if (!isEnabled()) {
+            processHeartbeatTicks++;
+            if (processHeartbeatTicks >= HEARTBEAT_TICKS) {
+                processHeartbeatTicks = 0;
+                appendMinimalProcessHeartbeat();
+            }
+            return;
+        }
 
+        processHeartbeatTicks = 0;
         final long tickStartNanos = System.nanoTime();
         recordClientTickGap(tickStartNanos);
-        ensureProcessSentinel();
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.level == null) return;
@@ -360,6 +372,24 @@ public final class DAI_Debug {
         totalHumanTraceNanos = 0L;
         humanTraceCalls = 0L;
         maxDebugPreLogNanos = 0L;
+    }
+
+
+    private static void appendMinimalProcessHeartbeat() {
+        try {
+            MemoryUsage heap = MEMORY.getHeapMemoryUsage();
+            BufferStats buffers = bufferStats();
+            appendSentinel(
+                    "heartbeat_min uptime_ms=" + RUNTIME.getUptime()
+                            + " heap=" + mib(nonNegative(heap.getUsed())) + "MiB"
+                            + "/" + mib(nonNegative(heap.getMax())) + "MiB"
+                            + " direct=" + mib(buffers.directMemoryBytes()) + "MiB"
+                            + " mapped=" + mib(buffers.mappedMemoryBytes()) + "MiB"
+                            + " threads=" + THREADS.getThreadCount()
+            );
+        } catch (Throwable ignored) {
+            // The sentinel must never become a new crash source.
+        }
     }
 
     private static void ensureProcessSentinel() {

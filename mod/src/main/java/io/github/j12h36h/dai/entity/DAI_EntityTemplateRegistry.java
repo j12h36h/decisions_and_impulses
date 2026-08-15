@@ -53,6 +53,40 @@ public final class DAI_EntityTemplateRegistry {
                 classes("net.minecraft.world.entity.monster.Zombie", "net.minecraft.world.entity.monster.zombie.Zombie"));
         register("minecraft:villager", MobCategory.CREATURE,
                 classes("net.minecraft.world.entity.npc.Villager"));
+        register("minecraft:creeper", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Creeper", "net.minecraft.world.entity.monster.creeper.Creeper"));
+        register("minecraft:skeleton", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Skeleton", "net.minecraft.world.entity.monster.skeleton.Skeleton"));
+        register("minecraft:spider", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Spider", "net.minecraft.world.entity.monster.spider.Spider"));
+        register("minecraft:enderman", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.EnderMan", "net.minecraft.world.entity.monster.enderman.EnderMan"));
+        register("minecraft:iron_golem", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.IronGolem", "net.minecraft.world.entity.animal.golem.IronGolem"));
+        register("minecraft:horse", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.horse.Horse"));
+        register("minecraft:rabbit", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.Rabbit", "net.minecraft.world.entity.animal.rabbit.Rabbit"));
+        register("minecraft:fox", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.Fox", "net.minecraft.world.entity.animal.fox.Fox"));
+        register("minecraft:bee", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.Bee", "net.minecraft.world.entity.animal.bee.Bee"));
+        register("minecraft:goat", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.goat.Goat"));
+        register("minecraft:frog", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.frog.Frog"));
+        register("minecraft:allay", MobCategory.CREATURE,
+                classes("net.minecraft.world.entity.animal.allay.Allay"));
+        register("minecraft:warden", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.warden.Warden"));
+        register("minecraft:blaze", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Blaze", "net.minecraft.world.entity.monster.blaze.Blaze"));
+        register("minecraft:ghast", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Ghast", "net.minecraft.world.entity.monster.ghast.Ghast"));
+        register("minecraft:drowned", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Drowned", "net.minecraft.world.entity.monster.drowned.Drowned"));
+        register("minecraft:pillager", MobCategory.MONSTER,
+                classes("net.minecraft.world.entity.monster.Pillager", "net.minecraft.world.entity.monster.illager.Pillager"));
     }
 
     private DAI_EntityTemplateRegistry() {}

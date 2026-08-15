@@ -25,6 +25,23 @@ public final class DAI_EntityRendererTemplateRegistry {
         register("minecraft:slime", "net.minecraft.client.renderer.entity.SlimeRenderer");
         register("minecraft:zombie", "net.minecraft.client.renderer.entity.ZombieRenderer");
         register("minecraft:villager", "net.minecraft.client.renderer.entity.VillagerRenderer");
+        register("minecraft:creeper", "net.minecraft.client.renderer.entity.CreeperRenderer");
+        register("minecraft:skeleton", "net.minecraft.client.renderer.entity.SkeletonRenderer");
+        register("minecraft:spider", "net.minecraft.client.renderer.entity.SpiderRenderer");
+        register("minecraft:enderman", "net.minecraft.client.renderer.entity.EndermanRenderer", "net.minecraft.client.renderer.entity.EnderManRenderer");
+        register("minecraft:iron_golem", "net.minecraft.client.renderer.entity.IronGolemRenderer");
+        register("minecraft:horse", "net.minecraft.client.renderer.entity.HorseRenderer");
+        register("minecraft:rabbit", "net.minecraft.client.renderer.entity.RabbitRenderer");
+        register("minecraft:fox", "net.minecraft.client.renderer.entity.FoxRenderer");
+        register("minecraft:bee", "net.minecraft.client.renderer.entity.BeeRenderer");
+        register("minecraft:goat", "net.minecraft.client.renderer.entity.GoatRenderer");
+        register("minecraft:frog", "net.minecraft.client.renderer.entity.FrogRenderer");
+        register("minecraft:allay", "net.minecraft.client.renderer.entity.AllayRenderer");
+        register("minecraft:warden", "net.minecraft.client.renderer.entity.WardenRenderer");
+        register("minecraft:blaze", "net.minecraft.client.renderer.entity.BlazeRenderer");
+        register("minecraft:ghast", "net.minecraft.client.renderer.entity.GhastRenderer");
+        register("minecraft:drowned", "net.minecraft.client.renderer.entity.DrownedRenderer");
+        register("minecraft:pillager", "net.minecraft.client.renderer.entity.PillagerRenderer");
     }
 
     private DAI_EntityRendererTemplateRegistry() {}
@@ -41,7 +58,7 @@ public final class DAI_EntityRendererTemplateRegistry {
                 // Try the next mapping candidate.
             }
         }
-        return names.getFirst();
+        return "";
     }
 
     private static void register(String id, String... renderers) {

@@ -5,6 +5,9 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import io.github.j12h36h.dai.experience.DAI_EarlyJsonRepository;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationDefinition;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -114,13 +117,15 @@ public final class DAI_ClientDataBootstrap {
         loadMenus(builtIn);
         loadScreenProfiles(builtIn);
         loadRecipes(builtIn);
+        loadCustomization(builtIn);
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Client-local data bootstrap complete: {} action(s), {} recognition(s), {} group(s), {} processing recipe(s).",
+                "<DAI>: Client-local data bootstrap complete: {} action(s), {} recognition(s), {} group(s), {} processing recipe(s), {} game-customization definition(s).",
                 io.github.j12h36h.dai.logics.action.DAI_ActionLibrary.size(),
                 DAI_RecognitionLibrary.size(),
                 DAI_RecogGroupManager.size(),
-                DAI_RecipeRegistry.size()
+                DAI_RecipeRegistry.size(),
+                DAI_GameCustomizationRegistry.totalSize()
         );
     }
 
@@ -176,6 +181,18 @@ public final class DAI_ClientDataBootstrap {
 
         DAI_RecipeRegistry.clear();
         recipes.forEach(DAI_RecipeParser::loadJson);
+    }
+
+    private static void loadCustomization(Map<String, JsonObject> builtIn) {
+        for (DAI_GameCustomizationKind kind : DAI_GameCustomizationKind.values()) {
+            Map<Identifier, DAI_GameCustomizationDefinition> definitions =
+                    decodeFolder(builtIn, kind.folder(), DAI_GameCustomizationDefinition.CODEC);
+            mergeExternal(definitions, kind.folder(), DAI_GameCustomizationDefinition.CODEC);
+
+            DAI_GameCustomizationRegistry.clear(kind);
+            definitions.forEach((id, definition) ->
+                    DAI_GameCustomizationRegistry.register(kind, id, definition));
+        }
     }
 
     private static <T> void mergeExternal(

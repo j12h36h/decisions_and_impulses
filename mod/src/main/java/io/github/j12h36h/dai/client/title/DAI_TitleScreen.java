@@ -18,7 +18,16 @@ public final class DAI_TitleScreen extends Screen {
     private static final int MIN_COMPACT_BUTTON_GAP = 2;
     private static final int MIN_BUTTON_HEIGHT = 18;
 
+    /**
+     * Prevents the click that closed/disconnected the previous screen from
+     * activating a button that occupies the same coordinates on this screen.
+     * The guard is intentionally short enough to be invisible during normal
+     * title use but long enough to cover a mouse press/release transition.
+     */
+    private static final long TRANSITION_CLICK_GUARD_NANOS = 650_000_000L;
+
     private final DAI_TitleScreenDefinition definition;
+    private long acceptClicksAfterNanos;
 
     public DAI_TitleScreen(DAI_TitleScreenDefinition definition) {
         super(Component.literal("Decisions & Impulses"));
@@ -30,6 +39,8 @@ public final class DAI_TitleScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+
+        acceptClicksAfterNanos = System.nanoTime() + TRANSITION_CLICK_GUARD_NANOS;
 
         CompactLayout compact = buildCompactLayout();
         int centeredIndex = 0;
@@ -74,7 +85,16 @@ public final class DAI_TitleScreen extends Screen {
                 x,
                 y,
                 button,
-                pressed -> DAI_TitleActionDispatcher.run(this, button)
+                pressed -> {
+                    if (System.nanoTime() < acceptClicksAfterNanos) {
+                        DAI_Core.debug(
+                                "<DAI>: Ignored title-screen button '{}' during transition click guard.",
+                                button.id()
+                        );
+                        return;
+                    }
+                    DAI_TitleActionDispatcher.run(this, button);
+                }
         );
 
         addRenderableWidget(widget);

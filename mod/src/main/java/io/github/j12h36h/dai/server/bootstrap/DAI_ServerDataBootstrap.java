@@ -4,6 +4,8 @@ import io.github.j12h36h.dai.attributes.DAI_AttributeLoader;
 import io.github.j12h36h.dai.animations.DAI_AnimationLoader;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentLoader;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationLoader;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.reactions.DAI_ReactionEventLoader;
@@ -64,6 +66,13 @@ public final class DAI_ServerDataBootstrap {
             event.addListener(
                     Identifier.fromNamespaceAndPath(DAI_Core.MODID, kind.folder()),
                     new DAI_ContentLoader(kind)
+            );
+        }
+
+        for (DAI_GameCustomizationKind kind : DAI_GameCustomizationKind.values()) {
+            event.addListener(
+                    Identifier.fromNamespaceAndPath(DAI_Core.MODID, kind.folder()),
+                    new DAI_GameCustomizationLoader(kind)
             );
         }
 

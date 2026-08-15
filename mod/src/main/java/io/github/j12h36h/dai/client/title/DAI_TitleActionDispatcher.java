@@ -53,7 +53,13 @@ public final class DAI_TitleActionDispatcher {
                 DAI_TitleScreenDefinition refreshed = DAI_TitleScreenRepository.reload();
                 minecraft.gui.setScreen(new DAI_TitleScreen(refreshed));
             }
-            case "quit" -> stopMinecraft();
+            case "quit" -> {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Title-screen quit action requested by button '{}'.",
+                        definition.id()
+                );
+                stopMinecraft();
+            }
             default -> DAI_Core.LOGGER.warn(
                     "<DAI>: Unknown title-screen action '{}'.",
                     action

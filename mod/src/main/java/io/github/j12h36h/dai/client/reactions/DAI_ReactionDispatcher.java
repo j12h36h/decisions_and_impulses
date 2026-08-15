@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.reactions.*;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.core.BlockPos;
 
 public final class DAI_ReactionDispatcher {
 
@@ -14,6 +15,15 @@ public final class DAI_ReactionDispatcher {
     public static DAI_ReactionDispatchSession begin(
             String event,
             Entity entity
+    ) {
+        return begin(event, entity, null, "");
+    }
+
+    public static DAI_ReactionDispatchSession begin(
+            String event,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId
     ) {
 
         DAI_ReactionEventDefinition eventDefinition =
@@ -33,7 +43,9 @@ public final class DAI_ReactionDispatcher {
 
         return new DAI_ReactionDispatchSession(
                 eventDefinition,
-                entity
+                entity,
+                blockPos,
+                itemId
         );
     }
 

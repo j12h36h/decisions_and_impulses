@@ -48,7 +48,9 @@ public record DAI_ExperienceDefinition(
                         bool(ui, "open_dai_menu_on_grave", false),
                         string(ui, "grave_open_action", ""),
                         string(ui, "grave_close_action", ""),
-                        string(ui, "grave_anchor_overlay", "")
+                        string(ui, "grave_anchor_overlay", ""),
+                        string(ui, "grave_menu", ""),
+                        string(ui, "grave_menu_open", "")
                 )
         );
     }
@@ -61,6 +63,10 @@ public record DAI_ExperienceDefinition(
      * optional grave_anchor_overlay identifies one persistent overlay that is
      * present while that UI is open, allowing DAI to remain synchronized even
      * when the experience closes itself through an overlay button.
+     *
+     * grave_menu / grave_menu_open provide the lighter-weight alternative used
+     * by experiences that want the grave key to open a specific DAI-authored
+     * menu directly instead of showing DAI's default root menu first.
      */
     public record Ui(
             boolean autoEnable,
@@ -68,14 +74,18 @@ public record DAI_ExperienceDefinition(
             boolean openDaiMenuOnGrave,
             String graveOpenAction,
             String graveCloseAction,
-            String graveAnchorOverlay
+            String graveAnchorOverlay,
+            String graveMenu,
+            String graveMenuOpen
     ) {
-        public static final Ui DEFAULT = new Ui(true, true, false, "", "", "");
+        public static final Ui DEFAULT = new Ui(true, true, false, "", "", "", "", "");
 
         public Ui {
             graveOpenAction = normalize(graveOpenAction);
             graveCloseAction = normalize(graveCloseAction);
             graveAnchorOverlay = normalize(graveAnchorOverlay);
+            graveMenu = normalize(graveMenu);
+            graveMenuOpen = normalize(graveMenuOpen);
         }
     }
 

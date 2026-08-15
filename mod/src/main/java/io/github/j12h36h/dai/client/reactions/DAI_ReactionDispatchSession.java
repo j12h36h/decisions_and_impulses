@@ -8,6 +8,7 @@ import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.client.logics.condition.DAI_ConditionEvaluator;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,8 @@ public final class DAI_ReactionDispatchSession {
 
     private final DAI_ReactionEventDefinition eventDefinition;
     private final Entity entity;
+    private final BlockPos blockPos;
+    private final String itemId;
 
     private final List<DAI_ActionDefinition> queuedActions =
             new ArrayList<>();
@@ -30,12 +33,20 @@ public final class DAI_ReactionDispatchSession {
             DAI_ReactionEventDefinition eventDefinition,
             Entity entity
     ) {
+        this(eventDefinition, entity, null, "");
+    }
 
-        this.eventDefinition =
-                eventDefinition;
+    DAI_ReactionDispatchSession(
+            DAI_ReactionEventDefinition eventDefinition,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId
+    ) {
 
-        this.entity =
-                entity;
+        this.eventDefinition = eventDefinition;
+        this.entity = entity;
+        this.blockPos = blockPos == null ? null : blockPos.immutable();
+        this.itemId = itemId == null ? "" : itemId.trim().toLowerCase();
     }
 
     public DAI_ReactionOutcome fire(
@@ -82,7 +93,9 @@ public final class DAI_ReactionDispatchSession {
                 new DAI_ReactionContext(
                         eventDefinition.id(),
                         phase,
-                        entity
+                        entity,
+                        blockPos,
+                        itemId
                 );
 
         for (DAI_ReactionEntry entry : reactions) {

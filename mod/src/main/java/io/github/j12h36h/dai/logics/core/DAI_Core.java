@@ -14,6 +14,10 @@ public final class DAI_Core {
     public static final String MODID =
             "decisions_and_impulses";
 
+    /** Data/API feature level represented by this source tree. */
+    public static final String FEATURE_LEVEL =
+            "1.9";
+
     public static final Logger LOGGER =
             LogUtils.getLogger();
 
@@ -43,7 +47,8 @@ public final class DAI_Core {
     ) {
 
         LOGGER.info(
-                "<DAI>: Starting Decisions and Impulses..."
+                "<DAI>: Starting Decisions and Impulses feature level {}...",
+                FEATURE_LEVEL
         );
 
         try {

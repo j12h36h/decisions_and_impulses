@@ -1,6 +1,9 @@
 package io.github.j12h36h.dai.server.action;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationDefinition;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
 import io.github.j12h36h.dai.server.network.DAI_ServerAccessPolicy;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
@@ -47,6 +50,18 @@ public final class DAI_ServerActionExecutor {
         MinecraftServer server = sender.level().getServer();
         if (server == null) return false;
 
+        String operation = normalize(payload.operation());
+
+        /*
+         * 1.9 customization events are safe for ordinary players because the
+         * client only names a server-loaded definition + event. Any command or
+         * function that ultimately runs is sourced from the trusted datapack,
+         * never from arbitrary client text.
+         */
+        if (operation.equals("customization_event")) {
+            return executeTrusted(sender, payload);
+        }
+
         if (!DAI_ServerAccessPolicy.allowPrivilegedClient(sender)) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Rejected privileged DAI server action '{}' from non-admin player '{}'.",
@@ -92,6 +107,9 @@ public final class DAI_ServerActionExecutor {
                     DAI_WorldgenRuntime.markFirstJoinDispatched(payload.action());
                     yield true;
                 }
+
+                case "customization_event" ->
+                        customizationEvent(actor, payload.action(), payload.target(), payload.state(), payload.value());
 
                 default -> {
                     DAI_Core.LOGGER.warn(
@@ -220,6 +238,208 @@ public final class DAI_ServerActionExecutor {
 
         inventory.setChanged();
         return remaining == 0;
+    }
+
+    private static boolean customizationEvent(
+            ServerPlayer actor,
+            String rawKind,
+            String rawId,
+            String rawEvent,
+            double value
+    ) {
+        DAI_GameCustomizationKind kind = DAI_GameCustomizationKind.parse(rawKind);
+        if (kind == null) {
+            DAI_Core.LOGGER.warn("<DAI>: Unknown customization kind '{}'.", rawKind);
+            return false;
+        }
+
+        DAI_GameCustomizationRegistry.Entry entry =
+                DAI_GameCustomizationRegistry.get(kind, rawId);
+        if (entry == null) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Unknown {} customization definition '{}'.",
+                    kind.id(), rawId
+            );
+            return false;
+        }
+
+        DAI_GameCustomizationDefinition definition = entry.definition();
+        String eventPayload = rawEvent == null ? "" : rawEvent;
+        String[] eventParts = eventPayload.split("\n", 2);
+        String eventName = normalize(eventParts.length == 0 ? "" : eventParts[0]);
+        String runtimeTarget = eventParts.length > 1 ? eventParts[1].trim() : "";
+        if (eventName.isBlank()) eventName = "run";
+        String dispatch = definition.event(eventName);
+
+        if (dispatch.isBlank()) {
+            dispatch = definition.command();
+        }
+
+        /*
+         * Rulesets can be authored as a compact entries array even when no
+         * explicit event/command exists: ["doDaylightCycle=false", ...].
+         */
+        if (dispatch.isBlank() && kind == DAI_GameCustomizationKind.RULESET
+                && (eventName.equals("apply") || eventName.equals("run"))) {
+            boolean ok = true;
+            for (String entryText : definition.entries()) {
+                if (entryText == null || entryText.isBlank()) continue;
+                String[] pair = entryText.trim().split("=", 2);
+                if (pair.length != 2) {
+                    DAI_Core.LOGGER.warn("<DAI>: Invalid ruleset entry '{}'.", entryText);
+                    ok = false;
+                    continue;
+                }
+                ok &= performServerCommand(actor, "gamerule " + pair[0].trim() + " " + pair[1].trim());
+            }
+            return ok;
+        }
+
+        if (dispatch.isBlank()) {
+            dispatch = defaultCustomizationCommand(kind, eventName, definition, value, runtimeTarget);
+        }
+
+        if (dispatch.isBlank()) {
+            // A state-only customization definition is still a valid event.
+            return true;
+        }
+
+        String expanded = expandCustomizationPlaceholders(
+                dispatch, actor, kind, entry.id().toString(), eventName, value, runtimeTarget, definition
+        );
+        String lower = expanded.toLowerCase(Locale.ROOT);
+
+        if (lower.startsWith("command:")) {
+            return performServerCommand(actor, expanded.substring("command:".length()).trim());
+        }
+        if (lower.startsWith("function:")) {
+            return runFunction(actor, expanded.substring("function:".length()).trim());
+        }
+
+        /*
+         * Unprefixed identifiers are treated as functions only on the server.
+         * Existing DAI action ids are normally consumed by the client before a
+         * customization_event payload is sent.
+         */
+        if (Identifier.tryParse(expanded) != null) {
+            return runFunction(actor, expanded);
+        }
+
+        return performServerCommand(actor, expanded);
+    }
+
+    private static String defaultCustomizationCommand(
+            DAI_GameCustomizationKind kind,
+            String event,
+            DAI_GameCustomizationDefinition definition,
+            double value,
+            String runtimeTarget
+    ) {
+        String carrier = definition.carrier();
+        String target = runtimeTarget == null || runtimeTarget.isBlank()
+                ? (definition.target().isBlank() ? "~ ~ ~" : definition.target())
+                : runtimeTarget;
+
+        return switch (kind) {
+            case SOUND -> {
+                if (carrier.isBlank()) yield "";
+                String source = definition.property("source");
+                if (source.isBlank()) source = "master";
+                if (event.equals("stop")) {
+                    yield "command:stopsound @s " + source + " " + carrier;
+                }
+                double volume = definition.number("volume", 1.0D);
+                double pitch = definition.number("pitch", 1.0D);
+                yield "command:playsound " + carrier + " " + source
+                        + " @s ~ ~ ~ " + volume + " " + pitch;
+            }
+            case MUSIC -> {
+                if (carrier.isBlank()) yield "";
+                if (event.equals("stop")) {
+                    yield "command:stopsound @s music " + carrier;
+                }
+                double volume = definition.number("volume", 1.0D);
+                double pitch = definition.number("pitch", 1.0D);
+                yield "command:playsound " + carrier + " music @s ~ ~ ~ " + volume + " " + pitch;
+            }
+            case STRUCTURE -> carrier.isBlank()
+                    ? ""
+                    : "command:place template " + carrier + " " + target;
+            case FEATURE -> carrier.isBlank()
+                    ? ""
+                    : "command:place feature " + carrier + " " + target;
+            case LOOT -> carrier.isBlank()
+                    ? ""
+                    : "command:loot give @s loot " + carrier;
+            case CURRENCY -> {
+                String objective = definition.property("objective");
+                if (objective.isBlank()) objective = definition.property("scoreboard");
+                if (objective.isBlank()) yield "";
+                int amount = (int) Math.round(value == 0.0D
+                        ? definition.number("amount", 1.0D)
+                        : value);
+                if (event.equals("take")) amount = Math.abs(amount);
+                if (event.equals("add")) amount = Math.abs(amount);
+                yield switch (event) {
+                    case "add" -> "command:scoreboard players add @s " + objective + " " + amount;
+                    case "take" -> "command:scoreboard players remove @s " + objective + " " + amount;
+                    case "set" -> "command:scoreboard players set @s " + objective + " " + amount;
+                    default -> "";
+                };
+            }
+            case FACTION -> {
+                String tag = definition.property("tag");
+                if (tag.isBlank()) yield "";
+                yield event.equals("leave")
+                        ? "command:tag @s remove " + tag
+                        : "command:tag @s add " + tag;
+            }
+            case DIMENSION -> carrier.isBlank()
+                    ? ""
+                    : "command:execute in " + carrier + " run tp @s " + target;
+            case VEHICLE -> {
+                if (event.equals("dismount")) yield "command:ride @s dismount";
+                if (carrier.isBlank()) yield "";
+                yield switch (event) {
+                    case "spawn" -> "command:summon " + carrier + " " + target;
+                    case "mount" -> "command:ride @s mount @e[type=" + carrier
+                            + ",sort=nearest,limit=1,distance=..8]";
+                    case "despawn" -> "command:kill @e[type=" + carrier
+                            + ",sort=nearest,limit=1,distance=..8]";
+                    default -> "";
+                };
+            }
+            case FLUID -> carrier.isBlank() || !event.equals("apply")
+                    ? ""
+                    : "command:setblock " + target + " " + carrier;
+            default -> "";
+        };
+    }
+
+    private static String expandCustomizationPlaceholders(
+            String raw,
+            ServerPlayer actor,
+            DAI_GameCustomizationKind kind,
+            String id,
+            String event,
+            double value,
+            String runtimeTarget,
+            DAI_GameCustomizationDefinition definition
+    ) {
+        String text = raw == null ? "" : raw.trim();
+        String target = definition.target();
+        return text
+                .replace("{player}", actor.getName().getString())
+                .replace("{uuid}", actor.getUUID().toString())
+                .replace("{x}", Double.toString(actor.getX()))
+                .replace("{y}", Double.toString(actor.getY()))
+                .replace("{z}", Double.toString(actor.getZ()))
+                .replace("{value}", Double.toString(value))
+                .replace("{kind}", kind.id())
+                .replace("{id}", id)
+                .replace("{event}", event)
+                .replace("{target}", target == null ? "" : target)
+                .replace("{runtime_target}", runtimeTarget == null ? "" : runtimeTarget);
     }
 
     private static BlockState parseBlockState(String raw) {

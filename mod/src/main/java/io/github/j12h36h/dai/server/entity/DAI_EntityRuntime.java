@@ -17,8 +17,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -45,6 +48,7 @@ public final class DAI_EntityRuntime {
 
     private static long serverTicks;
     private static final Map<UUID, BehaviorState> BEHAVIOR_STATE = new HashMap<>();
+    private static final Set<UUID> INITIALIZED_GAMEPLAY = new HashSet<>();
 
     private DAI_EntityRuntime() {}
 
@@ -77,6 +81,7 @@ public final class DAI_EntityRuntime {
                 if (entry == null || entry.kind() != DAI_ContentKind.ENTITY) continue;
 
                 DAI_EntitySettings settings = entry.definition().entity();
+                initializeGameplay(mob, settings);
                 if (settings.behaviorSequence().isBlank()) continue;
 
                 BehaviorState state = BEHAVIOR_STATE.computeIfAbsent(
@@ -88,6 +93,71 @@ public final class DAI_EntityRuntime {
                 runNextBehaviorAction(mob, settings, state);
             }
         }
+    }
+
+    private static void initializeGameplay(
+            Mob mob,
+            DAI_EntitySettings settings
+    ) {
+        if (mob == null || settings == null || !INITIALIZED_GAMEPLAY.add(mob.getUUID())) return;
+
+        if (!settings.vanillaAi()) {
+            disableVanillaGoals(mob);
+        }
+
+        for (String raw : settings.gameplay().equipment()) {
+            if (raw == null || raw.isBlank()) continue;
+            String[] pair = raw.trim().split("=", 2);
+            if (pair.length != 2) {
+                DAI_Core.LOGGER.warn("<DAI>: Invalid custom-entity equipment entry '{}'.", raw);
+                continue;
+            }
+
+            EquipmentSlot slot = equipmentSlot(pair[0]);
+            Identifier itemId = Identifier.tryParse(pair[1].trim());
+            Item item = itemId == null ? null : BuiltInRegistries.ITEM.getValue(itemId);
+            if (slot == null || item == null) {
+                DAI_Core.LOGGER.warn("<DAI>: Could not resolve custom-entity equipment '{}'.", raw);
+                continue;
+            }
+            mob.setItemSlot(slot, new ItemStack(item));
+        }
+    }
+
+    private static void disableVanillaGoals(Mob mob) {
+        Class<?> type = mob.getClass();
+        while (type != null && type != Object.class) {
+            for (var field : type.getDeclaredFields()) {
+                if (!field.getType().getName().endsWith("GoalSelector")) continue;
+                try {
+                    field.setAccessible(true);
+                    Object selector = field.get(mob);
+                    if (selector == null) continue;
+                    for (var method : selector.getClass().getMethods()) {
+                        if (!method.getName().equals("removeAllGoals") || method.getParameterCount() != 0) continue;
+                        method.invoke(selector);
+                        break;
+                    }
+                } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    // Keep the template AI if this Minecraft mapping changes;
+                    // behavior_sequence still layers deterministically above it.
+                }
+            }
+            type = type.getSuperclass();
+        }
+    }
+
+    private static EquipmentSlot equipmentSlot(String raw) {
+        String value = raw == null ? "" : raw.trim().toLowerCase();
+        return switch (value) {
+            case "mainhand", "main_hand", "hand" -> EquipmentSlot.MAINHAND;
+            case "offhand", "off_hand" -> EquipmentSlot.OFFHAND;
+            case "head", "helmet" -> EquipmentSlot.HEAD;
+            case "chest", "chestplate" -> EquipmentSlot.CHEST;
+            case "legs", "leggings" -> EquipmentSlot.LEGS;
+            case "feet", "boots" -> EquipmentSlot.FEET;
+            default -> null;
+        };
     }
 
     private static void runNextBehaviorAction(

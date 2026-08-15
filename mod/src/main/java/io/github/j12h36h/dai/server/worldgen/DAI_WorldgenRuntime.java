@@ -167,17 +167,24 @@ public final class DAI_WorldgenRuntime {
             Path source = sourcePack.toAbsolutePath().normalize();
 
             if (source.equals(target)) {
-                // The pack being physically present in the save does not mean
-                // Minecraft currently has it selected. A pack copied into a
-                // running fresh save can be absent from the persisted selected
-                // datapack set on the next launch. Always refresh the repository
-                // and request this exact pack again so vanilla functions, tags,
-                // advancements and other server resources are actually active.
                 DAI_Core.LOGGER.info(
                         "<DAI>: Experience datapack already belongs to this save; ensuring it is enabled: '{}'.",
                         target
                 );
-                return reloadInstalledPack(server, target);
+                return ensureInstalledPackEnabled(server, target);
+            }
+
+            // Windows keeps ZIP datapacks open while PackRepository is using them.
+            // Replacing an already-loaded target with REPLACE_EXISTING therefore
+            // throws FileSystemException even when the global source and the save
+            // copy are byte-for-byte identical. Compare before copying and reuse
+            // the existing save-local file when nothing actually changed.
+            if (Files.exists(target) && samePackContent(source, target)) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Experience datapack '{}' is already installed with identical content; skipping locked-file replacement.",
+                        target.getFileName()
+                );
+                return ensureInstalledPackEnabled(server, target);
             }
 
             if (Files.isDirectory(source)) {
@@ -202,6 +209,63 @@ public final class DAI_WorldgenRuntime {
             failed.completeExceptionally(exception);
             return failed;
         }
+    }
+
+
+    private static boolean samePackContent(Path source, Path target) {
+        if (source == null || target == null) return false;
+        try {
+            if (!Files.exists(source) || !Files.exists(target)) return false;
+            if (Files.isDirectory(source) || Files.isDirectory(target)) return false;
+            if (Files.size(source) != Files.size(target)) return false;
+            return Files.mismatch(source, target) == -1L;
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Could not compare experience datapack source '{}' with installed target '{}'.",
+                    source,
+                    target,
+                    exception
+            );
+            return false;
+        }
+    }
+
+    /**
+     * Avoids a full server resource reload when an already-installed experience
+     * pack is already selected. Besides being faster, this avoids reopening and
+     * replacing ZIP files that Windows currently has locked through PackRepository.
+     */
+    private static CompletableFuture<?> ensureInstalledPackEnabled(
+            MinecraftServer server,
+            Path installedPack
+    ) {
+        try {
+            Object repository = invokeNoArg(server, "getPackRepository");
+            if (repository == null) {
+                return reloadInstalledPack(server, installedPack);
+            }
+
+            invokeNoArg(repository, "reload");
+            Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
+            Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
+            String packId = findInstalledPackId(Set.of(), available, installedPack.getFileName().toString());
+
+            if (packId != null && selected.contains(packId)) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Experience datapack '{}' is already enabled; skipping redundant server resource reload.",
+                        packId
+                );
+                return CompletableFuture.completedFuture(null);
+            }
+        } catch (Throwable exception) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Could not determine whether experience datapack '{}' was already enabled; falling back to reload.",
+                    installedPack,
+                    exception
+            );
+        }
+
+        return reloadInstalledPack(server, installedPack);
     }
 
     private static void copyDirectory(Path source, Path target) throws Exception {

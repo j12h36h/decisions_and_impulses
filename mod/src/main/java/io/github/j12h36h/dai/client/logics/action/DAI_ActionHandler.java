@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.client.logics.action;
 import io.github.j12h36h.dai.logics.action.*;
 
 import io.github.j12h36h.dai.client.logics.*;
+import io.github.j12h36h.dai.client.customization.DAI_GameCustomizationLogic;
 import io.github.j12h36h.dai.client.logics.DAI_CommandLogic;
 import io.github.j12h36h.dai.client.logics.DAI_ServerActionLogic;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -43,6 +44,7 @@ public final class DAI_ActionHandler {
         registerObjectiveActions();
         registerAutomationActions();
         registerGameModeActions();
+        registerCustomizationActions();
         registerExtensionActions();
 
         DAI_Core.LOGGER.info(
@@ -1054,6 +1056,58 @@ public final class DAI_ActionHandler {
                 "run_if_success",
                 DAI_FlowLogic::runIfSuccess
         );
+    }
+
+    private static void registerCustomizationActions() {
+
+        register("customization_event", DAI_GameCustomizationLogic::genericEvent);
+        register("customization_activate", DAI_GameCustomizationLogic::genericActivate);
+        register("customization_deactivate", DAI_GameCustomizationLogic::genericDeactivate);
+
+        register("sound_play", DAI_GameCustomizationLogic::soundPlay);
+        register("sound_stop", DAI_GameCustomizationLogic::soundStop);
+        register("music_play", DAI_GameCustomizationLogic::musicPlay);
+        register("music_stop", DAI_GameCustomizationLogic::musicStop);
+
+        register("hud_show", DAI_GameCustomizationLogic::hudShow);
+        register("hud_hide", DAI_GameCustomizationLogic::hudHide);
+        register("render_profile_apply", DAI_GameCustomizationLogic::renderProfileApply);
+        register("render_profile_clear", DAI_GameCustomizationLogic::renderProfileClear);
+
+        register("structure_place", DAI_GameCustomizationLogic::structurePlace);
+        register("feature_place", DAI_GameCustomizationLogic::featurePlace);
+        register("loot_grant", DAI_GameCustomizationLogic::lootGrant);
+
+        register("currency_add", DAI_GameCustomizationLogic::currencyAdd);
+        register("currency_take", DAI_GameCustomizationLogic::currencyTake);
+        register("currency_set", DAI_GameCustomizationLogic::currencySet);
+        register("shop_open", DAI_GameCustomizationLogic::shopOpen);
+        register("shop_purchase", DAI_GameCustomizationLogic::shopPurchase);
+
+        register("dialogue_start", DAI_GameCustomizationLogic::dialogueStart);
+        register("dialogue_choose", DAI_GameCustomizationLogic::dialogueChoose);
+        register("dialogue_end", DAI_GameCustomizationLogic::dialogueEnd);
+        register("quest_start", DAI_GameCustomizationLogic::questStart);
+        register("quest_advance", DAI_GameCustomizationLogic::questAdvance);
+        register("quest_complete", DAI_GameCustomizationLogic::questComplete);
+        register("quest_fail", DAI_GameCustomizationLogic::questFail);
+        register("faction_join", DAI_GameCustomizationLogic::factionJoin);
+        register("faction_leave", DAI_GameCustomizationLogic::factionLeave);
+
+        register("biome_apply", DAI_GameCustomizationLogic::biomeApply);
+        register("dimension_transfer", DAI_GameCustomizationLogic::dimensionTransfer);
+        register("rules_apply", DAI_GameCustomizationLogic::rulesApply);
+        register("rules_clear", DAI_GameCustomizationLogic::rulesClear);
+
+        register("vehicle_spawn", DAI_GameCustomizationLogic::vehicleSpawn);
+        register("vehicle_despawn", DAI_GameCustomizationLogic::vehicleDespawn);
+        register("vehicle_mount", DAI_GameCustomizationLogic::vehicleMount);
+        register("vehicle_dismount", DAI_GameCustomizationLogic::vehicleDismount);
+        register("interactive_use", DAI_GameCustomizationLogic::interactiveUse);
+        register("fluid_apply", DAI_GameCustomizationLogic::fluidApply);
+        register("fluid_remove", DAI_GameCustomizationLogic::fluidRemove);
+        register("environment_enter", DAI_GameCustomizationLogic::environmentEnter);
+        register("environment_exit", DAI_GameCustomizationLogic::environmentExit);
     }
 
     private static void register(

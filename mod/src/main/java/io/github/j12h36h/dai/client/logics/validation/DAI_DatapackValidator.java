@@ -18,6 +18,7 @@ public final class DAI_DatapackValidator {
         DAI_GroupValidator.validate();
         DAI_RecognitionValidator.validate();
         DAI_ReactionValidator.validate();
+        DAI_CustomizationValidator.validate();
 
         DAI_ValidationReport.printSummary();
 

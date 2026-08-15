@@ -8,9 +8,12 @@ import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.registry.DAI_RegistrySpec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Map;
 
@@ -116,6 +119,34 @@ public final class DAI_ExtensionValidator {
                             definition.entity().behaviorSequence()
                     );
                 }
+
+                var gameplay = definition.entity().gameplay();
+                validateCustomizationReference(source + ".entity.gameplay.faction", DAI_GameCustomizationKind.FACTION, gameplay.faction());
+                validateCustomizationReference(source + ".entity.gameplay.dialogue", DAI_GameCustomizationKind.DIALOGUE, gameplay.dialogue());
+                validateCustomizationReference(source + ".entity.gameplay.loot", DAI_GameCustomizationKind.LOOT, gameplay.loot());
+
+                for (String equipment : gameplay.equipment()) {
+                    if (equipment == null || equipment.isBlank()) continue;
+                    String[] pair = equipment.trim().split("=", 2);
+                    if (pair.length != 2 || !isEquipmentSlot(pair[0])) {
+                        DAI_ValidationReport.error(
+                                source + ".entity.gameplay.equipment",
+                                "Equipment must use slot=item, got '" + equipment + "'."
+                        );
+                        continue;
+                    }
+                    Identifier itemId = Identifier.tryParse(pair[1].trim());
+                    if (itemId == null || BuiltInRegistries.ITEM.getValue(itemId) == null) {
+                        DAI_ValidationReport.error(
+                                source + ".entity.gameplay.equipment",
+                                "Unknown equipment item '" + pair[1].trim() + "'."
+                        );
+                    }
+                }
+
+                for (Map.Entry<String, String> event : gameplay.events().entrySet()) {
+                    validateActionReference(source + ".entity.gameplay.events." + event.getKey(), event.getValue());
+                }
             }
 
             for (String attribute : definition.attributes().keySet()) {
@@ -138,6 +169,30 @@ public final class DAI_ExtensionValidator {
                 validateActionReference(source + ".events." + event.getKey(), event.getValue());
             }
         }
+    }
+
+    private static void validateCustomizationReference(
+            String source,
+            DAI_GameCustomizationKind kind,
+            String value
+    ) {
+        if (value == null || value.isBlank()) return;
+        if (DAI_GameCustomizationRegistry.get(kind, value) == null) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown " + kind.id() + " customization reference '" + value + "'."
+            );
+        }
+    }
+
+    private static boolean isEquipmentSlot(String raw) {
+        String slot = raw == null ? "" : raw.trim().toLowerCase();
+        return switch (slot) {
+            case "mainhand", "main_hand", "hand", "offhand", "off_hand",
+                    "head", "helmet", "chest", "chestplate",
+                    "legs", "leggings", "feet", "boots" -> true;
+            default -> false;
+        };
     }
 
     private static void validateActionReference(String source, String value) {

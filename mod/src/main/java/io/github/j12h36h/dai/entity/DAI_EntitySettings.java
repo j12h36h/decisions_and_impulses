@@ -17,14 +17,16 @@ public record DAI_EntitySettings(
         String behaviorSequence,
         int behaviorInterval,
         boolean vanillaAi,
-        DAI_EntitySpawnSettings spawning
+        DAI_EntitySpawnSettings spawning,
+        DAI_EntityGameplaySettings gameplay
 ) {
 
     public static final DAI_EntitySettings DEFAULT =
             new DAI_EntitySettings(
                     "creature", 0.6F, 1.0F, 8, 3,
                     false, true, true, "", "", 10, true,
-                    DAI_EntitySpawnSettings.DISABLED
+                    DAI_EntitySpawnSettings.DISABLED,
+                    DAI_EntityGameplaySettings.DEFAULT
             );
 
     public static final Codec<DAI_EntitySettings> CODEC =
@@ -41,7 +43,8 @@ public record DAI_EntitySettings(
                     Codec.STRING.optionalFieldOf("behavior_sequence", "").forGetter(DAI_EntitySettings::behaviorSequence),
                     Codec.INT.optionalFieldOf("behavior_interval", 10).forGetter(DAI_EntitySettings::behaviorInterval),
                     Codec.BOOL.optionalFieldOf("vanilla_ai", true).forGetter(DAI_EntitySettings::vanillaAi),
-                    DAI_EntitySpawnSettings.CODEC.optionalFieldOf("spawning", DAI_EntitySpawnSettings.DISABLED).forGetter(DAI_EntitySettings::spawning)
+                    DAI_EntitySpawnSettings.CODEC.optionalFieldOf("spawning", DAI_EntitySpawnSettings.DISABLED).forGetter(DAI_EntitySettings::spawning),
+                    DAI_EntityGameplaySettings.CODEC.optionalFieldOf("gameplay", DAI_EntityGameplaySettings.DEFAULT).forGetter(DAI_EntitySettings::gameplay)
             ).apply(instance, DAI_EntitySettings::new));
 
     public DAI_EntitySettings {
@@ -54,6 +57,7 @@ public record DAI_EntitySettings(
         behaviorSequence = normalize(behaviorSequence, "");
         behaviorInterval = Math.max(1, behaviorInterval);
         spawning = spawning == null ? DAI_EntitySpawnSettings.DISABLED : spawning;
+        gameplay = gameplay == null ? DAI_EntityGameplaySettings.DEFAULT : gameplay;
     }
 
     private static String normalize(String value, String fallback) {
