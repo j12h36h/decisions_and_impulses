@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -44,12 +45,12 @@ public final class DAI_EarlyRegistryScanner {
 
     public static ScanResult scan() {
         ScannerState state = new ScannerState();
-        Path gameDir = Path.of(".").toAbsolutePath().normalize();
+        Path gameDir = DAI_GlobalDatapackLibrary.initialize().getParent();
 
         scanClasspath(state);
         scanInstalledMods(gameDir, state);
         scanInstalledWorlds(gameDir, state);
-        scanGlobalDatapacks(gameDir, state);
+        scanGlobalDatapacks(state);
 
         return new ScanResult(
                 Collections.unmodifiableMap(new LinkedHashMap<>(state.specs)),
@@ -181,8 +182,8 @@ public final class DAI_EarlyRegistryScanner {
         }
     }
 
-    private static void scanGlobalDatapacks(Path gameDir, ScannerState state) {
-        Path global = gameDir.resolve("datapacks");
+    private static void scanGlobalDatapacks(ScannerState state) {
+        Path global = DAI_GlobalDatapackLibrary.initialize();
         if (Files.isDirectory(global)) {
             scanDatapackDirectory(global, state);
         }

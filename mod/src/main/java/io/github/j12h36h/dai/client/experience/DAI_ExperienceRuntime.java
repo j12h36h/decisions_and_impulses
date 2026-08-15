@@ -7,6 +7,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
+import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
@@ -167,6 +168,109 @@ public final class DAI_ExperienceRuntime {
         return definition != null
                 && definition.ui().graveCursorToggle()
                 && !definition.ui().openDaiMenuOnGrave();
+    }
+
+    /**
+     * Handles the grave key for an active experience.
+     *
+     * Experiences may replace DAI's normal menu with datapack-authored UI by
+     * declaring grave_open_action / grave_close_action. If those fields are
+     * omitted, DAI also recognizes the conventional <namespace>:open and
+     * <namespace>:close actions for backwards compatibility with existing
+     * experience packs such as TamaCrafti.
+     */
+    public static boolean handleGraveKey() {
+        if (!interceptsGraveKey()) {
+            return false;
+        }
+
+        DAI_ExperienceDefinition definition = active;
+        DAI_ExperienceDefinition.Ui ui = definition.ui();
+
+        String openAction = resolveUiAction(ui.graveOpenAction(), "open");
+        String closeAction = resolveUiAction(ui.graveCloseAction(), "close");
+
+        if (!openAction.isBlank() && !closeAction.isBlank()) {
+            boolean visible = isExperienceUiVisible(ui);
+            String action = visible ? closeAction : openAction;
+            java.util.List<DAI_ActionDefinition> resolved = DAI_ActionResolver.resolve(action);
+
+            if (!resolved.isEmpty()) {
+                // A UI toggle is explicit player control. Dispatch it ahead of
+                // queued gameplay so opening/closing the interface is instant.
+                DAI_ActionQueue.interruptAndDispatch(resolved);
+
+                DAI_InputState.setCursorReleased(!visible);
+                DAI_ClientRuntime.updateMouseCapture();
+
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Experience '{}' {} UI from grave key using action '{}'.",
+                        definition.id(),
+                        visible ? "closed" : "opened",
+                        action
+                );
+                return true;
+            }
+        }
+
+        // Legacy behavior for experiences that only request cursor release.
+        toggleCursorMode();
+        return true;
+    }
+
+    private static boolean isExperienceUiVisible(DAI_ExperienceDefinition.Ui ui) {
+        if (ui != null && !ui.graveAnchorOverlay().isBlank()) {
+            return DAI_OverlayManager.contains(ui.graveAnchorOverlay());
+        }
+
+        // Backwards-compatible fallback for 1.8/1.8.1 experience packs that
+        // predate grave_anchor_overlay. Their UI is normally composed entirely
+        // of DAI overlays, so an empty overlay manager means it is closed.
+        return DAI_OverlayManager.size() > 0;
+    }
+
+    private static String resolveUiAction(String configured, String conventionalPath) {
+        if (configured != null && !configured.isBlank() && actionAvailable(configured)) {
+            return configured.trim().toLowerCase();
+        }
+
+        DAI_ExperienceDefinition definition = active;
+        if (definition == null || definition.id().isBlank()) {
+            return "";
+        }
+
+        int colon = definition.id().indexOf(':');
+        if (colon <= 0) {
+            return "";
+        }
+
+        String conventional = definition.id().substring(0, colon) + ":" + conventionalPath;
+        return actionAvailable(conventional) ? conventional : "";
+    }
+
+    /**
+     * Keeps cursor capture synchronized when an experience UI opens or closes
+     * itself through one of its clickable overlays.
+     */
+    public static void onOverlayActionDispatched(String actionId) {
+        if (!interceptsGraveKey() || actionId == null || actionId.isBlank()) {
+            return;
+        }
+
+        DAI_ExperienceDefinition.Ui ui = active.ui();
+        String normalized = actionId.trim().toLowerCase();
+        String openAction = resolveUiAction(ui.graveOpenAction(), "open");
+        String closeAction = resolveUiAction(ui.graveCloseAction(), "close");
+
+        if (!closeAction.isBlank() && normalized.equals(closeAction)) {
+            DAI_InputState.setCursorReleased(false);
+            DAI_ClientRuntime.updateMouseCapture();
+            DAI_Core.debug("<DAI>: Experience UI close action recaptured the cursor.");
+        } else if (!openAction.isBlank() && normalized.equals(openAction)) {
+            DAI_InputState.setCursorReleased(true);
+            DAI_ClientRuntime.updateMouseCapture();
+            DAI_Core.debug("<DAI>: Experience UI open action released the cursor.");
+        }
     }
 
     public static void toggleCursorMode() {

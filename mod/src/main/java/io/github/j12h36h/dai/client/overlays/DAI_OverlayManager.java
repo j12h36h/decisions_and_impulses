@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.client.overlays;
 
+import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
@@ -56,6 +57,14 @@ public final class DAI_OverlayManager {
 
     public static int size() {
         return LAYERS.size();
+    }
+
+    /** Returns whether an overlay with the authored id is currently active. */
+    public static boolean contains(String id) {
+        if (id == null || id.isBlank()) {
+            return false;
+        }
+        return LAYERS.containsKey(id.trim());
     }
 
     public static void tick() {
@@ -147,6 +156,7 @@ public final class DAI_OverlayManager {
                         DAI_ActionResolver.resolve(layer.clickAction());
                 if (resolved != null && !resolved.isEmpty()) {
                     clickActions.addAll(resolved);
+                    DAI_ExperienceRuntime.onOverlayActionDispatched(layer.clickAction());
                 }
             }
 

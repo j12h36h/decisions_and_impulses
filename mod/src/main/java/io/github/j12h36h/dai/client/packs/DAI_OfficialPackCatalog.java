@@ -105,8 +105,14 @@ public record DAI_OfficialPackCatalog(
             components = components == null ? List.of() : List.copyOf(components);
         }
 
+        /**
+         * DAI 1.8.2 installs datapack components into the global datapack
+         * library. Experience launch later hands the declaring pack to the
+         * target save, so catalog installation no longer requires choosing a
+         * world up front.
+         */
         public boolean needsWorld() {
-            return components.stream().anyMatch(component -> component.type().equals("datapack"));
+            return false;
         }
 
         public boolean installable() {

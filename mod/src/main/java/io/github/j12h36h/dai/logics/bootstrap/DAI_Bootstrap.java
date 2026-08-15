@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.logics.bootstrap;
 import io.github.j12h36h.dai.content.DAI_ContentComponents;
 import io.github.j12h36h.dai.entity.DAI_EntityBootstrap;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
 import io.github.j12h36h.dai.registry.DAI_DynamicRegistryBootstrap;
 import io.github.j12h36h.dai.server.bootstrap.DAI_ServerBootstrap;
@@ -19,6 +20,10 @@ public final class DAI_Bootstrap {
 
     public static void initialize(IEventBus modBus, ModContainer container) {
         DAI_Core.LOGGER.info("<DAI>: Initializing common DAI bootstrap...");
+
+        // DAI 1.8.2: provide a global datapack library beside resourcepacks
+        // before early experience/worldgen/native-content discovery begins.
+        DAI_GlobalDatapackLibrary.initialize();
 
         // Registry declarations must be known on every physical side that is
         // participating in full DAI content mode.

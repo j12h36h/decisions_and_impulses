@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
@@ -87,10 +88,6 @@ public final class DAI_PackInstallManager {
             return Result.fail("This catalog entry has no installable components.");
         }
 
-        if (pack.needsWorld() && !validWorld(world)) {
-            return Result.fail("Choose a valid world before installing this datapack.");
-        }
-
         Path transaction = tempRoot().resolve(UUID.randomUUID().toString());
         List<PreparedComponent> prepared = new ArrayList<>();
 
@@ -117,16 +114,16 @@ public final class DAI_PackInstallManager {
             }
 
             List<InstalledPack> manifest = new ArrayList<>(readManifest());
-            // One managed installation per catalog pack id. Reinstalling a
-            // datapack/combo for another world deliberately moves D.A.I.'s
-            // managed copy instead of creating ambiguous shared ownership.
+            // One managed installation per catalog pack id. Datapacks now
+            // live in DAI's global <game>/datapacks library, so reinstalling
+            // updates that single managed source copy.
             removeMatching(manifest, pack.id(), "");
 
             List<InstalledComponent> installedComponents = new ArrayList<>();
             for (PreparedComponent component : prepared) {
                 if (component.definition().type().equals("datapack")) {
                     installedComponents.add(
-                            commitDatapack(pack, component, world)
+                            commitDatapack(component)
                     );
                 } else {
                     installedComponents.add(
@@ -138,7 +135,7 @@ public final class DAI_PackInstallManager {
             manifest.add(new InstalledPack(
                     pack.id(),
                     pack.version(),
-                    pack.needsWorld() ? world : "",
+                    "",
                     installedComponents
             ));
             writeManifest(manifest);
@@ -172,7 +169,7 @@ public final class DAI_PackInstallManager {
                 .findFirst();
 
         if (installed.isEmpty()) {
-            return Result.fail("That pack is not installed for the selected world.");
+            return Result.fail("That pack is not installed.");
         }
 
         try {
@@ -198,26 +195,22 @@ public final class DAI_PackInstallManager {
     }
 
     private static InstalledComponent commitDatapack(
-            DAI_OfficialPackCatalog.PackEntry pack,
-            PreparedComponent component,
-            String world
+            PreparedComponent component
     ) throws IOException {
-        Path datapacks = gameDirectory()
-                .resolve("saves")
-                .resolve(world)
-                .resolve("datapacks")
-                .normalize();
-
-        if (!datapacks.startsWith(gameDirectory().resolve("saves").normalize())) {
-            throw new IOException("Invalid world path.");
-        }
-
+        Path datapacks = DAI_GlobalDatapackLibrary.initialize();
         Files.createDirectories(datapacks);
+
         String fileName = DAI_PackFileOps.safeFileName(component.definition().fileName());
-        Path target = datapacks.resolve(fileName).normalize();
+        Path target = datapacks.resolve(fileName).toAbsolutePath().normalize();
         if (!target.startsWith(datapacks)) throw new IOException("Invalid datapack filename.");
 
         DAI_PackFileOps.moveReplacing(component.zip(), target);
+        DAI_Core.LOGGER.info(
+                "<DAI>: Installed datapack component '{}' into global library '{}'.",
+                component.definition().id(),
+                target
+        );
+
         return new InstalledComponent(
                 component.definition().id(),
                 "datapack",

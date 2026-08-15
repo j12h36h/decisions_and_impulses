@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,6 +65,7 @@ public final class DAI_TitleScreenRepository {
 
         loadBuiltins(definitions);
         scanWorldDatapacks(definitions);
+        scanGlobalDatapacks(definitions);
         scanConfig(definitions);
 
         DAI_TitleScreenDefinition selected = definitions.values().stream()
@@ -126,6 +128,26 @@ public final class DAI_TitleScreenRepository {
             }
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn("<DAI>: Failed to early-scan world datapacks for title screens.", exception);
+        }
+    }
+
+    private static void scanGlobalDatapacks(Map<String, DAI_TitleScreenDefinition> output) {
+        Path datapacks = DAI_GlobalDatapackLibrary.initialize();
+        if (!Files.isDirectory(datapacks)) return;
+
+        try (Stream<Path> packs = Files.list(datapacks)) {
+            for (Path pack : packs.sorted().toList()) {
+                if (Files.isDirectory(pack)) {
+                    scanDatapackDirectory(output, "global", pack);
+                } else if (pack.getFileName().toString().toLowerCase().endsWith(".zip")) {
+                    scanDatapackZip(output, "global", pack);
+                }
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Failed to early-scan global datapack library for title screens.",
+                    exception
+            );
         }
     }
 

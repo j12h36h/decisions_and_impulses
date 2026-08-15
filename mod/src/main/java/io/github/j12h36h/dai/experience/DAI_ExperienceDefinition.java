@@ -45,13 +45,38 @@ public record DAI_ExperienceDefinition(
                 new Ui(
                         bool(ui, "auto_enable", true),
                         bool(ui, "grave_cursor_toggle", true),
-                        bool(ui, "open_dai_menu_on_grave", false)
+                        bool(ui, "open_dai_menu_on_grave", false),
+                        string(ui, "grave_open_action", ""),
+                        string(ui, "grave_close_action", ""),
+                        string(ui, "grave_anchor_overlay", "")
                 )
         );
     }
 
-    public record Ui(boolean autoEnable, boolean graveCursorToggle, boolean openDaiMenuOnGrave) {
-        public static final Ui DEFAULT = new Ui(true, true, false);
+    /**
+     * Client presentation policy for a launched experience.
+     *
+     * grave_open_action / grave_close_action allow an experience to replace
+     * DAI's normal grave-key menu with its own datapack-authored UI. The
+     * optional grave_anchor_overlay identifies one persistent overlay that is
+     * present while that UI is open, allowing DAI to remain synchronized even
+     * when the experience closes itself through an overlay button.
+     */
+    public record Ui(
+            boolean autoEnable,
+            boolean graveCursorToggle,
+            boolean openDaiMenuOnGrave,
+            String graveOpenAction,
+            String graveCloseAction,
+            String graveAnchorOverlay
+    ) {
+        public static final Ui DEFAULT = new Ui(true, true, false, "", "", "");
+
+        public Ui {
+            graveOpenAction = normalize(graveOpenAction);
+            graveCloseAction = normalize(graveCloseAction);
+            graveAnchorOverlay = normalize(graveAnchorOverlay);
+        }
     }
 
     private static JsonObject object(JsonObject root, String key) {

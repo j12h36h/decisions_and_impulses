@@ -137,8 +137,7 @@ public final class DAI_ClientBootstrap {
             Minecraft minecraft =
                     Minecraft.getInstance();
 
-            if (minecraft.player != null && DAI_ExperienceRuntime.interceptsGraveKey()) {
-                DAI_ExperienceRuntime.toggleCursorMode();
+            if (minecraft.player != null && DAI_ExperienceRuntime.handleGraveKey()) {
                 continue;
             }
 

@@ -7,6 +7,7 @@ import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenDefinition;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenRepository;
 import net.minecraft.client.Minecraft;
@@ -467,7 +468,7 @@ public final class DAI_ExperienceLauncher {
             }
         }
 
-        Path global = findPackContaining(game.resolve("datapacks"), entry);
+        Path global = findPackContaining(DAI_GlobalDatapackLibrary.initialize(), entry);
         if (global != null) selected = global;
 
         if (selected != null) {

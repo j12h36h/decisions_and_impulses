@@ -4,7 +4,7 @@
     {
       "id": "decisions_and_impulses:fundamentals_survival",
       "name": "DAI Fundamentals — Survival",
-      "summary": "Official external Survival example pack demonstrating menus, perception, objectives, harvesting, navigation, and autonomous behavior.",
+      "summary": "Official external Survival example pack installed into DAI's global datapack library for reusable client-local automation and experience workflows.",
       "version": "0a",
       "type": "datapack",
       "featured": true,
@@ -22,7 +22,7 @@
     {
       "id": "decisions_and_impulses:comic_effects",
       "name": "DAI Comic Effects",
-      "summary": "Condensed combo pack: installs the reaction datapack into the selected world and its companion visual resource pack client-wide.",
+      "summary": "Condensed combo pack: installs the reaction datapack into DAI's global datapack library and auto-enables its companion visual resource pack client-wide.",
       "version": "1.0",
       "type": "combo",
       "featured": true,

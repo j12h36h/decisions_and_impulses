@@ -18,7 +18,7 @@ import java.util.Optional;
 public final class DAI_PackBrowserScreen extends Screen {
 
     private static final int MAX_PAGE_SIZE = 3;
-    private static final int CARD_TOP = 84;
+    private static final int CARD_TOP = 72;
     private static final int CARD_HEIGHT = 88;
     private static final int CARD_STRIDE = 96;
     private static final int FOOTER_RESERVED = 72;
@@ -70,20 +70,6 @@ public final class DAI_PackBrowserScreen extends Screen {
         int center = width / 2;
         int cardWidth = Math.min(520, width - 32);
         int left = center - cardWidth / 2;
-
-        addRenderableWidget(Button.builder(
-                        Component.literal("<"),
-                        button -> changeWorld(-1)
-                )
-                .bounds(left, 48, 24, 20)
-                .build());
-
-        addRenderableWidget(Button.builder(
-                        Component.literal(">"),
-                        button -> changeWorld(1)
-                )
-                .bounds(left + cardWidth - 24, 48, 24, 20)
-                .build());
 
         page = Math.min(page, maxPage());
 
@@ -171,7 +157,7 @@ public final class DAI_PackBrowserScreen extends Screen {
         graphics.centeredText(font, Component.literal("OFFICIAL D.A.I. PACKS"), width / 2, 16, 0xFFFFFFFF);
         graphics.centeredText(
                 font,
-                Component.literal("Datapacks install to the selected world · resource packs auto-enable after restart"),
+                Component.literal("Datapacks install to the global /datapacks library · resource packs auto-enable after restart"),
                 width / 2,
                 30,
                 0xFFA9C0CF
@@ -179,13 +165,12 @@ public final class DAI_PackBrowserScreen extends Screen {
 
         int cardWidth = Math.min(520, width - 32);
         int left = width / 2 - cardWidth / 2;
-        String world = selectedWorld();
         graphics.centeredText(
                 font,
-                Component.literal("Target world: " + (world.isBlank() ? "<no local world found>" : world)),
+                Component.literal("Global datapacks are discovered before a world opens and handed to DAI experiences automatically"),
                 width / 2,
-                54,
-                world.isBlank() ? 0xFFFF9F6B : 0xFFB9E6B0
+                48,
+                0xFFB9E6B0
         );
 
         List<DAI_OfficialPackCatalog.PackEntry> visible = visiblePacks();
