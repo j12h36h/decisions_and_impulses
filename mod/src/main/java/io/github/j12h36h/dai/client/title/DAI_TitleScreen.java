@@ -1,7 +1,10 @@
 package io.github.j12h36h.dai.client.title;
 
+import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
@@ -18,16 +21,20 @@ public final class DAI_TitleScreen extends Screen {
     private static final int MIN_COMPACT_BUTTON_GAP = 2;
     private static final int MIN_BUTTON_HEIGHT = 18;
 
-    /**
-     * Prevents the click that closed/disconnected the previous screen from
-     * activating a button that occupies the same coordinates on this screen.
-     * The guard is intentionally short enough to be invisible during normal
-     * title use but long enough to cover a mouse press/release transition.
-     */
+    private static final int SAVE_LAYOUT_GAP = 20;
+    private static final int SAVE_LAYOUT_MARGIN = 22;
+    private static final int SAVE_ROW_HEIGHT = 42;
+    private static final int SAVE_ROW_GAP = 6;
+    private static final int SAVE_DELETE_WIDTH = 28;
+
+    /** Prevent accidental click-through while replacing vanilla's title screen. */
     private static final long TRANSITION_CLICK_GUARD_NANOS = 650_000_000L;
 
     private final DAI_TitleScreenDefinition definition;
     private long acceptClicksAfterNanos;
+    private boolean wideSaveLayout;
+    private List<DAI_ExperienceLauncher.ExperienceSave> browserSaves = List.of();
+    private BrowserBounds browserBounds;
 
     public DAI_TitleScreen(DAI_TitleScreenDefinition definition) {
         super(Component.literal("Decisions & Impulses"));
@@ -41,6 +48,15 @@ public final class DAI_TitleScreen extends Screen {
         super.init();
 
         acceptClicksAfterNanos = System.nanoTime() + TRANSITION_CLICK_GUARD_NANOS;
+        DAI_TitleScreenDefinition.SaveBrowserDefinition saveBrowser = definition.saveBrowser();
+        if (saveBrowser.enabled() && !saveBrowser.experience().isBlank()) {
+            browserSaves = DAI_ExperienceLauncher.listSaves(saveBrowser.experience());
+        } else {
+            browserSaves = List.of();
+        }
+
+        wideSaveLayout = canShowSideSaveBrowser();
+        browserBounds = wideSaveLayout ? resolveBrowserBounds() : null;
 
         CompactLayout compact = buildCompactLayout();
         int centeredIndex = 0;
@@ -68,11 +84,19 @@ public final class DAI_TitleScreen extends Screen {
             );
         }
 
+        if (wideSaveLayout) {
+            addSaveBrowserWidgets();
+        } else if (saveBrowser.enabled() && !saveBrowser.experience().isBlank()) {
+            addCompactSaveBrowserButton();
+        }
+
         DAI_Core.debug(
-                "<DAI>: Initialized JSON title screen '{}' with {} button(s), compactLayout={}.",
+                "<DAI>: Initialized JSON title screen '{}' with {} button(s), compactLayout={}, saveBrowser={}, sideBySide={}.",
                 definition.id(),
                 definition.buttons().size(),
-                compact != null
+                compact != null,
+                saveBrowser.enabled(),
+                wideSaveLayout
         );
     }
 
@@ -86,18 +110,152 @@ public final class DAI_TitleScreen extends Screen {
                 y,
                 button,
                 pressed -> {
-                    if (System.nanoTime() < acceptClicksAfterNanos) {
-                        DAI_Core.debug(
-                                "<DAI>: Ignored title-screen button '{}' during transition click guard.",
-                                button.id()
-                        );
-                        return;
-                    }
+                    if (!acceptTitleClick(button.id())) return;
                     DAI_TitleActionDispatcher.run(this, button);
                 }
         );
 
         addRenderableWidget(widget);
+    }
+
+    private boolean acceptTitleClick(String id) {
+        if (System.nanoTime() >= acceptClicksAfterNanos) return true;
+        DAI_Core.debug(
+                "<DAI>: Ignored title-screen button '{}' during transition click guard.",
+                id
+        );
+        return false;
+    }
+
+    private void addSaveBrowserWidgets() {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        BrowserBounds bounds = browserBounds;
+        if (bounds == null) return;
+
+        int maxRowsByHeight = Math.max(1, (bounds.height() - 58) / (SAVE_ROW_HEIGHT + SAVE_ROW_GAP));
+        int rows = Math.min(browser.rows(), maxRowsByHeight);
+        int shown = Math.min(rows, browserSaves.size());
+        int rowX = bounds.x() + 8;
+        int rowY = bounds.y() + 31;
+        int entryWidth = bounds.width() - 16 - SAVE_DELETE_WIDTH - 5;
+
+        for (int i = 0; i < shown; i++) {
+            DAI_ExperienceLauncher.ExperienceSave save = browserSaves.get(i);
+            int y = rowY + i * (SAVE_ROW_HEIGHT + SAVE_ROW_GAP);
+
+            addRenderableWidget(new DAI_ExperienceSaveButton(
+                    rowX,
+                    y,
+                    entryWidth,
+                    SAVE_ROW_HEIGHT,
+                    browser,
+                    save,
+                    button -> {
+                        if (!acceptTitleClick("save:" + save.saveId())) return;
+                        DAI_ExperienceLauncher.continueSave(this, browser.experience(), save.saveId());
+                    }
+            ));
+
+            addRenderableWidget(new DAI_ExperienceDeleteButton(
+                    rowX + entryWidth + 5,
+                    y,
+                    SAVE_DELETE_WIDTH,
+                    SAVE_ROW_HEIGHT,
+                    browser,
+                    button -> {
+                        if (!acceptTitleClick("delete:" + save.saveId())) return;
+                        confirmDelete(save);
+                    }
+            ));
+        }
+
+        if (browserSaves.size() > shown) {
+            int y = bounds.y() + bounds.height() - 25;
+            DAI_TitleScreenDefinition.ButtonDefinition viewAll = browserButtonDefinition(
+                    "view_all_saves",
+                    "VIEW ALL (" + browserSaves.size() + ")",
+                    bounds.width() - 16,
+                    19
+            );
+            addRenderableWidget(new DAI_TitleButton(
+                    bounds.x() + 8,
+                    y,
+                    viewAll,
+                    button -> {
+                        if (!acceptTitleClick("view_all_saves")) return;
+                        openSaveBrowser();
+                    }
+            ));
+        }
+    }
+
+    private void addCompactSaveBrowserButton() {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        int width = 116;
+        int height = 20;
+        DAI_TitleScreenDefinition.ButtonDefinition compact = browserButtonDefinition(
+                "compact_save_browser",
+                browser.title(),
+                width,
+                height
+        );
+        addRenderableWidget(new DAI_TitleButton(
+                this.width - width - 8,
+                8,
+                compact,
+                button -> {
+                    if (!acceptTitleClick("compact_save_browser")) return;
+                    openSaveBrowser();
+                }
+        ));
+    }
+
+    private DAI_TitleScreenDefinition.ButtonDefinition browserButtonDefinition(
+            String id,
+            String label,
+            int width,
+            int height
+    ) {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        return new DAI_TitleScreenDefinition.ButtonDefinition(
+                id,
+                label,
+                "browser_internal",
+                "",
+                browser.experience(),
+                "center",
+                0,
+                0,
+                width,
+                height,
+                DAI_TitleScreenDefinition.IconDefinition.NONE,
+                new DAI_TitleScreenDefinition.StyleDefinition(
+                        browser.entryBackground(),
+                        browser.entryHover(),
+                        browser.entryBorder(),
+                        browser.textColor()
+                ),
+                DAI_TitleScreenDefinition.HoverAnimation.NONE
+        );
+    }
+
+    private void confirmDelete(DAI_ExperienceLauncher.ExperienceSave save) {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        String display = browser.entryPrefix() + " #" + save.sequence();
+        Minecraft.getInstance().gui.setScreen(new DAI_ExperienceDeleteConfirmScreen(
+                this,
+                new DAI_TitleScreen(definition),
+                browser.experience(),
+                save,
+                display
+        ));
+    }
+
+    private void openSaveBrowser() {
+        Minecraft.getInstance().gui.setScreen(new DAI_ExperienceSaveBrowserScreen(
+                this,
+                definition.saveBrowser()
+        ));
     }
 
     @Override
@@ -107,14 +265,27 @@ public final class DAI_TitleScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        graphics.fillGradient(
-                0,
-                0,
-                width,
-                height,
-                definition.backgroundTop(),
-                definition.backgroundBottom()
-        );
+        if ("mineshaft".equals(definition.theme()) || "mine".equals(definition.theme())) {
+            DAI_TitleMineShaftRenderer.render(
+                    graphics,
+                    width,
+                    height,
+                    definition.backgroundTop(),
+                    definition.backgroundBottom()
+            );
+        } else {
+            graphics.fillGradient(
+                    0,
+                    0,
+                    width,
+                    height,
+                    definition.backgroundTop(),
+                    definition.backgroundBottom()
+            );
+        }
+
+        renderButtonPanel(graphics);
+        renderSaveBrowserPanel(graphics);
 
         graphics.centeredText(
                 font,
@@ -133,6 +304,67 @@ public final class DAI_TitleScreen extends Screen {
         );
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderButtonPanel(GuiGraphicsExtractor graphics) {
+        if (!("mineshaft".equals(definition.theme()) || "mine".equals(definition.theme()))) return;
+        int column = buttonColumnWidth();
+        int panelX = wideSaveLayout
+                ? width / 2 - (definition.saveBrowser().width() + SAVE_LAYOUT_GAP) / 2 - column / 2 - 10
+                : width / 2 - column / 2 - 10;
+        int panelY = Math.max(subtitleY() + font.lineHeight + 7, height / 2 - 64);
+        int panelBottom = Math.min(height - 7, height / 2 + 139);
+        graphics.fill(panelX, panelY, panelX + column + 20, panelBottom, 0xB20B0907);
+        graphics.outline(panelX, panelY, column + 20, panelBottom - panelY, 0xFF765A34);
+    }
+
+    private void renderSaveBrowserPanel(GuiGraphicsExtractor graphics) {
+        if (!wideSaveLayout || browserBounds == null) return;
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        BrowserBounds bounds = browserBounds;
+
+        graphics.fill(
+                bounds.x(),
+                bounds.y(),
+                bounds.x() + bounds.width(),
+                bounds.y() + bounds.height(),
+                browser.background()
+        );
+        graphics.outline(bounds.x(), bounds.y(), bounds.width(), bounds.height(), browser.border());
+        graphics.text(
+                font,
+                Component.literal(browser.title()),
+                bounds.x() + 9,
+                bounds.y() + 10,
+                browser.titleColor()
+        );
+
+        Component count = Component.literal(browserSaves.size() + " SAVE" + (browserSaves.size() == 1 ? "" : "S"));
+        int countWidth = font.width(count);
+        graphics.text(
+                font,
+                count,
+                bounds.x() + bounds.width() - countWidth - 9,
+                bounds.y() + 10,
+                browser.mutedColor()
+        );
+
+        if (browserSaves.isEmpty()) {
+            graphics.centeredText(
+                    font,
+                    Component.literal("No MineShafts yet."),
+                    bounds.x() + bounds.width() / 2,
+                    bounds.y() + 69,
+                    browser.mutedColor()
+            );
+            graphics.centeredText(
+                    font,
+                    Component.literal("Start a new descent on the left."),
+                    bounds.x() + bounds.width() / 2,
+                    bounds.y() + 86,
+                    browser.mutedColor()
+            );
+        }
     }
 
     @Override
@@ -159,11 +391,16 @@ public final class DAI_TitleScreen extends Screen {
     }
 
     private int resolveX(DAI_TitleScreenDefinition.ButtonDefinition button) {
-        return switch (button.anchor()) {
-            case "top_left", "left" -> button.x();
-            case "top_right", "right" -> width - button.width() - button.x();
+        int base = switch (button.anchor()) {
+            case "top_left", "left", "bottom_left" -> button.x();
+            case "top_right", "right", "bottom_right" -> width - button.width() - button.x();
             default -> width / 2 - button.width() / 2 + button.x();
         };
+
+        if (wideSaveLayout && isCentered(button)) {
+            base -= (definition.saveBrowser().width() + SAVE_LAYOUT_GAP) / 2;
+        }
+        return base;
     }
 
     private int resolveY(DAI_TitleScreenDefinition.ButtonDefinition button) {
@@ -174,14 +411,37 @@ public final class DAI_TitleScreen extends Screen {
         };
     }
 
+    private boolean canShowSideSaveBrowser() {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        if (!browser.enabled() || browser.experience().isBlank()) return false;
+        int required = buttonColumnWidth() + SAVE_LAYOUT_GAP + browser.width() + SAVE_LAYOUT_MARGIN * 2;
+        return width >= required && height >= Math.max(250, browser.height() + 72);
+    }
+
+    private BrowserBounds resolveBrowserBounds() {
+        DAI_TitleScreenDefinition.SaveBrowserDefinition browser = definition.saveBrowser();
+        int column = buttonColumnWidth();
+        int total = column + SAVE_LAYOUT_GAP + browser.width();
+        int left = width / 2 - total / 2;
+        int x = left + column + SAVE_LAYOUT_GAP;
+        int preferredY = height / 2 + browser.y();
+        int minY = subtitleY() + font.lineHeight + 8;
+        int maxY = Math.max(minY, height - browser.height() - 8);
+        int y = Math.max(minY, Math.min(maxY, preferredY));
+        return new BrowserBounds(x, y, browser.width(), browser.height());
+    }
+
+    private int buttonColumnWidth() {
+        int max = 210;
+        for (DAI_TitleScreenDefinition.ButtonDefinition button : definition.buttons()) {
+            if (isCentered(button)) max = Math.max(max, button.width());
+        }
+        return max;
+    }
+
     /**
      * Builds a compact layout only when the JSON-defined centered stack would
      * run off the bottom of the current GUI-scaled screen.
-     *
-     * Instead of shifting the entire stack upward (which can collide with the
-     * subtitle), the compact layout keeps the first button below the subtitle,
-     * slightly reduces button height, and tightens the vertical step just
-     * enough for the final button to retain a bottom margin.
      */
     private CompactLayout buildCompactLayout() {
         List<DAI_TitleScreenDefinition.ButtonDefinition> centered = new ArrayList<>();
@@ -239,10 +499,6 @@ public final class DAI_TitleScreen extends Screen {
         }
 
         int totalHeight = buttonHeight * count + gap * Math.max(0, count - 1);
-
-        // Extremely short layouts can still exceed the available region even
-        // at the minimum supported button height. In that case, pin the first
-        // button as high as safely possible and keep the minimum gap.
         if (totalHeight > available) {
             firstY = Math.max(
                     minimumFirstY,
@@ -261,7 +517,7 @@ public final class DAI_TitleScreen extends Screen {
             DAI_TitleScreenDefinition.ButtonDefinition button
     ) {
         return switch (button.anchor()) {
-            case "top_left", "top_right", "top",
+            case "top_left", "top_right", "top", "left", "right",
                  "bottom_left", "bottom_right", "bottom" -> false;
             default -> true;
         };
@@ -292,6 +548,14 @@ public final class DAI_TitleScreen extends Screen {
             int firstY,
             int buttonHeight,
             int gap
+    ) {
+    }
+
+    private record BrowserBounds(
+            int x,
+            int y,
+            int width,
+            int height
     ) {
     }
 }

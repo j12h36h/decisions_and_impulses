@@ -56,6 +56,20 @@ public final class DAI_EntityRuntime {
         NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onServerTick);
     }
 
+    /**
+     * Called after DAI datapack definitions are hot-reloaded. Behavior
+     * sequences and spawn rules are looked up dynamically, so clearing only
+     * their scheduling cursors is enough to make the new graph take effect on
+     * the next server tick. One-time mutations of an already-existing mob
+     * (such as equipment already placed on it) are intentionally not replayed.
+     */
+    public static void onDefinitionsReloaded() {
+        BEHAVIOR_STATE.clear();
+        DAI_Core.LOGGER.info(
+                "<DAI>: Custom-entity runtime adopted reloaded behavior/spawn definitions."
+        );
+    }
+
     private static void onServerTick(ServerTickEvent.Post event) {
         var server = event.getServer();
         if (server == null) return;

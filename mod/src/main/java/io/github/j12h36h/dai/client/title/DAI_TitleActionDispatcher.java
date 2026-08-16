@@ -48,6 +48,14 @@ public final class DAI_TitleActionDispatcher {
                     parent,
                     definition.experience()
             );
+            case "start_new_experience" -> DAI_ExperienceLauncher.launchNew(
+                    parent,
+                    definition.experience()
+            );
+            case "continue_experience" -> DAI_ExperienceLauncher.continueLast(
+                    parent,
+                    definition.experience()
+            );
             case "open_url" -> openExternal(definition.url());
             case "reload_title_json" -> {
                 DAI_TitleScreenDefinition refreshed = DAI_TitleScreenRepository.reload();

@@ -10,6 +10,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,6 +34,7 @@ public final class DAI_RegistryWorldStore {
 
     public static void initialize() {
         NeoForge.EVENT_BUS.addListener(DAI_RegistryWorldStore::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(DAI_RegistryWorldStore::onServerStopped);
     }
 
     private static void onServerStarting(ServerStartingEvent event) {
@@ -43,6 +45,11 @@ public final class DAI_RegistryWorldStore {
 
         currentRoot = root;
         writeWorldState(root);
+    }
+
+    private static void onServerStopped(ServerStoppedEvent event) {
+        currentRoot = null;
+        DAI_RegistryPreflight.resetSession();
     }
 
     /** Refreshes the currently running world's manifest after a /reload. */
@@ -72,6 +79,11 @@ public final class DAI_RegistryWorldStore {
             writeSpecList(
                     root.resolve("pending.json"),
                     DAI_RegistryPreflight.pendingSpecs().values(),
+                    true
+            );
+            writeSpecList(
+                    root.resolve("removed.json"),
+                    DAI_RegistryPreflight.removedSpecs().values(),
                     true
             );
             writeSpecList(

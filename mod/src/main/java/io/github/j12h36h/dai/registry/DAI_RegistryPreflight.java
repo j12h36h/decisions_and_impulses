@@ -11,25 +11,34 @@ import java.util.Map;
 
 /**
  * Compares reloadable DAI content with the native ids discovered by the early
- * scanner for this JVM launch. Content already present on disk should pass on
- * first load. Only definitions introduced after static registry events have
- * fired fall back to staging for the next launch.
+ * scanner for this JVM launch.
+ *
+ * Runtime-only changes are immediately usable after a datapack reload. A
+ * restart is required only when a reload changes the native registry shell:
+ * adding a new id, removing an id that was active in this world, changing its
+ * registry kind, or changing properties that Minecraft baked into the native
+ * object during static registration.
  */
 public final class DAI_RegistryPreflight {
 
     private static Map<String, DAI_RegistrySpec> desired = Map.of();
     private static Map<String, DAI_RegistrySpec> pending = Map.of();
+    private static Map<String, DAI_RegistrySpec> removed = Map.of();
     private static Map<String, DAI_RegistrySpec> registered = Map.of();
 
     private static boolean restartRequired;
+    private static boolean evaluated;
 
     private DAI_RegistryPreflight() {}
 
-    public static void evaluate() {
+    public static synchronized void evaluate() {
         LinkedHashMap<String, DAI_RegistrySpec> desiredNow = new LinkedHashMap<>();
         LinkedHashMap<String, DAI_RegistrySpec> pendingNow = new LinkedHashMap<>();
+        LinkedHashMap<String, DAI_RegistrySpec> removedNow = new LinkedHashMap<>();
         LinkedHashMap<String, DAI_RegistrySpec> registeredNow = new LinkedHashMap<>();
 
+        Map<String, DAI_RegistrySpec> previousDesired = desired;
+        Map<String, DAI_RegistrySpec> previousRegistered = registered;
         Map<String, DAI_RegistrySpec> bootSpecs = DAI_DynamicRegistryBootstrap.bootSpecs();
 
         for (String contentId : DAI_ContentRegistry.ids()) {
@@ -52,17 +61,38 @@ public final class DAI_RegistryPreflight {
             }
         }
 
+        /*
+         * A native id cannot be physically unregistered after Minecraft's
+         * static registries freeze. On the first evaluation there is no
+         * previous world-live state to compare against. On subsequent
+         * /reload passes, however, a previously active native definition that
+         * disappeared is a real removal and therefore restart-bound.
+         *
+         * Runtime behavior is still disabled immediately because the content
+         * registry no longer contains the definition; this flag merely tells
+         * the user that the native shell remains until the next JVM launch.
+         */
+        if (evaluated) {
+            for (Map.Entry<String, DAI_RegistrySpec> previous : previousDesired.entrySet()) {
+                if (desiredNow.containsKey(previous.getKey())) continue;
+                if (!previousRegistered.containsKey(previous.getKey())) continue;
+                removedNow.put(previous.getKey(), previous.getValue());
+            }
+        }
+
         desired = Collections.unmodifiableMap(desiredNow);
         pending = Collections.unmodifiableMap(pendingNow);
+        removed = Collections.unmodifiableMap(removedNow);
         registered = Collections.unmodifiableMap(registeredNow);
-        restartRequired = !pending.isEmpty();
+        restartRequired = !pending.isEmpty() || !removed.isEmpty();
+        evaluated = true;
 
         DAI_RegistryCache.merge(desired.values());
         DAI_RegistryWorldStore.refreshCurrentWorld();
 
-        if (restartRequired) {
+        if (!pending.isEmpty()) {
             DAI_Core.LOGGER.warn(
-                    "<DAI>: Registry preflight found {} late native content id(s) that were added after startup. They are staged for the next launch.",
+                    "<DAI>: Registry preflight found {} native content definition(s) whose registry shell changed after startup. They are staged for the next launch.",
                     pending.size()
             );
             for (DAI_RegistrySpec spec : pending.values()) {
@@ -72,12 +102,38 @@ public final class DAI_RegistryPreflight {
                         spec.id()
                 );
             }
-        } else if (!desired.isEmpty()) {
+        }
+
+        if (!removed.isEmpty()) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Registry preflight found {} native content id(s) removed by hot reload. Their DAI behavior is disabled now, but the native registry shells remain until restart.",
+                    removed.size()
+            );
+            for (DAI_RegistrySpec spec : removed.values()) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Removed native {} '{}' is restart-bound.",
+                        spec.nativeRegistry().name().toLowerCase(),
+                        spec.id()
+                );
+            }
+        }
+
+        if (!restartRequired && !desired.isEmpty()) {
             DAI_Core.LOGGER.info(
-                    "<DAI>: Registry preflight passed: {} native DAI content id(s) available.",
+                    "<DAI>: Registry preflight passed: {} native DAI content id(s) available; runtime definitions are hot-reloadable.",
                     registered.size()
             );
         }
+    }
+
+    /** Clears world-session reload history without touching JVM registry shells. */
+    public static synchronized void resetSession() {
+        desired = Map.of();
+        pending = Map.of();
+        removed = Map.of();
+        registered = Map.of();
+        restartRequired = false;
+        evaluated = false;
     }
 
     public static boolean restartRequired() {
@@ -122,6 +178,10 @@ public final class DAI_RegistryPreflight {
 
     public static Map<String, DAI_RegistrySpec> pendingSpecs() {
         return pending;
+    }
+
+    public static Map<String, DAI_RegistrySpec> removedSpecs() {
+        return removed;
     }
 
     public static Map<String, DAI_RegistrySpec> registeredSpecs() {

@@ -20,10 +20,12 @@ public record DAI_TitleScreenDefinition(
         int priority,
         String title,
         String subtitle,
+        String theme,
         int backgroundTop,
         int backgroundBottom,
         int titleColor,
         int subtitleColor,
+        SaveBrowserDefinition saveBrowser,
         List<ButtonDefinition> buttons
 ) {
 
@@ -31,6 +33,8 @@ public record DAI_TitleScreenDefinition(
         id = safe(id, "decisions_and_impulses:default");
         title = safe(title, "DECISIONS & IMPULSES");
         subtitle = safe(subtitle, "The interface between humanity and automation.");
+        theme = safe(theme, "gradient").trim().toLowerCase(Locale.ROOT);
+        saveBrowser = saveBrowser == null ? SaveBrowserDefinition.DISABLED : saveBrowser;
         buttons = buttons == null ? List.of() : List.copyOf(buttons);
     }
 
@@ -43,6 +47,7 @@ public record DAI_TitleScreenDefinition(
         }
 
         JsonObject background = object(root, "background");
+        JsonObject saveBrowser = object(root, "experience_save_browser");
         JsonArray buttonArray = array(root, "buttons");
         List<ButtonDefinition> buttons = new ArrayList<>();
 
@@ -63,10 +68,12 @@ public record DAI_TitleScreenDefinition(
                 integer(root, "priority", 0),
                 string(root, "title", "DECISIONS & IMPULSES"),
                 string(root, "subtitle", "The interface between humanity and automation."),
+                string(root, "theme", "gradient"),
                 color(background, "top", 0xFF071018),
                 color(background, "bottom", 0xFF101E29),
                 color(root, "title_color", 0xFFFFFFFF),
                 color(root, "subtitle_color", 0xFF9EB6C7),
+                parseSaveBrowser(saveBrowser),
                 buttons
         );
     }
@@ -78,11 +85,42 @@ public record DAI_TitleScreenDefinition(
                 Integer.MIN_VALUE,
                 "DECISIONS & IMPULSES",
                 "The interface between humanity and automation.",
+                "gradient",
                 0xFF071018,
                 0xFF101E29,
                 0xFFFFFFFF,
                 0xFF9EB6C7,
+                SaveBrowserDefinition.DISABLED,
                 List.of()
+        );
+    }
+
+    private static SaveBrowserDefinition parseSaveBrowser(JsonObject object) {
+        if (object == null) return SaveBrowserDefinition.DISABLED;
+
+        JsonObject style = object(object, "style");
+        return new SaveBrowserDefinition(
+                bool(object, "enabled", true),
+                string(object, "experience", ""),
+                string(object, "title", "YOUR SAVES"),
+                string(object, "entry_prefix", "Run"),
+                string(object, "anchor", "right"),
+                integer(object, "x", 24),
+                integer(object, "y", -70),
+                integer(object, "width", 286),
+                integer(object, "height", 196),
+                integer(object, "rows", 3),
+                color(style, "background", 0xD0121110),
+                color(style, "border", 0xFF7E6337),
+                color(style, "title", 0xFFFFD36A),
+                color(style, "entry", 0xC01A1712),
+                color(style, "entry_hover", 0xE0352B1C),
+                color(style, "entry_border", 0xFF80683F),
+                color(style, "text", 0xFFFFFFFF),
+                color(style, "muted", 0xFFB7AA8D),
+                color(style, "delete", 0xC03A1717),
+                color(style, "delete_hover", 0xE06A2222),
+                color(style, "delete_border", 0xFFC96565)
         );
     }
 
@@ -129,6 +167,49 @@ public record DAI_TitleScreenDefinition(
                         decimal(hover, "amount", 1.0F)
                 )
         );
+    }
+
+    public record SaveBrowserDefinition(
+            boolean enabled,
+            String experience,
+            String title,
+            String entryPrefix,
+            String anchor,
+            int x,
+            int y,
+            int width,
+            int height,
+            int rows,
+            int background,
+            int border,
+            int titleColor,
+            int entryBackground,
+            int entryHover,
+            int entryBorder,
+            int textColor,
+            int mutedColor,
+            int deleteBackground,
+            int deleteHover,
+            int deleteBorder
+    ) {
+        static final SaveBrowserDefinition DISABLED = new SaveBrowserDefinition(
+                false, "", "YOUR SAVES", "Run", "right",
+                24, -70, 286, 196, 3,
+                0xD0121110, 0xFF7E6337, 0xFFFFD36A,
+                0xC01A1712, 0xE0352B1C, 0xFF80683F,
+                0xFFFFFFFF, 0xFFB7AA8D,
+                0xC03A1717, 0xE06A2222, 0xFFC96565
+        );
+
+        public SaveBrowserDefinition {
+            experience = safe(experience, "");
+            title = safe(title, "YOUR SAVES");
+            entryPrefix = safe(entryPrefix, "Run");
+            anchor = safe(anchor, "right").trim().toLowerCase(Locale.ROOT);
+            width = Math.max(210, width);
+            height = Math.max(116, height);
+            rows = Math.max(1, Math.min(6, rows));
+        }
     }
 
     public record ButtonDefinition(

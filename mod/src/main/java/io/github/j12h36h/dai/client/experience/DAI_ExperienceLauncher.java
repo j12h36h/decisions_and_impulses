@@ -20,9 +20,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
 /**
@@ -40,6 +43,200 @@ public final class DAI_ExperienceLauncher {
     private static PendingFresh pendingFresh;
 
     private DAI_ExperienceLauncher() {}
+
+    /**
+     * Starts a brand-new instance of an experience even when older matching
+     * saves already exist. Minecraft remains responsible for choosing a
+     * collision-safe save folder, so previous runs are never deleted here.
+     */
+    public static void launchNew(Screen parent, String experienceId) {
+        DAI_ExperienceRepository.reload();
+        DAI_WorldgenRepository.reload();
+
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null) {
+            DAI_Core.LOGGER.error("<DAI>: Unknown experience '{}'.", experienceId);
+            return;
+        }
+        if (!experience.createIfMissing()) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Experience '{}' does not permit fresh-world creation.",
+                    experience.id()
+            );
+            return;
+        }
+
+        Path sourcePack = findExperienceSourcePack(experience);
+        DAI_ExperienceRuntime.prepare(experience, true, sourcePack);
+        DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(experience.worldgen());
+
+        if (worldgen != null) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Fresh experience '{}' requests worldgen '{}' using world preset '{}'.",
+                    experience.id(), worldgen.id(), worldgen.worldPreset()
+            );
+        }
+
+        if (openFresh(parent, experience, worldgen)) return;
+        clearFreshLaunch();
+        DAI_Core.LOGGER.error(
+                "<DAI>: Could not open Minecraft's fresh-world flow for experience '{}'.",
+                experience.id()
+        );
+    }
+
+    /**
+     * Continues the most recently modified save belonging to this experience.
+     * If no prior run exists, gracefully starts the first fresh run instead.
+     */
+    public static void continueLast(Screen parent, String experienceId) {
+        DAI_ExperienceRepository.reload();
+        DAI_WorldgenRepository.reload();
+
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null) {
+            DAI_Core.LOGGER.error("<DAI>: Unknown experience '{}'.", experienceId);
+            return;
+        }
+
+        Path save = findLatestExperienceSave(experience);
+        boolean exists = save != null && Files.isRegularFile(save.resolve("level.dat"));
+        if (!exists) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Experience '{}' has no prior save; Continue will start a new run.",
+                    experience.id()
+            );
+            launchNew(parent, experienceId);
+            return;
+        }
+        if (!experience.loadIfExisting()) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Experience '{}' does not permit loading existing saves.",
+                    experience.id()
+            );
+            return;
+        }
+
+        Path sourcePack = findExperienceSourcePack(experience);
+        boolean firstJoin = markerRequiresFirstJoin(save);
+        DAI_ExperienceRuntime.prepare(experience, firstJoin, sourcePack);
+
+        if (openExisting(parent, save.getFileName().toString())) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Continuing latest experience '{}' save '{}'.",
+                    experience.id(), save.getFileName()
+            );
+            return;
+        }
+
+        DAI_ExperienceLaunchState.clear();
+        DAI_Core.LOGGER.error(
+                "<DAI>: Could not open latest experience '{}' save '{}'.",
+                experience.id(), save
+        );
+    }
+
+    /**
+     * Lists marker-verified saves belonging to an experience, newest first.
+     * This powers JSON-authored title-screen save browsers without exposing
+     * arbitrary Minecraft worlds to a datapack-defined UI.
+     */
+    public static List<ExperienceSave> listSaves(String experienceId) {
+        DAI_ExperienceRepository.reload();
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null) return List.of();
+
+        List<Path> paths = findExperienceSaves(experience);
+        List<ExperienceSave> output = new ArrayList<>(paths.size());
+        for (Path path : paths) {
+            String saveId = path.getFileName().toString();
+            output.add(new ExperienceSave(
+                    saveId,
+                    sequenceNumber(saveId, experience),
+                    saveModifiedTime(path)
+            ));
+        }
+        return List.copyOf(output);
+    }
+
+    /** Opens one explicitly selected, marker-verified experience save. */
+    public static void continueSave(Screen parent, String experienceId, String saveId) {
+        DAI_ExperienceRepository.reload();
+        DAI_WorldgenRepository.reload();
+
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null || saveId == null || saveId.isBlank()) {
+            DAI_Core.LOGGER.warn("<DAI>: Could not continue explicit experience save: experience='{}' save='{}'.", experienceId, saveId);
+            return;
+        }
+
+        Path save = savesDirectory().resolve(saveId).normalize();
+        Path root = savesDirectory().normalize();
+        if (!save.startsWith(root)
+                || !Files.isDirectory(save)
+                || !Files.isRegularFile(save.resolve("level.dat"))
+                || !markerMatches(save, experience)) {
+            DAI_Core.LOGGER.warn("<DAI>: Refused explicit experience save '{}' because it is missing or not owned by '{}'.", saveId, experience.id());
+            return;
+        }
+
+        if (!experience.loadIfExisting()) {
+            DAI_Core.LOGGER.warn("<DAI>: Experience '{}' does not permit loading existing saves.", experience.id());
+            return;
+        }
+
+        Path sourcePack = findExperienceSourcePack(experience);
+        DAI_ExperienceRuntime.prepare(experience, markerRequiresFirstJoin(save), sourcePack);
+        if (openExisting(parent, saveId)) {
+            DAI_Core.LOGGER.info("<DAI>: Continuing selected experience '{}' save '{}'.", experience.id(), saveId);
+            return;
+        }
+
+        DAI_ExperienceLaunchState.clear();
+        DAI_Core.LOGGER.error("<DAI>: Could not open selected experience '{}' save '{}'.", experience.id(), saveId);
+    }
+
+    /**
+     * Permanently deletes one marker-verified save. The ownership check is
+     * deliberately repeated here so a JSON title screen cannot delete an
+     * unrelated Minecraft world by supplying its folder name.
+     */
+    public static boolean deleteSave(String experienceId, String saveId) {
+        DAI_ExperienceRepository.reload();
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null || saveId == null || saveId.isBlank()) return false;
+
+        Path root = savesDirectory().normalize();
+        Path save = root.resolve(saveId).normalize();
+        if (!save.startsWith(root)
+                || !Files.isDirectory(save)
+                || !markerMatches(save, experience)) {
+            DAI_Core.LOGGER.warn("<DAI>: Refused to delete save '{}' because it is not marker-owned by '{}'.", saveId, experience.id());
+            return false;
+        }
+
+        try {
+            List<Path> paths;
+            try (var walk = Files.walk(save)) {
+                paths = walk.sorted(Comparator.reverseOrder()).toList();
+            }
+            for (Path path : paths) {
+                Files.deleteIfExists(path);
+            }
+            DAI_Core.LOGGER.info("<DAI>: Deleted experience '{}' save '{}'.", experience.id(), saveId);
+            return true;
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.error("<DAI>: Failed to delete experience '{}' save '{}'.", experience.id(), saveId, exception);
+            return false;
+        }
+    }
+
+    public record ExperienceSave(String saveId, int sequence, long modifiedTime) {
+        public ExperienceSave {
+            saveId = saveId == null ? "" : saveId;
+            sequence = Math.max(1, sequence);
+        }
+    }
 
     public static void launch(Screen parent, String experienceId) {
         DAI_ExperienceRepository.reload();
@@ -393,6 +590,66 @@ public final class DAI_ExperienceLauncher {
         );
     }
 
+    private static Path findLatestExperienceSave(DAI_ExperienceDefinition experience) {
+        List<Path> candidates = new ArrayList<>(findExperienceSaves(experience));
+
+        // Preserve the pre-browser compatibility path for interrupted/legacy
+        // preferred saves that were created before DAI wrote experience markers.
+        Path preferred = savesDirectory().resolve(sanitizeSaveId(experience.saveId()));
+        if (Files.isRegularFile(preferred.resolve("level.dat")) && !candidates.contains(preferred)) {
+            candidates.add(preferred);
+        }
+
+        candidates.sort(Comparator
+                .comparingLong(DAI_ExperienceLauncher::saveModifiedTime)
+                .reversed()
+                .thenComparing(path -> path.getFileName().toString(), String.CASE_INSENSITIVE_ORDER));
+        return candidates.isEmpty() ? null : candidates.get(0);
+    }
+
+    private static List<Path> findExperienceSaves(DAI_ExperienceDefinition experience) {
+        Path saves = savesDirectory();
+        if (!Files.isDirectory(saves) || experience == null) return List.of();
+
+        List<Path> candidates = new ArrayList<>();
+        try (var stream = Files.list(saves)) {
+            stream
+                    .filter(Files::isDirectory)
+                    .filter(path -> Files.isRegularFile(path.resolve("level.dat")))
+                    .filter(path -> markerMatches(path, experience))
+                    .forEach(candidates::add);
+        } catch (Exception exception) {
+            DAI_Core.debug("<DAI>: Could not scan experience save markers: {}", exception.toString());
+        }
+
+        candidates.sort(Comparator
+                .comparingLong(DAI_ExperienceLauncher::saveModifiedTime)
+                .reversed()
+                .thenComparing(path -> path.getFileName().toString(), String.CASE_INSENSITIVE_ORDER));
+        return List.copyOf(candidates);
+    }
+
+    private static long saveModifiedTime(Path save) {
+        if (save == null) return Long.MIN_VALUE;
+        Path marker = save.resolve("dai").resolve("experience.json");
+        Path level = save.resolve("level.dat");
+        long modified = Long.MIN_VALUE;
+        try {
+            if (Files.isRegularFile(marker)) {
+                modified = Math.max(modified, Files.getLastModifiedTime(marker).toMillis());
+            }
+            if (Files.isRegularFile(level)) {
+                modified = Math.max(modified, Files.getLastModifiedTime(level).toMillis());
+            }
+            if (Files.isDirectory(save)) {
+                modified = Math.max(modified, Files.getLastModifiedTime(save).toMillis());
+            }
+        } catch (Exception ignored) {
+            // Preserve the best timestamp obtained so far.
+        }
+        return modified;
+    }
+
     private static Path findExperienceSave(DAI_ExperienceDefinition experience) {
         Path saves = savesDirectory();
         Path preferred = saves.resolve(sanitizeSaveId(experience.saveId()));
@@ -524,6 +781,39 @@ public final class DAI_ExperienceLauncher {
         } catch (Exception ignored) {
             return false;
         }
+    }
+
+    private static int sequenceNumber(String saveId, DAI_ExperienceDefinition experience) {
+        String base = sanitizeSaveId(experience == null ? "" : experience.saveId());
+        if (saveId == null || saveId.isBlank() || saveId.equalsIgnoreCase(base)) return 1;
+
+        Pattern parenthetical = Pattern.compile(
+                "^" + Pattern.quote(base) + "\\s*\\((\\d+)\\)$",
+                Pattern.CASE_INSENSITIVE
+        );
+        Matcher matcher = parenthetical.matcher(saveId);
+        if (matcher.matches()) {
+            try {
+                return Math.max(1, Integer.parseInt(matcher.group(1)) + 1);
+            } catch (NumberFormatException ignored) {
+                return 1;
+            }
+        }
+
+        Pattern numeric = Pattern.compile(
+                "^" + Pattern.quote(base) + "[-_ ]+(\\d+)$",
+                Pattern.CASE_INSENSITIVE
+        );
+        matcher = numeric.matcher(saveId);
+        if (matcher.matches()) {
+            try {
+                return Math.max(1, Integer.parseInt(matcher.group(1)));
+            } catch (NumberFormatException ignored) {
+                return 1;
+            }
+        }
+
+        return Math.max(1, Math.abs(saveId.toLowerCase(Locale.ROOT).hashCode() % 999) + 1);
     }
 
     private static void clearFreshLaunch() {

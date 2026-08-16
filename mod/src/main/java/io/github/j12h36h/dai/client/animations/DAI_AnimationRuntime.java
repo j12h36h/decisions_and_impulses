@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
 import io.github.j12h36h.dai.animations.DAI_AnimationSink;
 
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
+import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 
@@ -145,6 +146,95 @@ public final class DAI_AnimationRuntime {
         completions.forEach(Runnable::run);
     }
 
+
+    /**
+     * Rebinds active animations to the definitions produced by the latest
+     * datapack reload. Removed animations stop immediately; edited tracks,
+     * markers, duration, priority, and looping rules become live without a
+     * game restart.
+     */
+    public static void rebindReloadedDefinitions() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.level == null || ACTIVE.isEmpty()) return;
+
+        int rebound = 0;
+        int removed = 0;
+
+        for (Map.Entry<Integer, Map<String, Active>> entityEntry : new ArrayList<>(ACTIVE.entrySet())) {
+            Entity entity = minecraft.level.getEntity(entityEntry.getKey());
+            Map<String, Active> previousChannels = entityEntry.getValue();
+            if (previousChannels == null) continue;
+
+            Map<String, Active> refreshedChannels = new HashMap<>();
+
+            for (Active active : new ArrayList<>(previousChannels.values())) {
+                DAI_AnimationDefinition refreshed = DAI_AnimationRegistry.get(active.id);
+                if (refreshed == null) {
+                    if (entity != null) {
+                        for (DAI_AnimationSink sink : List.copyOf(SINKS)) {
+                            sink.onStop(entity, active.id, active.definition);
+                        }
+                        FINISHED.add(finishKey(entity, active.id));
+                    }
+                    removed++;
+                    continue;
+                }
+
+                active.definition = refreshed;
+                if (active.tick >= refreshed.durationTicks()) {
+                    if (refreshed.loop()) {
+                        active.tick = Math.floorMod(active.tick, Math.max(1, refreshed.durationTicks()));
+                        active.firedMarkers.clear();
+                    } else {
+                        if (entity != null) {
+                            for (DAI_AnimationSink sink : List.copyOf(SINKS)) {
+                                sink.onStop(entity, active.id, refreshed);
+                            }
+                            FINISHED.add(finishKey(entity, active.id));
+                        }
+                        removed++;
+                        continue;
+                    }
+                }
+
+                Active collision = refreshedChannels.get(refreshed.channel());
+                if (collision == null || refreshed.priority() >= collision.definition.priority()) {
+                    if (collision != null && entity != null) {
+                        for (DAI_AnimationSink sink : List.copyOf(SINKS)) {
+                            sink.onStop(entity, collision.id, collision.definition);
+                        }
+                        FINISHED.add(finishKey(entity, collision.id));
+                        removed++;
+                    }
+                    refreshedChannels.put(refreshed.channel(), active);
+                    rebound++;
+                } else {
+                    if (entity != null) {
+                        for (DAI_AnimationSink sink : List.copyOf(SINKS)) {
+                            sink.onStop(entity, active.id, refreshed);
+                        }
+                        FINISHED.add(finishKey(entity, active.id));
+                    }
+                    removed++;
+                }
+            }
+
+            if (refreshedChannels.isEmpty()) {
+                ACTIVE.remove(entityEntry.getKey());
+            } else {
+                ACTIVE.put(entityEntry.getKey(), refreshedChannels);
+            }
+        }
+
+        if (rebound > 0 || removed > 0) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Hot reload rebound {} active animation(s); {} stale/removed animation(s) were stopped.",
+                    rebound,
+                    removed
+            );
+        }
+    }
+
     public static void clear() {
         ACTIVE.clear();
         FINISHED.clear();
@@ -181,7 +271,7 @@ public final class DAI_AnimationRuntime {
 
     private static final class Active {
         private final String id;
-        private final DAI_AnimationDefinition definition;
+        private DAI_AnimationDefinition definition;
         private int tick;
         private boolean paused;
         private final Set<String> firedMarkers = new HashSet<>();

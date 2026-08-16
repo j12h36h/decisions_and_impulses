@@ -14,8 +14,9 @@ import java.util.Map;
  * vanilla/modded carrier. Setting registry_backed=true opts the identity into
  * DAI's native-registry flow. Definitions already installed on disk are
  * discovered during early mod bootstrap and registered in the same Minecraft
- * launch. Definitions added after static registries have already fired are
- * staged as the fallback for the next launch.
+ * launch. Runtime-only fields still hot-reload normally. Adding/removing a
+ * native id, or editing fields baked into its native registry shell, is staged
+ * for the next launch because Minecraft's static registry has already frozen.
  */
 public record DAI_ContentDefinition(
         String carrier,
