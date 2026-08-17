@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.server.entity;
 
 import io.github.j12h36h.dai.entity.DAI_EntitySettings;
 import io.github.j12h36h.dai.entity.DAI_EntitySpawnSettings;
+import io.github.j12h36h.dai.entity.DAI_EntityMovementSettings;
+import io.github.j12h36h.dai.entity.DAI_EntityPortalSettings;
 import io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry;
 
 import io.github.j12h36h.dai.content.DAI_ContentKind;
@@ -11,7 +13,11 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.logics.action.DAI_ActionReference;
 import io.github.j12h36h.dai.logics.condition.DAI_ConditionDefinition;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationDefinition;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
+import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -20,12 +26,16 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -36,6 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Locale;
 
 /**
  * Runtime bridge between JSON entity definitions and Minecraft mobs.
@@ -49,6 +62,8 @@ public final class DAI_EntityRuntime {
 
     private static long serverTicks;
     private static final Map<UUID, BehaviorState> BEHAVIOR_STATE = new HashMap<>();
+    private static final Map<UUID, MovementState> MOVEMENT_STATE = new HashMap<>();
+    private static final Map<UUID, Long> PORTAL_COOLDOWNS = new HashMap<>();
     private static final Set<UUID> INITIALIZED_GAMEPLAY = new HashSet<>();
 
     private DAI_EntityRuntime() {}
@@ -66,6 +81,7 @@ public final class DAI_EntityRuntime {
      */
     public static void onDefinitionsReloaded() {
         BEHAVIOR_STATE.clear();
+        MOVEMENT_STATE.clear();
         DAI_Core.LOGGER.info(
                 "<DAI>: Custom-entity runtime adopted reloaded behavior/spawn definitions."
         );
@@ -97,6 +113,8 @@ public final class DAI_EntityRuntime {
 
                 DAI_EntitySettings settings = entry.definition().entity();
                 initializeGameplay(mob, settings);
+                tickMovement(mob, settings.movement());
+                tickPortal(mob, settings.portal());
                 if (settings.behaviorSequence().isBlank()) continue;
 
                 BehaviorState state = BEHAVIOR_STATE.computeIfAbsent(
@@ -119,6 +137,10 @@ public final class DAI_EntityRuntime {
         if (!settings.vanillaAi()) {
             disableVanillaGoals(mob);
         }
+
+        DAI_EntityMovementSettings movement = settings.movement();
+        mob.setNoGravity(movement.noGravity());
+        setNoPhysics(mob, movement.noCollision());
 
         for (String raw : settings.gameplay().equipment()) {
             if (raw == null || raw.isBlank()) continue;
@@ -173,6 +195,269 @@ public final class DAI_EntityRuntime {
             case "feet", "boots" -> EquipmentSlot.FEET;
             default -> null;
         };
+    }
+
+
+    private static void tickMovement(
+            Mob mob,
+            DAI_EntityMovementSettings movement
+    ) {
+        if (mob == null || movement == null || !movement.ownsMovement()) return;
+
+        // These two shell-level flags are cheap to reapply and therefore hot-
+        // reload cleanly even for already-spawned portal entities.
+        mob.setNoGravity(movement.noGravity());
+        setNoPhysics(mob, movement.noCollision());
+
+        MovementState state = MOVEMENT_STATE.computeIfAbsent(
+                mob.getUUID(), ignored -> new MovementState()
+        );
+        String type = movement.type();
+        Player player = nearestPlayer(mob, Math.max(48.0D, movement.radius() * 4.0D));
+
+        if (movement.lookAtPlayer() && player != null) {
+            mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
+        }
+
+        switch (type) {
+            case "stationary", "fixed" -> {
+                mob.getNavigation().stop();
+                if (movement.noGravity()) mob.setDeltaMovement(Vec3.ZERO);
+            }
+            case "drift" -> {
+                Vec3 direction = new Vec3(
+                        movement.driftX(), movement.driftY(), movement.driftZ()
+                );
+                if (direction.lengthSqr() > 1.0E-8D) {
+                    mob.setDeltaMovement(direction.normalize().scale(movement.speed()));
+                }
+            }
+            case "follow", "follow_player" -> {
+                if (player != null) moveToward(mob, player.position(), movement.speed(), movement.flyingStyle());
+            }
+            case "flee", "flee_player", "avoid_player" -> {
+                if (player != null) {
+                    Vec3 away = mob.position().subtract(player.position());
+                    if (away.lengthSqr() < 1.0E-8D) away = new Vec3(1.0D, 0.0D, 0.0D);
+                    Vec3 destination = mob.position().add(away.normalize().scale(Math.max(2.0D, movement.radius())));
+                    moveToward(mob, destination, movement.speed(), movement.flyingStyle());
+                }
+            }
+            case "orbit", "orbit_player" -> {
+                if (player != null) {
+                    Vec3 radial = mob.position().subtract(player.position());
+                    if (radial.lengthSqr() < 1.0E-8D) radial = new Vec3(movement.radius(), 0.0D, 0.0D);
+                    Vec3 horizontal = new Vec3(radial.x, 0.0D, radial.z);
+                    if (horizontal.lengthSqr() < 1.0E-8D) horizontal = new Vec3(1.0D, 0.0D, 0.0D);
+                    Vec3 tangent = new Vec3(-horizontal.z, 0.0D, horizontal.x).normalize();
+                    double desiredRadius = Math.max(0.5D, movement.radius());
+                    double error = horizontal.length() - desiredRadius;
+                    Vec3 correction = horizontal.normalize().scale(-error * 0.08D);
+                    Vec3 velocity = tangent.scale(movement.speed()).add(correction);
+                    double yError = player.getY() - mob.getY();
+                    velocity = velocity.add(0.0D, Math.max(-movement.verticalRange(), Math.min(movement.verticalRange(), yError)) * 0.03D, 0.0D);
+                    mob.setDeltaMovement(velocity);
+                }
+            }
+            case "wander", "floating_wander" -> {
+                if (serverTicks < state.nextTick) return;
+                state.nextTick = serverTicks + movement.intervalTicks();
+                Vec3 destination = randomDestination(mob, movement.radius(), movement.verticalRange());
+                moveToward(mob, destination, movement.speed(), movement.flyingStyle() || type.equals("floating_wander"));
+            }
+            case "relocate", "blink", "teleport_wander" -> {
+                if (serverTicks < state.nextTick) return;
+                state.nextTick = serverTicks + movement.intervalTicks();
+                Vec3 destination = randomDestination(mob, movement.radius(), movement.verticalRange());
+                mob.getNavigation().stop();
+                mob.setPos(destination.x, destination.y, destination.z);
+                mob.setDeltaMovement(Vec3.ZERO);
+            }
+            default -> { }
+        }
+    }
+
+    private static Vec3 randomDestination(Mob mob, double radius, double verticalRange) {
+        var random = mob.getRandom();
+        double x = mob.getX() + (random.nextDouble() * 2.0D - 1.0D) * radius;
+        double y = mob.getY() + (random.nextDouble() * 2.0D - 1.0D) * verticalRange;
+        double z = mob.getZ() + (random.nextDouble() * 2.0D - 1.0D) * radius;
+        return new Vec3(x, y, z);
+    }
+
+    private static void moveToward(Mob mob, Vec3 destination, double speed, boolean flying) {
+        if (flying) {
+            Vec3 delta = destination.subtract(mob.position());
+            if (delta.lengthSqr() > 1.0E-8D) {
+                mob.setDeltaMovement(delta.normalize().scale(speed));
+            }
+            return;
+        }
+        mob.getNavigation().moveTo(destination.x, destination.y, destination.z, Math.max(0.05D, speed));
+    }
+
+    private static void tickPortal(
+            Mob portalEntity,
+            DAI_EntityPortalSettings portal
+    ) {
+        if (portalEntity == null || portal == null || !portal.enabled() || portal.destination().isBlank()) return;
+        if (!(portalEntity.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+
+        AABB trigger = portalEntity.getBoundingBox().inflate(portal.triggerRadius());
+        for (ServerPlayer player : level.getEntitiesOfClass(
+                ServerPlayer.class,
+                trigger,
+                value -> value.isAlive() && !value.isSpectator()
+        )) {
+            long readyTick = PORTAL_COOLDOWNS.getOrDefault(player.getUUID(), 0L);
+            if (serverTicks < readyTick) continue;
+            if (player.distanceToSqr(portalEntity) > portal.triggerRadius() * portal.triggerRadius()) continue;
+
+            if (teleportThroughPortal(player, portalEntity, portal)) {
+                PORTAL_COOLDOWNS.put(player.getUUID(), serverTicks + portal.cooldownTicks());
+            }
+        }
+    }
+
+    private static boolean teleportThroughPortal(
+            ServerPlayer player,
+            Mob portalEntity,
+            DAI_EntityPortalSettings portal
+    ) {
+        MinecraftServer server = player.level().getServer();
+        if (server == null) return false;
+
+        Destination destination = resolvePortalDestination(portal.destination());
+        Identifier dimensionId = Identifier.tryParse(destination.dimension());
+        if (dimensionId == null) {
+            DAI_Core.LOGGER.warn("<DAI>: Portal entity '{}' requested invalid dimension '{}'.", portalEntity.getType(), destination.dimension());
+            return false;
+        }
+
+        ResourceKey<Level> dimensionKey = ResourceKey.create(Registries.DIMENSION, dimensionId);
+        if (server.getLevel(dimensionKey) == null) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Portal entity '{}' cannot enter unloaded/missing dimension '{}'. Generated DAI dimensions require a world reload/restart after their source JSON changes.",
+                    portalEntity.getType(), destination.dimension()
+            );
+            return false;
+        }
+
+        Vec3 target = switch (portal.targetMode()) {
+            case "fixed" -> new Vec3(portal.x(), portal.y(), portal.z());
+            case "relative", "offset" -> player.position().add(portal.x(), portal.y(), portal.z());
+            case "portal_relative" -> portalEntity.position().add(portal.x(), portal.y(), portal.z());
+            case "dimension_default" -> destination.target() == null ? player.position() : destination.target();
+            default -> player.position();
+        };
+
+        Vec3 velocity = player.getDeltaMovement();
+        float yaw = portal.preserveRotation() ? player.getYRot() : portal.yaw();
+        float pitch = portal.preserveRotation() ? player.getXRot() : portal.pitch();
+
+        if (!portal.enterCommand().isBlank()) {
+            performServerCommand(player, portal.enterCommand());
+        }
+
+        String command = "execute in " + destination.dimension() + " run tp @s "
+                + target.x + " " + target.y + " " + target.z + " " + yaw + " " + pitch;
+        if (!performServerCommand(player, command)) return false;
+
+        if (portal.preserveVelocity()) {
+            player.setDeltaMovement(velocity);
+        }
+
+        if (!portal.exitCommand().isBlank()) {
+            performServerCommand(player, portal.exitCommand());
+        }
+
+        return true;
+    }
+
+    private static Destination resolvePortalDestination(String requested) {
+        String normalized = requested == null ? "" : requested.trim().toLowerCase(Locale.ROOT);
+        DAI_GameCustomizationRegistry.Entry entry =
+                DAI_GameCustomizationRegistry.get(DAI_GameCustomizationKind.DIMENSION, normalized);
+        if (entry == null) return new Destination(normalized, null);
+
+        DAI_GameCustomizationDefinition definition = entry.definition();
+        String dimension = definition.carrier().isBlank()
+                ? entry.id().toString()
+                : definition.carrier();
+        return new Destination(dimension, parseTarget(definition.target()));
+    }
+
+    private static Vec3 parseTarget(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String[] split = raw.trim().split("\\s+");
+        if (split.length < 3) return null;
+        try {
+            return new Vec3(
+                    Double.parseDouble(split[0]),
+                    Double.parseDouble(split[1]),
+                    Double.parseDouble(split[2])
+            );
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private static boolean performServerCommand(ServerPlayer actor, String rawCommand) {
+        MinecraftServer server = actor.level().getServer();
+        if (server == null) return false;
+        String command = rawCommand == null ? "" : rawCommand.trim();
+        while (command.startsWith("/")) command = command.substring(1);
+        if (command.isBlank()) return true;
+
+        Object source = server.createCommandSourceStack();
+        Object quiet = invokeNoArg(source, "withSuppressedOutput");
+        if (quiet != null) source = quiet;
+
+        String wrapped = "execute as " + actor.getUUID() + " at @s run " + command;
+        Object commands = server.getCommands();
+        for (Method method : commands.getClass().getMethods()) {
+            String name = method.getName();
+            if (!name.equals("performPrefixedCommand") && !name.equals("performCommand")) continue;
+            Class<?>[] types = method.getParameterTypes();
+            if (types.length != 2 || types[1] != String.class || !types[0].isInstance(source)) continue;
+            try {
+                method.invoke(commands, source, wrapped);
+                return true;
+            } catch (ReflectiveOperationException exception) {
+                DAI_Core.LOGGER.warn("<DAI>: Portal command '{}' failed.", command, exception);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static Object invokeNoArg(Object target, String name) {
+        if (target == null) return null;
+        try {
+            Method method = target.getClass().getMethod(name);
+            return method.invoke(target);
+        } catch (Throwable ignored) { }
+        try {
+            Method method = target.getClass().getDeclaredMethod(name);
+            if (!method.canAccess(target) && !method.trySetAccessible()) return null;
+            return method.invoke(target);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static void setNoPhysics(Mob mob, boolean value) {
+        Class<?> type = mob.getClass();
+        while (type != null && type != Object.class) {
+            try {
+                Field field = type.getDeclaredField("noPhysics");
+                if (!field.canAccess(mob) && !field.trySetAccessible()) return;
+                field.setBoolean(mob, value);
+                return;
+            } catch (ReflectiveOperationException ignored) {
+                type = type.getSuperclass();
+            }
+        }
     }
 
     private static void runNextBehaviorAction(
@@ -551,6 +836,12 @@ public final class DAI_EntityRuntime {
             }
         }
         return false;
+    }
+
+    private record Destination(String dimension, Vec3 target) {}
+
+    private static final class MovementState {
+        private long nextTick;
     }
 
     private static final class BehaviorState {

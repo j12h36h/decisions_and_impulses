@@ -137,8 +137,8 @@ public final class DAI_Config {
     public static final ModConfigSpec.BooleanValue AUTO_ENABLE_ADDONS =
             BUILDER
                     .comment(
-                            "Automatically include every discovered DAI ADDON datapack when launching a main experience. "
-                                    + "Already-selected world datapacks are left alone when this is disabled."
+                            "Automatically include every discovered DAI ADDON datapack in DAI experiences and ordinary worlds. "
+                                    + "Existing world datapack selections are preserved; disabling this stops automatic addon layering."
                     )
                     .define(
                             "autoEnableAddons",

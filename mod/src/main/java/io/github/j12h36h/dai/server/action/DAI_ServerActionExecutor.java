@@ -296,7 +296,7 @@ public final class DAI_ServerActionExecutor {
         }
 
         if (dispatch.isBlank()) {
-            dispatch = defaultCustomizationCommand(kind, eventName, definition, value, runtimeTarget);
+            dispatch = defaultCustomizationCommand(kind, entry.id().toString(), eventName, definition, value, runtimeTarget);
         }
 
         if (dispatch.isBlank()) {
@@ -330,6 +330,7 @@ public final class DAI_ServerActionExecutor {
 
     private static String defaultCustomizationCommand(
             DAI_GameCustomizationKind kind,
+            String definitionId,
             String event,
             DAI_GameCustomizationDefinition definition,
             double value,
@@ -394,9 +395,12 @@ public final class DAI_ServerActionExecutor {
                         ? "command:tag @s remove " + tag
                         : "command:tag @s add " + tag;
             }
-            case DIMENSION -> carrier.isBlank()
-                    ? ""
-                    : "command:execute in " + carrier + " run tp @s " + target;
+            case DIMENSION -> {
+                String dimension = carrier.isBlank() ? normalize(definitionId) : carrier;
+                yield dimension.isBlank()
+                        ? ""
+                        : "command:execute in " + dimension + " run tp @s " + target;
+            }
             case VEHICLE -> {
                 if (event.equals("dismount")) yield "command:ride @s dismount";
                 if (carrier.isBlank()) yield "";

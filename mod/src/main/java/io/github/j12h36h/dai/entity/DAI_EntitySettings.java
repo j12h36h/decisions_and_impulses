@@ -18,7 +18,9 @@ public record DAI_EntitySettings(
         int behaviorInterval,
         boolean vanillaAi,
         DAI_EntitySpawnSettings spawning,
-        DAI_EntityGameplaySettings gameplay
+        DAI_EntityGameplaySettings gameplay,
+        DAI_EntityMovementSettings movement,
+        DAI_EntityPortalSettings portal
 ) {
 
     public static final DAI_EntitySettings DEFAULT =
@@ -26,7 +28,9 @@ public record DAI_EntitySettings(
                     "creature", 0.6F, 1.0F, 8, 3,
                     false, true, true, "", "", 10, true,
                     DAI_EntitySpawnSettings.DISABLED,
-                    DAI_EntityGameplaySettings.DEFAULT
+                    DAI_EntityGameplaySettings.DEFAULT,
+                    DAI_EntityMovementSettings.DEFAULT,
+                    DAI_EntityPortalSettings.DISABLED
             );
 
     public static final Codec<DAI_EntitySettings> CODEC =
@@ -44,7 +48,9 @@ public record DAI_EntitySettings(
                     Codec.INT.optionalFieldOf("behavior_interval", 10).forGetter(DAI_EntitySettings::behaviorInterval),
                     Codec.BOOL.optionalFieldOf("vanilla_ai", true).forGetter(DAI_EntitySettings::vanillaAi),
                     DAI_EntitySpawnSettings.CODEC.optionalFieldOf("spawning", DAI_EntitySpawnSettings.DISABLED).forGetter(DAI_EntitySettings::spawning),
-                    DAI_EntityGameplaySettings.CODEC.optionalFieldOf("gameplay", DAI_EntityGameplaySettings.DEFAULT).forGetter(DAI_EntitySettings::gameplay)
+                    DAI_EntityGameplaySettings.CODEC.optionalFieldOf("gameplay", DAI_EntityGameplaySettings.DEFAULT).forGetter(DAI_EntitySettings::gameplay),
+                    DAI_EntityMovementSettings.CODEC.optionalFieldOf("movement", DAI_EntityMovementSettings.DEFAULT).forGetter(DAI_EntitySettings::movement),
+                    DAI_EntityPortalSettings.CODEC.optionalFieldOf("portal", DAI_EntityPortalSettings.DISABLED).forGetter(DAI_EntitySettings::portal)
             ).apply(instance, DAI_EntitySettings::new));
 
     public DAI_EntitySettings {
@@ -58,6 +64,8 @@ public record DAI_EntitySettings(
         behaviorInterval = Math.max(1, behaviorInterval);
         spawning = spawning == null ? DAI_EntitySpawnSettings.DISABLED : spawning;
         gameplay = gameplay == null ? DAI_EntityGameplaySettings.DEFAULT : gameplay;
+        movement = movement == null ? DAI_EntityMovementSettings.DEFAULT : movement;
+        portal = portal == null ? DAI_EntityPortalSettings.DISABLED : portal;
     }
 
     private static String normalize(String value, String fallback) {

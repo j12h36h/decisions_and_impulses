@@ -47,12 +47,20 @@ public final class DAI_WorldgenRuntime {
     }
 
     private static void onServerStarted(ServerStartedEvent event) {
-        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
-        if (pending == null) return;
-
         MinecraftServer server = event.getServer();
-        DAI_ExperienceDefinition experience = pending.definition();
         Path root = server.getWorldPath(LevelResource.ROOT);
+        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+
+        if (pending == null) {
+            // Global ADDON packs are useful outside a MAIN experience too.
+            // Standalone worlds therefore receive the same globally installed
+            // addon library, but without applying MAIN exclusivity or touching
+            // any datapack the world already selected itself.
+            installStandaloneAddonStack(server, root);
+            return;
+        }
+
+        DAI_ExperienceDefinition experience = pending.definition();
         currentWorldRoot = root;
         currentExperience = experience;
         firstStartScheduled = false;
@@ -151,6 +159,147 @@ public final class DAI_WorldgenRuntime {
                 "<DAI>: Applied first-start DAI worldgen bootstrap '{}' for experience '{}'.",
                 worldgen.id(), experience.id()
         );
+    }
+
+
+    /**
+     * Copies/enables globally installed DAI ADDON packs for an ordinary world
+     * that was not launched through a MAIN experience. Existing world pack
+     * selections are preserved verbatim; this path never enforces MAIN
+     * exclusivity and never removes/deselects user-owned datapacks.
+     */
+    private static CompletableFuture<?> installStandaloneAddonStack(
+            MinecraftServer server,
+            Path worldRoot
+    ) {
+        if (server == null || worldRoot == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        if (!DAI_Config.autoEnableAddons()) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Automatic ADDON datapack inclusion is disabled; standalone world addon layering skipped."
+            );
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            Path datapacks = worldRoot.resolve("datapacks");
+            Files.createDirectories(datapacks);
+
+            List<Path> installedAddons = new ArrayList<>();
+            for (Path addon : DAI_DatapackMetadata.globalAddons()) {
+                if (addon == null || !Files.exists(addon)) continue;
+
+                Path target = installPackFile(datapacks, addon, "standalone addon");
+                if (target != null && !installedAddons.contains(target)) {
+                    installedAddons.add(target);
+                }
+            }
+
+            if (installedAddons.isEmpty()) {
+                DAI_Core.LOGGER.debug(
+                        "<DAI>: No global DAI ADDON datapacks were available for standalone world '{}'.",
+                        worldRoot.getFileName()
+                );
+                return CompletableFuture.completedFuture(null);
+            }
+
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Prepared {} standalone DAI ADDON datapack(s) for world '{}'.",
+                    installedAddons.size(),
+                    worldRoot.getFileName()
+            );
+
+            return enableStandaloneAddons(server, installedAddons);
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not prepare standalone DAI ADDON datapacks for world '{}'.",
+                    worldRoot.getFileName(),
+                    exception
+            );
+            CompletableFuture<Void> failed = new CompletableFuture<>();
+            failed.completeExceptionally(exception);
+            return failed;
+        }
+    }
+
+    /**
+     * Enables only the supplied ADDON packs, starting from Minecraft's current
+     * selected-pack set. This deliberately leaves every pre-existing selection
+     * untouched, including any MAIN pack that was installed manually.
+     */
+    private static CompletableFuture<?> enableStandaloneAddons(
+            MinecraftServer server,
+            List<Path> addons
+    ) {
+        try {
+            Object repository = invokeNoArg(server, "getPackRepository");
+            if (repository == null) {
+                throw new IllegalStateException("MinecraftServer#getPackRepository was unavailable");
+            }
+
+            invokeNoArg(repository, "reload");
+            Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
+            Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
+            LinkedHashSet<String> requested = new LinkedHashSet<>(selected);
+
+            int enabledAddons = 0;
+            for (Path addon : addons) {
+                if (addon == null) continue;
+
+                String packId = findPackIdByFilename(available, addon.getFileName().toString());
+                if (packId == null) {
+                    throw new IllegalStateException(
+                            "Installed standalone addon was not exposed by PackRepository: "
+                                    + addon.getFileName()
+                    );
+                }
+
+                if (requested.add(packId)) enabledAddons++;
+            }
+
+            if (requested.equals(selected)) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Standalone DAI ADDON stack already enabled ({} addon(s)); skipping redundant reload.",
+                        addons.size()
+                );
+                return CompletableFuture.completedFuture(null);
+            }
+
+            Object result = invokeReloadResources(server, requested);
+            if (result instanceof CompletableFuture<?> future) {
+                final int addonTotal = enabledAddons;
+                future.whenComplete((ignored, error) -> {
+                    if (error == null) {
+                        DAI_Core.LOGGER.info(
+                                "<DAI>: Enabled {} standalone DAI ADDON datapack(s) without a MAIN experience.",
+                                addonTotal
+                        );
+                    } else {
+                        DAI_Core.LOGGER.error(
+                                "<DAI>: Standalone DAI ADDON datapack reload failed.",
+                                error
+                        );
+                    }
+                });
+                return future;
+            }
+
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Enabled {} standalone DAI ADDON datapack(s) without a MAIN experience.",
+                    enabledAddons
+            );
+            return CompletableFuture.completedFuture(null);
+        } catch (Throwable exception) {
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not enable standalone DAI ADDON datapacks.",
+                    exception
+            );
+            CompletableFuture<Void> failed = new CompletableFuture<>();
+            failed.completeExceptionally(exception);
+            return failed;
+        }
     }
 
     private static CompletableFuture<?> installExperienceStack(
@@ -260,7 +409,7 @@ public final class DAI_WorldgenRuntime {
         }
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Installed {} datapack '{}' into experience save.",
+                "<DAI>: Installed {} datapack '{}' into world save.",
                 roleLabel,
                 source.getFileName()
         );

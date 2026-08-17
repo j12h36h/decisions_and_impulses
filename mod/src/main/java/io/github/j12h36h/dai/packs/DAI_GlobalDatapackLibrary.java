@@ -13,13 +13,14 @@ import java.util.stream.Stream;
  *
  * Vanilla keeps resource packs at the game-instance level but normally keeps
  * datapacks inside individual saves. DAI adds a sibling <game>/datapacks
- * library so experiences can be installed once, discovered at the title
- * screen, and handed off into the save that actually launches them.
+ * library so experiences and addons can be installed once. MAIN packs are
+ * discovered at the title screen and handed off into the save that launches
+ * them. ADDON packs may also be layered into ordinary worlds when automatic
+ * addon inclusion is enabled.
  *
- * The directory is a library/source location, not a promise that every pack in
- * it is enabled in every world. Experience launch copies/enables the exact
- * declaring pack in the target save, preserving normal vanilla world-local
- * datapack ownership.
+ * The directory remains a library/source location. DAI copies managed packs
+ * into the target save before enabling them so vanilla world-local datapack
+ * ownership remains intact.
  */
 public final class DAI_GlobalDatapackLibrary {
 

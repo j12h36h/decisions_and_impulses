@@ -18,6 +18,7 @@ public record DAI_WorldgenDefinition(
         String id,
         boolean enabled,
         String worldPreset,
+        DAI_WorldTypeDefinition worldType,
         Long seed,
         Spawn spawn,
         List<StructurePlacement> initialStructures,
@@ -27,6 +28,7 @@ public record DAI_WorldgenDefinition(
     public DAI_WorldgenDefinition {
         id = normalize(id);
         worldPreset = normalize(worldPreset);
+        worldType = worldType == null ? DAI_WorldTypeDefinition.NORMAL : worldType;
         spawn = spawn == null ? Spawn.DEFAULT : spawn;
         initialStructures = initialStructures == null ? List.of() : List.copyOf(initialStructures);
         generationCommands = generationCommands == null ? List.of() : generationCommands.stream().filter(s -> s != null && !s.isBlank()).map(String::trim).toList();
@@ -75,10 +77,23 @@ public record DAI_WorldgenDefinition(
             try { seed = root.get("seed").getAsLong(); } catch (Exception ignored) {}
         }
 
+        JsonElement worldTypeElement = root == null ? null : root.get("world_type");
+        DAI_WorldTypeDefinition worldType = DAI_WorldTypeDefinition.parse(worldTypeElement);
+        String explicitPreset = string(root, "world_preset", "");
+        String resolvedPreset;
+        if (!explicitPreset.isBlank()) {
+            resolvedPreset = explicitPreset;
+        } else if (worldType.requiresGeneratedPreset()) {
+            resolvedPreset = id;
+        } else {
+            resolvedPreset = worldType.builtInPreset();
+        }
+
         return new DAI_WorldgenDefinition(
                 id,
                 bool(root, "enabled", true),
-                string(root, "world_preset", "minecraft:normal"),
+                resolvedPreset,
+                worldType,
                 seed,
                 new Spawn(
                         integer(spawn, "x", 0),
