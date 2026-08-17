@@ -17,7 +17,8 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
     private static final int ROW_GAP = 7;
 
     private final Screen parent;
-    private final DAI_TitleScreenDefinition.SaveBrowserDefinition definition;
+    private final DAI_TitleScreenDefinition titleDefinition;
+    private final DAI_TitleScreenDefinition.SaveBrowserDefinition browser;
     private final int requestedPage;
     private List<DAI_ExperienceLauncher.ExperienceSave> saves = List.of();
     private int page;
@@ -25,34 +26,41 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
 
     public DAI_ExperienceSaveBrowserScreen(
             Screen parent,
-            DAI_TitleScreenDefinition.SaveBrowserDefinition definition
+            DAI_TitleScreenDefinition titleDefinition
     ) {
-        this(parent, definition, 0);
+        this(parent, titleDefinition, 0);
     }
 
     private DAI_ExperienceSaveBrowserScreen(
             Screen parent,
-            DAI_TitleScreenDefinition.SaveBrowserDefinition definition,
+            DAI_TitleScreenDefinition titleDefinition,
             int page
     ) {
-        super(Component.literal(definition == null ? "Experience Saves" : definition.title()));
+        super(Component.literal(
+                titleDefinition == null
+                        ? "Experience Saves"
+                        : titleDefinition.saveBrowser().title()
+        ));
         this.parent = parent;
-        this.definition = definition;
+        this.titleDefinition = titleDefinition == null
+                ? DAI_TitleScreenDefinition.fallback("decisions_and_impulses:save_browser")
+                : titleDefinition;
+        this.browser = this.titleDefinition.saveBrowser();
         this.requestedPage = Math.max(0, page);
     }
 
     @Override
     protected void init() {
-        if (definition == null || definition.experience().isBlank()) {
+        if (!browser.enabled() || browser.experience().isBlank()) {
             return;
         }
 
-        saves = DAI_ExperienceLauncher.listSaves(definition.experience());
+        saves = DAI_ExperienceLauncher.listSaves(browser.experience());
         pageSize = Math.max(1, Math.min(8, (height - 124) / (ROW_HEIGHT + ROW_GAP)));
         int pages = Math.max(1, (saves.size() + pageSize - 1) / pageSize);
         page = Math.min(requestedPage, pages - 1);
 
-        int panelWidth = Math.min(Math.max(320, definition.width() + 74), Math.max(320, width - 56));
+        int panelWidth = Math.min(Math.max(320, browser.width() + 74), Math.max(320, width - 56));
         int left = width / 2 - panelWidth / 2;
         int top = 58;
         int start = page * pageSize;
@@ -70,9 +78,9 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
                     y,
                     entryWidth,
                     ROW_HEIGHT,
-                    definition,
+                    browser,
                     save,
-                    button -> DAI_ExperienceLauncher.continueSave(this, definition.experience(), save.saveId())
+                    button -> DAI_ExperienceLauncher.continueSave(this, browser.experience(), save.saveId())
             ));
 
             addRenderableWidget(new DAI_ExperienceDeleteButton(
@@ -80,7 +88,7 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
                     y,
                     deleteWidth,
                     ROW_HEIGHT,
-                    definition,
+                    browser,
                     button -> confirmDelete(save)
             ));
         }
@@ -97,7 +105,7 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
             addRenderableWidget(Button.builder(
                             Component.literal("< PREV"),
                             button -> Minecraft.getInstance().gui.setScreen(
-                                    new DAI_ExperienceSaveBrowserScreen(parent, definition, Math.max(0, page - 1))
+                                    new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.max(0, page - 1))
                             )
                     )
                     .bounds(width / 2 - 154, navY, 86, 24)
@@ -105,7 +113,7 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
             addRenderableWidget(Button.builder(
                             Component.literal("NEXT >"),
                             button -> Minecraft.getInstance().gui.setScreen(
-                                    new DAI_ExperienceSaveBrowserScreen(parent, definition, Math.min(pages - 1, page + 1))
+                                    new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.min(pages - 1, page + 1))
                             )
                     )
                     .bounds(width / 2 + 68, navY, 86, 24)
@@ -114,12 +122,13 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
     }
 
     private void confirmDelete(DAI_ExperienceLauncher.ExperienceSave save) {
-        String display = definition.entryPrefix() + " #" + save.sequence();
-        Screen refreshed = new DAI_ExperienceSaveBrowserScreen(parent, definition, page);
+        String display = browser.entryPrefix() + " #" + save.sequence();
+        Screen refreshed = new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, page);
         Minecraft.getInstance().gui.setScreen(new DAI_ExperienceDeleteConfirmScreen(
                 this,
                 refreshed,
-                definition.experience(),
+                titleDefinition,
+                browser.experience(),
                 save,
                 display
         ));
@@ -132,30 +141,30 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        DAI_TitleMineShaftRenderer.render(graphics, width, height, 0xFF070605, 0xFF251A10);
+        renderPackBackground(graphics);
 
-        int panelWidth = Math.min(Math.max(320, definition.width() + 74), Math.max(320, width - 56));
+        int panelWidth = Math.min(Math.max(320, browser.width() + 74), Math.max(320, width - 56));
         int left = width / 2 - panelWidth / 2;
         int top = 50;
         int bottom = height - 54;
-        graphics.fill(left, top, left + panelWidth, bottom, definition.background());
-        graphics.outline(left, top, panelWidth, bottom - top, definition.border());
-        graphics.centeredText(font, Component.literal(definition.title()), width / 2, top + 12, definition.titleColor());
+        graphics.fill(left, top, left + panelWidth, bottom, browser.background());
+        graphics.outline(left, top, panelWidth, bottom - top, browser.border());
+        graphics.centeredText(font, Component.literal(browser.title()), width / 2, top + 12, browser.titleColor());
 
         if (saves.isEmpty()) {
             graphics.centeredText(
                     font,
-                    Component.literal("No MineShaft saves yet."),
+                    Component.literal(browser.emptyTitle()),
                     width / 2,
                     top + 72,
-                    definition.mutedColor()
+                    browser.mutedColor()
             );
             graphics.centeredText(
                     font,
-                    Component.literal("Start a new MineShaft from the main menu."),
+                    Component.literal(browser.emptySubtitle()),
                     width / 2,
                     top + 90,
-                    definition.mutedColor()
+                    browser.mutedColor()
             );
         } else {
             int pages = Math.max(1, (saves.size() + Math.max(1, pageSize) - 1) / Math.max(1, pageSize));
@@ -164,11 +173,34 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
                     Component.literal("Newest first · Page " + (page + 1) + "/" + pages),
                     width / 2,
                     bottom - 17,
-                    definition.mutedColor()
+                    browser.mutedColor()
             );
         }
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderPackBackground(GuiGraphicsExtractor graphics) {
+        String theme = titleDefinition.theme();
+        if ("mineshaft".equals(theme) || "mine".equals(theme)) {
+            DAI_TitleMineShaftRenderer.render(
+                    graphics,
+                    width,
+                    height,
+                    titleDefinition.backgroundTop(),
+                    titleDefinition.backgroundBottom()
+            );
+            return;
+        }
+
+        graphics.fillGradient(
+                0,
+                0,
+                width,
+                height,
+                titleDefinition.backgroundTop(),
+                titleDefinition.backgroundBottom()
+        );
     }
 
     @Override
@@ -178,7 +210,7 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        // Custom mine background above.
+        // This screen draws the owning pack's JSON-configured background.
     }
 
     @Override

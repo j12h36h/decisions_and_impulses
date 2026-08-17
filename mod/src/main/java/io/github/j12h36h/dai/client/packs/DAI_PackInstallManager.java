@@ -139,6 +139,8 @@ public final class DAI_PackInstallManager {
                     installedComponents
             ));
             writeManifest(manifest);
+            DAI_ManagedResourcePackPreferences.reconcileSavedSelection();
+            DAI_ManagedResourcePackPreferences.reconcileLiveSelection();
 
             DAI_Core.LOGGER.info(
                     "<DAI>: Installed official pack '{}' version '{}' with {} component(s).",
@@ -185,6 +187,8 @@ public final class DAI_PackInstallManager {
 
             manifest.remove(installed.get());
             writeManifest(manifest);
+            DAI_ManagedResourcePackPreferences.reconcileSavedSelection();
+            DAI_ManagedResourcePackPreferences.reconcileLiveSelection();
 
             DAI_Core.LOGGER.info("<DAI>: Uninstalled official pack '{}'.", pack.id());
             return Result.ok("Uninstalled " + pack.name() + ".");

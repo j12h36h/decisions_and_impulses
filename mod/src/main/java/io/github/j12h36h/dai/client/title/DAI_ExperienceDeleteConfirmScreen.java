@@ -13,6 +13,8 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
 
     private final Screen cancelTarget;
     private final Screen successTarget;
+    private final DAI_TitleScreenDefinition titleDefinition;
+    private final DAI_TitleScreenDefinition.SaveBrowserDefinition browser;
     private final String experienceId;
     private final DAI_ExperienceLauncher.ExperienceSave save;
     private final String displayName;
@@ -20,6 +22,7 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
     public DAI_ExperienceDeleteConfirmScreen(
             Screen cancelTarget,
             Screen successTarget,
+            DAI_TitleScreenDefinition titleDefinition,
             String experienceId,
             DAI_ExperienceLauncher.ExperienceSave save,
             String displayName
@@ -27,6 +30,10 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
         super(Component.literal("Delete " + displayName));
         this.cancelTarget = cancelTarget;
         this.successTarget = successTarget;
+        this.titleDefinition = titleDefinition == null
+                ? DAI_TitleScreenDefinition.fallback("decisions_and_impulses:delete_save")
+                : titleDefinition;
+        this.browser = this.titleDefinition.saveBrowser();
         this.experienceId = experienceId;
         this.save = save;
         this.displayName = displayName;
@@ -60,31 +67,57 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        DAI_TitleMineShaftRenderer.render(graphics, width, height, 0xFF080706, 0xFF21170E);
-        graphics.fill(width / 2 - 176, height / 2 - 72, width / 2 + 176, height / 2 + 70, 0xE20B0907);
-        graphics.outline(width / 2 - 176, height / 2 - 72, 352, 142, 0xFF9C6B3C);
+        renderPackBackground(graphics);
+
+        int panelLeft = width / 2 - 176;
+        int panelTop = height / 2 - 72;
+        graphics.fill(panelLeft, panelTop, panelLeft + 352, panelTop + 142, browser.background());
+        graphics.outline(panelLeft, panelTop, 352, 142, browser.border());
         graphics.centeredText(
                 font,
                 Component.literal("DELETE " + displayName.toUpperCase() + "?"),
                 width / 2,
                 height / 2 - 43,
-                0xFFFFC875
+                browser.deleteBorder()
         );
         graphics.centeredText(
                 font,
-                Component.literal("This permanently deletes this MineShaft save."),
+                Component.literal(browser.deleteWarning()),
                 width / 2,
                 height / 2 - 13,
-                0xFFE5D7BF
+                browser.textColor()
         );
         graphics.centeredText(
                 font,
-                Component.literal("Equipment, floor progress, and the world cannot be recovered."),
+                Component.literal(browser.deleteDetail()),
                 width / 2,
                 height / 2 + 3,
-                0xFFBEA98B
+                browser.mutedColor()
         );
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderPackBackground(GuiGraphicsExtractor graphics) {
+        String theme = titleDefinition.theme();
+        if ("mineshaft".equals(theme) || "mine".equals(theme)) {
+            DAI_TitleMineShaftRenderer.render(
+                    graphics,
+                    width,
+                    height,
+                    titleDefinition.backgroundTop(),
+                    titleDefinition.backgroundBottom()
+            );
+            return;
+        }
+
+        graphics.fillGradient(
+                0,
+                0,
+                width,
+                height,
+                titleDefinition.backgroundTop(),
+                titleDefinition.backgroundBottom()
+        );
     }
 
     @Override
@@ -94,7 +127,7 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        // Custom mine background above.
+        // This screen draws the owning pack's JSON-configured background.
     }
 
     @Override

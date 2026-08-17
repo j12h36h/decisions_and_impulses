@@ -104,6 +104,10 @@ public record DAI_TitleScreenDefinition(
                 string(object, "experience", ""),
                 string(object, "title", "YOUR SAVES"),
                 string(object, "entry_prefix", "Run"),
+                string(object, "empty_title", "No saves yet."),
+                string(object, "empty_subtitle", "Start a new experience from the main menu."),
+                string(object, "delete_warning", "This permanently deletes this save."),
+                string(object, "delete_detail", "Progress and the world cannot be recovered."),
                 string(object, "anchor", "right"),
                 integer(object, "x", 24),
                 integer(object, "y", -70),
@@ -174,6 +178,10 @@ public record DAI_TitleScreenDefinition(
             String experience,
             String title,
             String entryPrefix,
+            String emptyTitle,
+            String emptySubtitle,
+            String deleteWarning,
+            String deleteDetail,
             String anchor,
             int x,
             int y,
@@ -193,8 +201,10 @@ public record DAI_TitleScreenDefinition(
             int deleteBorder
     ) {
         static final SaveBrowserDefinition DISABLED = new SaveBrowserDefinition(
-                false, "", "YOUR SAVES", "Run", "right",
-                24, -70, 286, 196, 3,
+                false, "", "YOUR SAVES", "Run",
+                "No saves yet.", "Start a new experience from the main menu.",
+                "This permanently deletes this save.", "Progress and the world cannot be recovered.",
+                "right", 24, -70, 286, 196, 3,
                 0xD0121110, 0xFF7E6337, 0xFFFFD36A,
                 0xC01A1712, 0xE0352B1C, 0xFF80683F,
                 0xFFFFFFFF, 0xFFB7AA8D,
@@ -205,6 +215,10 @@ public record DAI_TitleScreenDefinition(
             experience = safe(experience, "");
             title = safe(title, "YOUR SAVES");
             entryPrefix = safe(entryPrefix, "Run");
+            emptyTitle = safe(emptyTitle, "No saves yet.");
+            emptySubtitle = safe(emptySubtitle, "Start a new experience from the main menu.");
+            deleteWarning = safe(deleteWarning, "This permanently deletes this save.");
+            deleteDetail = safe(deleteDetail, "Progress and the world cannot be recovered.");
             anchor = safe(anchor, "right").trim().toLowerCase(Locale.ROOT);
             width = Math.max(210, width);
             height = Math.max(116, height);

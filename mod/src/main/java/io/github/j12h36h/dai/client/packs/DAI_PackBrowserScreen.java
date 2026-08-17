@@ -157,7 +157,7 @@ public final class DAI_PackBrowserScreen extends Screen {
         graphics.centeredText(font, Component.literal("OFFICIAL D.A.I. PACKS"), width / 2, 16, 0xFFFFFFFF);
         graphics.centeredText(
                 font,
-                Component.literal("Datapacks install to the global /datapacks library · resource packs auto-enable after restart"),
+                Component.literal("Datapacks install globally · managed resource packs auto-enable and stay enabled across updates"),
                 width / 2,
                 30,
                 0xFFA9C0CF

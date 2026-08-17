@@ -147,7 +147,10 @@ public final class DAI_Config {
 
     public static final ModConfigSpec.BooleanValue AUTO_ENABLE_MANAGED_RESOURCE_PACKS =
             BUILDER
-                    .comment("Automatically register/enable resource packs installed through DAI's managed pack system")
+                    .comment(
+                            "Automatically register, enable, and persist resource packs installed through DAI's managed pack system. "
+                                    + "Managed packs remain enabled after installs and updates without reopening Minecraft's Resource Packs screen."
+                    )
                     .define(
                             "autoEnableManagedResourcePacks",
                             true

@@ -245,6 +245,7 @@ public final class DAI_TitleScreen extends Screen {
         Minecraft.getInstance().gui.setScreen(new DAI_ExperienceDeleteConfirmScreen(
                 this,
                 new DAI_TitleScreen(definition),
+                definition,
                 browser.experience(),
                 save,
                 display
@@ -254,7 +255,7 @@ public final class DAI_TitleScreen extends Screen {
     private void openSaveBrowser() {
         Minecraft.getInstance().gui.setScreen(new DAI_ExperienceSaveBrowserScreen(
                 this,
-                definition.saveBrowser()
+                definition
         ));
     }
 
@@ -352,14 +353,14 @@ public final class DAI_TitleScreen extends Screen {
         if (browserSaves.isEmpty()) {
             graphics.centeredText(
                     font,
-                    Component.literal("No MineShafts yet."),
+                    Component.literal(browser.emptyTitle()),
                     bounds.x() + bounds.width() / 2,
                     bounds.y() + 69,
                     browser.mutedColor()
             );
             graphics.centeredText(
                     font,
-                    Component.literal("Start a new descent on the left."),
+                    Component.literal(browser.emptySubtitle()),
                     bounds.x() + bounds.width() / 2,
                     bounds.y() + 86,
                     browser.mutedColor()
