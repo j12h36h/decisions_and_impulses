@@ -1,17 +1,16 @@
 package io.github.j12h36h.dai.client.logics.action;
 
-import io.github.j12h36h.dai.logics.action.*;
+import io.github.j12h36h.dai.client.config.DAI_PlayerControls;
 
 /**
  * Global semantic-action start governor.
  *
  * Controllers continue ticking every client tick; only NEW queued semantic
- * actions are rate-limited. This keeps movement/camera/breaking smooth while
- * bounding queue churn and short-lived allocations.
+ * actions are rate-limited. The player's configured ceiling is additionally
+ * capped by the active experience (when it declares one) and by heap pressure.
  */
 public final class DAI_ActionGovernor {
 
-    private static final int NORMAL_INTERVAL_TICKS = 2;   // 10/sec
     private static final int ELEVATED_INTERVAL_TICKS = 3; // ~6.7/sec
     private static final int HIGH_INTERVAL_TICKS = 4;     // 5/sec
     private static final int CRITICAL_INTERVAL_TICKS = 10;// 2/sec
@@ -49,11 +48,16 @@ public final class DAI_ActionGovernor {
     }
 
     public static int currentIntervalTicks() {
+        int configuredLimit = Math.max(1, Math.min(20, DAI_PlayerControls.maxActionsPerSecond()));
+        int configuredInterval = Math.max(1, (int) Math.ceil(20.0D / configuredLimit));
+
         double pressure = heapPressure();
-        if (pressure >= 0.90D) return CRITICAL_INTERVAL_TICKS;
-        if (pressure >= 0.80D) return HIGH_INTERVAL_TICKS;
-        if (pressure >= 0.70D) return ELEVATED_INTERVAL_TICKS;
-        return NORMAL_INTERVAL_TICKS;
+        int pressureInterval = 1;
+        if (pressure >= 0.90D) pressureInterval = CRITICAL_INTERVAL_TICKS;
+        else if (pressure >= 0.80D) pressureInterval = HIGH_INTERVAL_TICKS;
+        else if (pressure >= 0.70D) pressureInterval = ELEVATED_INTERVAL_TICKS;
+
+        return Math.max(configuredInterval, pressureInterval);
     }
 
     public static double currentActionLimitPerSecond() {

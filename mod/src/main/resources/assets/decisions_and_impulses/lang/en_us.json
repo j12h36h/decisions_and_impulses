@@ -9,5 +9,22 @@
   "item.decisions_and_impulses.miners_draught": "Miner's Draught",
   "item.decisions_and_impulses.weighted_arrow": "Weighted Arrow",
   "item.decisions_and_impulses.copper_spark": "Copper Spark",
-  "item.decisions_and_impulses.steady_edge": "Enchanted Book - Steady Edge"
+  "item.decisions_and_impulses.steady_edge": "Enchanted Book - Steady Edge",
+  "decisions_and_impulses.configuration.configVersion": "Config Version",
+  "decisions_and_impulses.configuration.toggleKeybinds": "Disable Vanilla Keybinds During DAI Input",
+  "decisions_and_impulses.configuration.debugging": "Debug Logging & Diagnostics",
+  "decisions_and_impulses.configuration.systemMenuPosition": "System Menu Position",
+  "decisions_and_impulses.configuration.actionMenuPosition": "Action Menu Position",
+  "decisions_and_impulses.configuration.automationEnabled": "Allow DAI Automation",
+  "decisions_and_impulses.configuration.automationMovement": "Allow Automated Movement",
+  "decisions_and_impulses.configuration.automationCombat": "Allow Automated Combat",
+  "decisions_and_impulses.configuration.automationWorldEditing": "Allow Automated World Editing",
+  "decisions_and_impulses.configuration.maxActionsPerSecond": "Maximum Actions Per Second",
+  "decisions_and_impulses.configuration.maxActionQueueSize": "Maximum Action Queue Size",
+  "decisions_and_impulses.configuration.autoEnableAddons": "Automatically Enable DAI Addons",
+  "decisions_and_impulses.configuration.autoEnableManagedResourcePacks": "Automatically Enable Managed Resource Packs",
+  "decisions_and_impulses.configuration.customTitleScreens": "Allow Custom Experience Title Screens",
+  "decisions_and_impulses.configuration.overlayOpacity": "DAI Overlay Opacity",
+  "key.decisions_and_impulses.menu": "Open DAI Menu",
+  "key.category.decisions_and_impulses.general": "Decisions and Impulses"
 }

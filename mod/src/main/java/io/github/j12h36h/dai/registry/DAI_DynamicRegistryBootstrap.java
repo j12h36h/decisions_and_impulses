@@ -179,10 +179,17 @@ public final class DAI_DynamicRegistryBootstrap {
             event.register(Registries.ENTITY_TYPE, id, () -> entityType);
             REGISTERED_ENTITY_TYPES.put(spec.key(), entityType);
             REGISTERED_KEYS.add(spec.key());
-            DAI_Core.LOGGER.info(
-                    "<DAI>: Registered early DAI entity '{}' using vanilla template '{}'.",
-                    id, spec.carrier()
-            );
+            if (DAI_EntityTemplateRegistry.isNative(spec.carrier())) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Registered early native DAI entity '{}' with JSON-owned AI/hitbox.",
+                        id
+                );
+            } else {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Registered early DAI entity '{}' using legacy vanilla template '{}'.",
+                        id, spec.carrier()
+                );
+            }
         } catch (RuntimeException exception) {
             DAI_Core.LOGGER.error(
                     "<DAI>: Could not register early DAI entity '{}'. The id may already be owned by another mod.",

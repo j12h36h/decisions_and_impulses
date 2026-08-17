@@ -7,6 +7,7 @@ import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenDefinition;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenRepository;
@@ -747,6 +748,11 @@ public final class DAI_ExperienceLauncher {
         Path selected = null;
         try (var packs = Files.list(datapacks)) {
             for (Path pack : packs.sorted().toList()) {
+                // Experience definitions are owned only by MAIN packs. This
+                // prevents an addon that happens to contain the same resource
+                // path from becoming the world-handoff source by accident.
+                if (!DAI_DatapackMetadata.isMain(pack)) continue;
+
                 if (Files.isDirectory(pack)) {
                     if (Files.isRegularFile(pack.resolve(entry.replace('/', java.io.File.separatorChar)))) {
                         selected = pack;

@@ -48,7 +48,7 @@ public final class DAI_ExperienceRepository {
 
     private static Map<String, DAI_ExperienceDefinition> reloadInternal() {
         LinkedHashMap<String, DAI_ExperienceDefinition> result = new LinkedHashMap<>();
-        DAI_EarlyJsonRepository.scan(DIRECTORY, "experiences").forEach((id, json) -> {
+        DAI_EarlyJsonRepository.scanMainPacks(DIRECTORY, "experiences").forEach((id, json) -> {
             try {
                 DAI_ExperienceDefinition definition = DAI_ExperienceDefinition.parse(id, json);
                 if (definition.enabled()) result.put(normalizeId(id), definition);

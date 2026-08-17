@@ -40,9 +40,10 @@ import java.util.UUID;
 /**
  * Runtime bridge between JSON entity definitions and Minecraft mobs.
  *
- * Vanilla AI remains available by default. A DAI behavior_sequence can layer
- * actor-safe movement/look/target actions over that AI, and natural spawning
- * is evaluated from the entity's JSON rules without requiring generated Java.
+ * Native DAI entities use a generic physical mob with JSON-owned AI. Legacy
+ * carrier-backed entities can still retain vanilla AI when requested. A DAI
+ * behavior_sequence supplies actor-safe movement/look/target/combat decisions,
+ * and natural spawning is evaluated from JSON without generated mob Java.
  */
 public final class DAI_EntityRuntime {
 
@@ -305,6 +306,17 @@ public final class DAI_EntityRuntime {
             }
             case "entity_has_target", "actor_has_target" -> compareBoolean(
                     mob.getTarget() != null, condition.booleanValue(), condition.operator());
+            case "entity_target_alive", "actor_target_alive" -> compareBoolean(
+                    mob.getTarget() != null && mob.getTarget().isAlive(), condition.booleanValue(), condition.operator());
+            case "entity_target_distance", "actor_target_distance", "target_distance" -> {
+                var target = mob.getTarget();
+                double distance = target == null ? Double.POSITIVE_INFINITY : mob.distanceTo(target);
+                yield compareNumber(distance, condition.numberValue(), condition.operator());
+            }
+            case "entity_can_see_target", "actor_can_see_target" -> compareBoolean(
+                    mob.getTarget() != null && mob.hasLineOfSight(mob.getTarget()),
+                    condition.booleanValue(),
+                    condition.operator());
             case "entity_on_ground", "actor_on_ground" -> compareBoolean(
                     mob.onGround(), condition.booleanValue(), condition.operator());
             case "entity_in_water", "actor_in_water" -> compareBoolean(
@@ -352,28 +364,66 @@ public final class DAI_EntityRuntime {
     private static void executeActorAction(Mob mob, DAI_ActionDefinition action) {
         String type = action.type().trim().toLowerCase();
         Player player = nearestPlayer(mob, 48.0D);
+        var target = mob.getTarget();
         double speed = action.value() > 0.0D ? Math.min(4.0D, action.value()) : 1.0D;
 
         switch (type) {
             case "move_to", "approach", "follow", "follow_player" -> {
                 if (player != null) mob.getNavigation().moveTo(player, speed);
             }
+            case "move_to_target", "approach_target", "chase_target" -> {
+                if (target != null && target.isAlive()) mob.getNavigation().moveTo(target, speed);
+            }
             case "look_at", "look_at_player", "face_player" -> {
                 if (player != null) mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
             }
+            case "look_at_target", "face_target" -> {
+                if (target != null && target.isAlive()) mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            }
             case "stop", "stop_moving" -> mob.getNavigation().stop();
             case "jump" -> mob.getJumpControl().jump();
-            case "target_player", "attack" -> {
+            case "target_player", "acquire_player", "attack" -> {
                 if (player != null) mob.setTarget(player);
             }
+            case "melee_attack", "attack_target" -> {
+                if (target == null || !target.isAlive()) {
+                    if (player != null) {
+                        mob.setTarget(player);
+                        target = player;
+                    }
+                }
+                if (target != null && target.isAlive()) {
+                    double reach = action.value() > 0.0D ? Math.max(0.25D, action.value()) : 2.25D;
+                    if (mob.distanceToSqr(target) <= reach * reach && mob.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                        mob.doHurtTarget(serverLevel, target);
+                    }
+                }
+            }
             case "clear_target" -> mob.setTarget(null);
+            case "flee_player", "avoid_player" -> {
+                if (player != null) {
+                    double dx = mob.getX() - player.getX();
+                    double dz = mob.getZ() - player.getZ();
+                    double length = Math.sqrt(dx * dx + dz * dz);
+                    if (length < 0.001D) {
+                        dx = mob.getRandom().nextDouble() - 0.5D;
+                        dz = mob.getRandom().nextDouble() - 0.5D;
+                        length = Math.sqrt(dx * dx + dz * dz);
+                    }
+                    double distance = action.ticks() > 0 ? Math.min(32.0D, action.ticks()) : 8.0D;
+                    double x = mob.getX() + dx / length * distance;
+                    double z = mob.getZ() + dz / length * distance;
+                    mob.getNavigation().moveTo(x, mob.getY(), z, speed);
+                }
+            }
             case "wander" -> {
                 var random = mob.getRandom();
-                double x = mob.getX() + random.nextInt(13) - 6;
-                double z = mob.getZ() + random.nextInt(13) - 6;
+                int radius = action.ticks() > 0 ? Math.max(1, Math.min(32, action.ticks())) : 6;
+                double x = mob.getX() + random.nextInt(radius * 2 + 1) - radius;
+                double z = mob.getZ() + random.nextInt(radius * 2 + 1) - radius;
                 mob.getNavigation().moveTo(x, mob.getY(), z, speed);
             }
-            case "wait", "noop" -> { }
+            case "wait", "idle", "noop" -> { }
             default -> DAI_Core.debug(
                     "<DAI>: Entity behavior skipped unsupported actor action type '{}'.",
                     action.type()

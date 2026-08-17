@@ -6,6 +6,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.DeltaTracker;
@@ -215,7 +216,8 @@ public final class DAI_OverlayManager {
         }
 
         double layerAlpha = Math.max(0.1D, Math.min(1.0D, alpha));
-        int a = (int) Math.round(layerAlpha * colorAlpha);
+        double globalAlpha = Math.max(0.25D, Math.min(1.0D, DAI_Config.overlayOpacity()));
+        int a = (int) Math.round(layerAlpha * globalAlpha * colorAlpha);
         return (a << 24) | rgb;
     }
 }

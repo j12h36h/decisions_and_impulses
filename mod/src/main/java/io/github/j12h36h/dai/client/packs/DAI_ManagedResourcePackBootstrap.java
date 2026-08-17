@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.packs;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
@@ -33,6 +34,13 @@ public final class DAI_ManagedResourcePackBootstrap {
 
     private static void addPackFinders(AddPackFindersEvent event) {
         if (event.getPackType() != PackType.CLIENT_RESOURCES) return;
+
+        if (!DAI_Config.autoEnableManagedResourcePacks()) {
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Managed resource-pack auto-enable is disabled by configuration."
+            );
+            return;
+        }
 
         int[] count = {0};
         for (DAI_PackInstallManager.InstalledPack installed : DAI_PackInstallManager.installedPacks()) {

@@ -54,8 +54,8 @@ public final class DAI_ConfigBootstrap {
 
     /**
      * Upgrades older DAI configs in place while preserving all existing user
-     * choices. Version 2 adds the master debugging switch; future migrations
-     * can append their new defaults here before the version is committed.
+     * choices. Version 2 added the master debugging switch. Version 3 adds the
+     * player/creator controls while retaining every pre-existing key/path.
      */
     private static void migrateIfNeeded(
             ModConfig config
@@ -118,6 +118,26 @@ public final class DAI_ConfigBootstrap {
             }
 
             loadedVersion = 2;
+        }
+
+        /*
+         * v2 -> v3: creator-friendly player controls. Missing values receive
+         * the same permissive defaults DAI used before these knobs existed,
+         * so old datapacks and old user configs behave exactly as before.
+         */
+        if (loadedVersion < 3) {
+            if (!data.contains("automationEnabled")) data.set("automationEnabled", true);
+            if (!data.contains("automationMovement")) data.set("automationMovement", true);
+            if (!data.contains("automationCombat")) data.set("automationCombat", true);
+            if (!data.contains("automationWorldEditing")) data.set("automationWorldEditing", true);
+            if (!data.contains("maxActionsPerSecond")) data.set("maxActionsPerSecond", 10);
+            if (!data.contains("maxActionQueueSize")) data.set("maxActionQueueSize", 128);
+            if (!data.contains("autoEnableAddons")) data.set("autoEnableAddons", true);
+            if (!data.contains("autoEnableManagedResourcePacks")) data.set("autoEnableManagedResourcePacks", true);
+            if (!data.contains("customTitleScreens")) data.set("customTitleScreens", true);
+            if (!data.contains("overlayOpacity")) data.set("overlayOpacity", 1.0D);
+
+            loadedVersion = 3;
         }
 
         data.set(

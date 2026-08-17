@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.logics;
 
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
+import io.github.j12h36h.dai.client.config.DAI_PlayerControls;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
@@ -119,6 +120,17 @@ public final class DAI_AutomationLogic {
             Mode requestedMode,
             String rootAction
     ) {
+
+        if (!DAI_PlayerControls.automationEnabled()) {
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.CANCELLED
+            );
+            DAI_Core.LOGGER.info(
+                    "<DAI>: {} automation start was blocked by player/experience controls.",
+                    requestedMode.displayName()
+            );
+            return;
+        }
 
         if (
                 active
@@ -386,6 +398,14 @@ public final class DAI_AutomationLogic {
 
     public static void tickWatchdog() {
 
+        if (active && !DAI_PlayerControls.automationEnabled()) {
+            stop(null);
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Active automation stopped because player/experience controls disabled automation."
+            );
+            return;
+        }
+
         if (!active) {
 
             idleTicks =
@@ -396,6 +416,8 @@ public final class DAI_AutomationLogic {
 
             return;
         }
+
+        enforcePlayerControls();
 
         if (menuInterruptHoldTicks > 0) {
 
@@ -458,6 +480,31 @@ public final class DAI_AutomationLogic {
                 mode.displayName(),
                 cycle
         );
+    }
+
+    private static void enforcePlayerControls() {
+        if (!DAI_PlayerControls.automationMovement()) {
+            DAI_ExploreController.reset();
+            DAI_ApproachController.reset();
+            DAI_PathController.reset();
+            DAI_ScaffoldController.reset();
+            DAI_CreativeFlightController.reset();
+            DAI_MoveController.reset();
+            DAI_LookController.reset();
+            DAI_InputState.movement().clear();
+        }
+
+        if (!DAI_PlayerControls.automationCombat()) {
+            DAI_CombatController.reset();
+        }
+
+        if (!DAI_PlayerControls.automationWorldEditing()) {
+            DAI_BreakController.reset();
+            DAI_BuildController.reset();
+            DAI_ScaffoldController.reset();
+            DAI_CreativeBuildController.reset();
+            DAI_ExactPlacementLogic.reset();
+        }
     }
 
     public static boolean isActive() {

@@ -17,12 +17,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Maps friendly JSON carrier/model ids onto vanilla mob implementations.
+ * Maps optional JSON carrier/model ids onto vanilla mob implementations.
  *
- * DAI intentionally starts with vanilla entity implementations because they
- * already provide stable models, animation state, navigation, sounds and goal
- * AI. A JSON entity receives its own registered EntityType while its factory
- * constructs one of these vanilla mob classes using that custom type.
+ * A blank carrier (or dai:native) uses DAI_JsonMob: a generic physical mob with
+ * no species AI. This is the preferred path for fully custom JSON entities.
+ * Supplying a vanilla carrier remains supported for backwards compatibility.
  */
 public final class DAI_EntityTemplateRegistry {
 
@@ -91,9 +90,14 @@ public final class DAI_EntityTemplateRegistry {
 
     private DAI_EntityTemplateRegistry() {}
 
+    public static boolean isNative(String raw) {
+        String id = normalize(raw);
+        return id.isBlank() || id.equals("dai:native") || id.equals("decisions_and_impulses:native");
+    }
+
     public static Template get(String raw) {
         String id = normalize(raw);
-        if (id.isBlank()) id = "minecraft:pig";
+        if (isNative(id)) return null;
         if (!id.contains(":")) id = "minecraft:" + id;
         return TEMPLATES.get(id);
     }
@@ -118,6 +122,10 @@ public final class DAI_EntityTemplateRegistry {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Mob create(EntityType type, Level level, String templateId) {
+        if (isNative(templateId)) {
+            return new DAI_JsonMob(type, level);
+        }
+
         Template template = get(templateId);
         if (template == null) {
             throw new IllegalArgumentException("Unknown DAI entity template '" + templateId + "'.");
@@ -149,6 +157,10 @@ public final class DAI_EntityTemplateRegistry {
      * (for example follow/tempt ranges) before JSON values override them.
      */
     public static AttributeSupplier.Builder createDefaultAttributes(String templateId) {
+        if (isNative(templateId)) {
+            return LivingEntity.createLivingAttributes();
+        }
+
         Template template = get(templateId);
         if (template != null) {
             for (String className : template.entityClasses()) {
@@ -176,7 +188,7 @@ public final class DAI_EntityTemplateRegistry {
     }
 
     public static boolean supports(String templateId) {
-        return get(templateId) != null;
+        return isNative(templateId) || get(templateId) != null;
     }
 
     private static void register(

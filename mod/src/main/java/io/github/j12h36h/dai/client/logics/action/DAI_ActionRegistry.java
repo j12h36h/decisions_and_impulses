@@ -126,6 +126,18 @@ public final class DAI_ActionRegistry {
             return;
         }
 
+        if (!DAI_ActionPermissions.allows(action)) {
+            DAI_ActionStatus.set(
+                    DAI_ActionResult.CANCELLED
+            );
+
+            DAI_Core.debug(
+                    "<DAI>: Blocked autonomous action type '{}' by player/experience controls.",
+                    type
+            );
+            return;
+        }
+
         /*
          * Preserve the result from the action that ran immediately
          * before this one, then initialize the new current action as

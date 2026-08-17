@@ -8,6 +8,9 @@ import com.google.gson.JsonObject;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
+import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
+import io.github.j12h36h.dai.packs.DAI_DatapackRole;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -54,11 +57,10 @@ public final class DAI_WorldgenRuntime {
         currentExperience = experience;
         firstStartScheduled = false;
 
-        // A newly created vanilla save does not automatically inherit the
-        // datapack that declared the title-screen experience. Install that
-        // exact source pack into the new save, then ask the integrated server
-        // to reload it before client-side startup actions are resolved.
-        CompletableFuture<?> packReload = installExperiencePack(server, root, pending.sourcePack());
+        // A launched DAI save owns exactly one MAIN experience datapack but may
+        // layer any number of ADDON datapacks from DAI's global library. Copy /
+        // update the full stack first, then perform one combined server reload.
+        CompletableFuture<?> packReload = installExperienceStack(server, root, pending.sourcePack());
         DAI_ExperienceLaunchState.setPackReloadFuture(packReload);
 
         writeMarker(root, experience, !pending.firstJoin(), !pending.firstJoin());
@@ -151,58 +153,61 @@ public final class DAI_WorldgenRuntime {
         );
     }
 
-    private static CompletableFuture<?> installExperiencePack(
+    private static CompletableFuture<?> installExperienceStack(
             MinecraftServer server,
             Path worldRoot,
-            Path sourcePack
+            Path sourceMainPack
     ) {
-        if (server == null || worldRoot == null || sourcePack == null || !Files.exists(sourcePack)) {
+        if (server == null || worldRoot == null) {
             return CompletableFuture.completedFuture(null);
         }
 
         try {
             Path datapacks = worldRoot.resolve("datapacks");
             Files.createDirectories(datapacks);
-            Path target = datapacks.resolve(sourcePack.getFileName().toString()).toAbsolutePath().normalize();
-            Path source = sourcePack.toAbsolutePath().normalize();
 
-            if (source.equals(target)) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Experience datapack already belongs to this save; ensuring it is enabled: '{}'.",
-                        target
-                );
-                return ensureInstalledPackEnabled(server, target);
+            List<Path> installedTargets = new ArrayList<>();
+            Path mainTarget = null;
+
+            if (sourceMainPack != null && Files.exists(sourceMainPack)) {
+                mainTarget = installPackFile(datapacks, sourceMainPack, "main experience");
+                if (mainTarget != null) installedTargets.add(mainTarget);
             }
 
-            // Windows keeps ZIP datapacks open while PackRepository is using them.
-            // Replacing an already-loaded target with REPLACE_EXISTING therefore
-            // throws FileSystemException even when the global source and the save
-            // copy are byte-for-byte identical. Compare before copying and reuse
-            // the existing save-local file when nothing actually changed.
-            if (Files.exists(target) && samePackContent(source, target)) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Experience datapack '{}' is already installed with identical content; skipping locked-file replacement.",
-                        target.getFileName()
-                );
-                return ensureInstalledPackEnabled(server, target);
-            }
+            int addonCount = 0;
+            if (DAI_Config.autoEnableAddons()) {
+                for (Path addon : DAI_DatapackMetadata.globalAddons()) {
+                    if (addon == null || !Files.exists(addon)) continue;
 
-            if (Files.isDirectory(source)) {
-                copyDirectory(source, target);
+                    Path normalizedAddon = addon.toAbsolutePath().normalize();
+                    Path normalizedMain = sourceMainPack == null
+                            ? null
+                            : sourceMainPack.toAbsolutePath().normalize();
+                    if (normalizedMain != null && normalizedMain.equals(normalizedAddon)) continue;
+
+                    Path target = installPackFile(datapacks, addon, "addon");
+                    if (target != null) {
+                        if (!installedTargets.contains(target)) installedTargets.add(target);
+                        addonCount++;
+                    }
+                }
             } else {
-                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Automatic ADDON datapack inclusion is disabled by configuration; preparing the main experience only."
+                );
             }
 
             DAI_Core.LOGGER.info(
-                    "<DAI>: Installed experience datapack '{}' into '{}'.",
-                    source,
+                    "<DAI>: Prepared datapack stack for experience: main={} addon(s)={} target='{}'.",
+                    mainTarget == null ? "<save-owned/config>" : mainTarget.getFileName(),
+                    addonCount,
                     datapacks
             );
 
-            return reloadInstalledPack(server, target);
+            return enablePackStack(server, worldRoot, mainTarget, installedTargets);
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
-                    "<DAI>: Could not install the experience datapack into the launched save.",
+                    "<DAI>: Could not prepare the DAI experience/addon datapack stack.",
                     exception
             );
             CompletableFuture<Void> failed = new CompletableFuture<>();
@@ -211,6 +216,56 @@ public final class DAI_WorldgenRuntime {
         }
     }
 
+    /**
+     * Copies or updates one source pack without reloading resources. Reload is
+     * intentionally batched after every addon is prepared.
+     */
+    private static Path installPackFile(
+            Path datapacks,
+            Path sourcePack,
+            String roleLabel
+    ) throws Exception {
+        if (datapacks == null || sourcePack == null || !Files.exists(sourcePack)) return null;
+
+        Path source = sourcePack.toAbsolutePath().normalize();
+        Path target = datapacks.resolve(sourcePack.getFileName().toString()).toAbsolutePath().normalize();
+        if (!target.startsWith(datapacks.toAbsolutePath().normalize())) {
+            throw new IllegalArgumentException("Invalid datapack target: " + target);
+        }
+
+        if (source.equals(target)) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: {} datapack already belongs to this save: '{}'.",
+                    roleLabel,
+                    target.getFileName()
+            );
+            return target;
+        }
+
+        // Windows can keep ZIP datapacks open through PackRepository. Do not
+        // replace an identical archive and trigger a needless locked-file error.
+        if (Files.exists(target) && samePackContent(source, target)) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: {} datapack '{}' is already current in the save.",
+                    roleLabel,
+                    target.getFileName()
+            );
+            return target;
+        }
+
+        if (Files.isDirectory(source)) {
+            copyDirectory(source, target);
+        } else {
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Installed {} datapack '{}' into experience save.",
+                roleLabel,
+                source.getFileName()
+        );
+        return target;
+    }
 
     private static boolean samePackContent(Path source, Path target) {
         if (source == null || target == null) return false;
@@ -221,51 +276,13 @@ public final class DAI_WorldgenRuntime {
             return Files.mismatch(source, target) == -1L;
         } catch (Exception exception) {
             DAI_Core.LOGGER.debug(
-                    "<DAI>: Could not compare experience datapack source '{}' with installed target '{}'.",
+                    "<DAI>: Could not compare datapack source '{}' with installed target '{}'.",
                     source,
                     target,
                     exception
             );
             return false;
         }
-    }
-
-    /**
-     * Avoids a full server resource reload when an already-installed experience
-     * pack is already selected. Besides being faster, this avoids reopening and
-     * replacing ZIP files that Windows currently has locked through PackRepository.
-     */
-    private static CompletableFuture<?> ensureInstalledPackEnabled(
-            MinecraftServer server,
-            Path installedPack
-    ) {
-        try {
-            Object repository = invokeNoArg(server, "getPackRepository");
-            if (repository == null) {
-                return reloadInstalledPack(server, installedPack);
-            }
-
-            invokeNoArg(repository, "reload");
-            Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
-            Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
-            String packId = findInstalledPackId(Set.of(), available, installedPack.getFileName().toString());
-
-            if (packId != null && selected.contains(packId)) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Experience datapack '{}' is already enabled; skipping redundant server resource reload.",
-                        packId
-                );
-                return CompletableFuture.completedFuture(null);
-            }
-        } catch (Throwable exception) {
-            DAI_Core.LOGGER.debug(
-                    "<DAI>: Could not determine whether experience datapack '{}' was already enabled; falling back to reload.",
-                    installedPack,
-                    exception
-            );
-        }
-
-        return reloadInstalledPack(server, installedPack);
     }
 
     private static void copyDirectory(Path source, Path target) throws Exception {
@@ -291,40 +308,89 @@ public final class DAI_WorldgenRuntime {
         }
     }
 
-    private static CompletableFuture<?> reloadInstalledPack(MinecraftServer server, Path installedPack) {
+    /**
+     * Enables the selected MAIN plus every prepared ADDON in one reload. Any
+     * other DAI MAIN pack already installed in this save is removed from the
+     * selected set, enforcing one active experience without deleting files.
+     */
+    private static CompletableFuture<?> enablePackStack(
+            MinecraftServer server,
+            Path worldRoot,
+            Path selectedMain,
+            List<Path> prepared
+    ) {
         try {
             Object repository = invokeNoArg(server, "getPackRepository");
             if (repository == null) {
                 throw new IllegalStateException("MinecraftServer#getPackRepository was unavailable");
             }
 
-            Set<String> before = stringSet(invokeNoArg(repository, "getAvailableIds"));
             invokeNoArg(repository, "reload");
             Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
             Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
+            LinkedHashSet<String> requested = new LinkedHashSet<>(selected);
 
-            String packId = findInstalledPackId(before, available, installedPack.getFileName().toString());
-            if (packId == null) {
-                throw new IllegalStateException(
-                        "Installed datapack was not exposed by PackRepository: " + installedPack.getFileName()
-                );
+            Path selectedMainNormalized = selectedMain == null
+                    ? null
+                    : selectedMain.toAbsolutePath().normalize();
+
+            // Enforce at most one DAI MAIN pack. Ordinary/non-DAI datapacks
+            // and every ADDON remain untouched by this exclusivity rule. A
+            // config-authored experience has no source MAIN pack, so in that
+            // case every installed DAI MAIN is deselected.
+            Path worldDatapacks = worldRoot.resolve("datapacks");
+            if (Files.isDirectory(worldDatapacks)) {
+                try (Stream<Path> entries = Files.list(worldDatapacks)) {
+                    for (Path pack : entries.sorted().toList()) {
+                        if (DAI_DatapackMetadata.role(pack) != DAI_DatapackRole.MAIN) continue;
+                        Path normalized = pack.toAbsolutePath().normalize();
+                        if (selectedMainNormalized != null && normalized.equals(selectedMainNormalized)) continue;
+
+                        String id = findPackIdByFilename(available, pack.getFileName().toString());
+                        if (id != null && requested.remove(id)) {
+                            DAI_Core.LOGGER.info(
+                                    "<DAI>: Disabled alternate MAIN datapack '{}' while launching '{}'.",
+                                    id,
+                                    selectedMain == null ? "<config experience>" : selectedMain.getFileName()
+                            );
+                        }
+                    }
+                }
             }
 
-            LinkedHashSet<String> requested = new LinkedHashSet<>(selected);
-            requested.add(packId);
+            int enabledAddons = 0;
+            for (Path pack : prepared) {
+                if (pack == null) continue;
+                String packId = findPackIdByFilename(available, pack.getFileName().toString());
+                if (packId == null) {
+                    throw new IllegalStateException(
+                            "Installed datapack was not exposed by PackRepository: " + pack.getFileName()
+                    );
+                }
+                requested.add(packId);
+                if (DAI_DatapackMetadata.role(pack) == DAI_DatapackRole.ADDON) enabledAddons++;
+            }
+
+            if (requested.equals(selected)) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: DAI datapack stack already enabled (1 main max, {} addon(s)); skipping redundant reload.",
+                        enabledAddons
+                );
+                return CompletableFuture.completedFuture(null);
+            }
 
             Object result = invokeReloadResources(server, requested);
             if (result instanceof CompletableFuture<?> future) {
+                final int addonTotal = enabledAddons;
                 future.whenComplete((ignored, error) -> {
                     if (error == null) {
                         DAI_Core.LOGGER.info(
-                                "<DAI>: Experience datapack '{}' enabled and reloaded for the launched save.",
-                                packId
+                                "<DAI>: Enabled DAI datapack stack with one MAIN experience and {} ADDON pack(s).",
+                                addonTotal
                         );
                     } else {
                         DAI_Core.LOGGER.error(
-                                "<DAI>: Experience datapack '{}' failed to reload.",
-                                packId,
+                                "<DAI>: DAI experience/addon datapack stack failed to reload.",
                                 error
                         );
                     }
@@ -333,19 +399,34 @@ public final class DAI_WorldgenRuntime {
             }
 
             DAI_Core.LOGGER.info(
-                    "<DAI>: Experience datapack '{}' enabled for the launched save.",
-                    packId
+                    "<DAI>: Enabled DAI datapack stack with one MAIN experience and {} ADDON pack(s).",
+                    enabledAddons
             );
             return CompletableFuture.completedFuture(null);
         } catch (Throwable exception) {
             DAI_Core.LOGGER.error(
-                    "<DAI>: Could not enable the copied experience datapack in the running save.",
+                    "<DAI>: Could not enable the DAI experience/addon datapack stack.",
                     exception
             );
             CompletableFuture<Void> failed = new CompletableFuture<>();
             failed.completeExceptionally(exception);
             return failed;
         }
+    }
+
+    private static String findPackIdByFilename(Set<String> available, String fileName) {
+        String needle = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+        if (needle.isBlank()) return null;
+
+        for (String id : available) {
+            String normalized = id.toLowerCase(Locale.ROOT);
+            if (normalized.equals("file/" + needle)
+                    || normalized.endsWith("/" + needle)
+                    || normalized.endsWith(needle)) {
+                return id;
+            }
+        }
+        return null;
     }
 
     private static String findInstalledPackId(
@@ -364,8 +445,10 @@ public final class DAI_WorldgenRuntime {
             }
         }
 
-        for (String id : available) {
-            if (!before.contains(id)) return id;
+        if (before != null && !before.isEmpty()) {
+            for (String id : available) {
+                if (!before.contains(id)) return id;
+            }
         }
         return null;
     }

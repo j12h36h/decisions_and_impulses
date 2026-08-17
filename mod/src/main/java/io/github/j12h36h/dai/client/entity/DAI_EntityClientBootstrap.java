@@ -27,6 +27,11 @@ public final class DAI_EntityClientBootstrap {
             EntityType type = DAI_DynamicRegistryBootstrap.entityType(spec);
             if (type == null) continue;
 
+            if (io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry.isNative(spec.carrier())) {
+                event.registerEntityRenderer(type, DAI_InvisibleEntityRenderer::new);
+                continue;
+            }
+
             String rendererClass = DAI_EntityRendererTemplateRegistry.rendererClass(spec.carrier());
             if (rendererClass.isBlank()) {
                 DAI_Core.LOGGER.error(

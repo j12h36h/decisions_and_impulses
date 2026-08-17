@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client.logics.action;
 
 import io.github.j12h36h.dai.logics.action.*;
 
+import io.github.j12h36h.dai.client.config.DAI_PlayerControls;
 import io.github.j12h36h.dai.client.logics.DAI_ActionLogic;
 import io.github.j12h36h.dai.client.logics.condition.DAI_ConditionEvaluator;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -12,9 +13,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class DAI_ActionQueue {
-
-    private static final int MAX_QUEUE_SIZE =
-            128;
 
     /*
      * High-level automation continuations are queued as tiny references and
@@ -99,15 +97,18 @@ public final class DAI_ActionQueue {
             return;
         }
 
+        int maxQueueSize =
+                DAI_PlayerControls.maxActionQueueSize();
+
         int available =
-                MAX_QUEUE_SIZE
+                maxQueueSize
                         - ACTIONS.size();
 
         if (available <= 0) {
 
             DAI_Core.LOGGER.error(
                     "<DAI>: Action queue is full (max={}).",
-                    MAX_QUEUE_SIZE
+                    maxQueueSize
             );
 
             return;
@@ -211,15 +212,18 @@ public final class DAI_ActionQueue {
             return;
         }
 
+        int maxQueueSize =
+                DAI_PlayerControls.maxActionQueueSize();
+
         int available =
-                MAX_QUEUE_SIZE
+                maxQueueSize
                         - ACTIONS.size();
 
         if (available <= 0) {
 
             DAI_Core.LOGGER.error(
                     "<DAI>: Action queue is full (max={}).",
-                    MAX_QUEUE_SIZE
+                    maxQueueSize
             );
 
             return;

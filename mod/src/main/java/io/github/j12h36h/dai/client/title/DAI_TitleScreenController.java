@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.title;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 
@@ -17,6 +18,11 @@ public final class DAI_TitleScreenController {
     public static void tick() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.gui == null || replacing) return;
+
+        if (!DAI_Config.customTitleScreens()) {
+            vanillaTitleTicks = 0;
+            return;
+        }
 
         if (!(minecraft.gui.screen() instanceof TitleScreen)) {
             vanillaTitleTicks = 0;

@@ -13,5 +13,13 @@
     "auto_enable": true,
     "grave_cursor_toggle": true,
     "open_dai_menu_on_grave": false
+  },
+  "controls": {
+    "automation": true,
+    "automation_movement": true,
+    "automation_combat": true,
+    "automation_world_editing": true,
+    "max_actions_per_second": 10,
+    "max_action_queue_size": 128
   }
 }

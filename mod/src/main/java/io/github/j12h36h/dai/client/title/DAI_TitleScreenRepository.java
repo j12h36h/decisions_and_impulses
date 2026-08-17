@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 
 import java.io.IOException;
@@ -118,6 +119,7 @@ public final class DAI_TitleScreenRepository {
 
                 try (Stream<Path> packs = Files.list(datapacks)) {
                     for (Path pack : packs.sorted().toList()) {
+                        if (!DAI_DatapackMetadata.isMain(pack)) continue;
                         if (Files.isDirectory(pack)) {
                             scanDatapackDirectory(output, world.getFileName().toString(), pack);
                         } else if (pack.getFileName().toString().toLowerCase().endsWith(".zip")) {
@@ -137,6 +139,7 @@ public final class DAI_TitleScreenRepository {
 
         try (Stream<Path> packs = Files.list(datapacks)) {
             for (Path pack : packs.sorted().toList()) {
+                if (!DAI_DatapackMetadata.isMain(pack)) continue;
                 if (Files.isDirectory(pack)) {
                     scanDatapackDirectory(output, "global", pack);
                 } else if (pack.getFileName().toString().toLowerCase().endsWith(".zip")) {

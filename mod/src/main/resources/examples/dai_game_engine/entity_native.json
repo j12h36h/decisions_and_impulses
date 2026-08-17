@@ -1,0 +1,28 @@
+{
+  "display_name": "Native DAI Example",
+  "description": "A fully native JSON-defined DAI mob with no vanilla species carrier.",
+  "registry_backed": true,
+  "native_registry": "entity",
+  "native_attributes": {
+    "minecraft:max_health": 30.0,
+    "minecraft:movement_speed": 0.28,
+    "minecraft:attack_damage": 5.0,
+    "minecraft:follow_range": 32.0
+  },
+  "entity": {
+    "category": "monster",
+    "width": 1.15,
+    "height": 1.35,
+    "tracking_range": 10,
+    "update_interval": 3,
+    "fire_immune": false,
+    "summonable": true,
+    "saveable": true,
+    "behavior_sequence": "example:native_hunter_behavior",
+    "behavior_interval": 2,
+    "vanilla_ai": false,
+    "spawning": {
+      "natural": false
+    }
+  }
+}

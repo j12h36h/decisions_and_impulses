@@ -16,7 +16,8 @@ public record DAI_ExperienceDefinition(
         String worldgen,
         String onFirstJoin,
         String onJoin,
-        Ui ui
+        Ui ui,
+        Controls controls
 ) {
     public DAI_ExperienceDefinition {
         id = normalize(id);
@@ -26,10 +27,12 @@ public record DAI_ExperienceDefinition(
         onFirstJoin = normalize(onFirstJoin);
         onJoin = normalize(onJoin);
         ui = ui == null ? Ui.DEFAULT : ui;
+        controls = controls == null ? Controls.DEFAULT : controls;
     }
 
     public static DAI_ExperienceDefinition parse(String id, JsonObject root) {
         JsonObject ui = object(root, "ui");
+        JsonObject controls = object(root, "controls");
         return new DAI_ExperienceDefinition(
                 id,
                 bool(root, "enabled", true),
@@ -51,6 +54,14 @@ public record DAI_ExperienceDefinition(
                         string(ui, "grave_anchor_overlay", ""),
                         string(ui, "grave_menu", ""),
                         string(ui, "grave_menu_open", "")
+                ),
+                new Controls(
+                        bool(controls, "automation", true),
+                        bool(controls, "automation_movement", true),
+                        bool(controls, "automation_combat", true),
+                        bool(controls, "automation_world_editing", true),
+                        integer(controls, "max_actions_per_second", 0),
+                        integer(controls, "max_action_queue_size", 0)
                 )
         );
     }
@@ -86,6 +97,32 @@ public record DAI_ExperienceDefinition(
             graveAnchorOverlay = normalize(graveAnchorOverlay);
             graveMenu = normalize(graveMenu);
             graveMenuOpen = normalize(graveMenuOpen);
+        }
+    }
+
+    /**
+     * Creator-authored ceiling for DAI's optional autonomous player control.
+     *
+     * The player's config can always be stricter. An experience can only
+     * reduce permissions/limits, never silently grant control the player has
+     * disabled. Zero numeric limits mean "do not add an experience cap".
+     *
+     * Older experiences omit this object and receive the permissive defaults,
+     * preserving their exact pre-1.9 behavior.
+     */
+    public record Controls(
+            boolean automation,
+            boolean automationMovement,
+            boolean automationCombat,
+            boolean automationWorldEditing,
+            int maxActionsPerSecond,
+            int maxActionQueueSize
+    ) {
+        public static final Controls DEFAULT = new Controls(true, true, true, true, 0, 0);
+
+        public Controls {
+            maxActionsPerSecond = Math.max(0, Math.min(20, maxActionsPerSecond));
+            maxActionQueueSize = Math.max(0, Math.min(2048, maxActionQueueSize));
         }
     }
 

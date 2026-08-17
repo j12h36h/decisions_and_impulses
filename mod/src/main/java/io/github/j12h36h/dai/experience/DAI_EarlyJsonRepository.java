@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import net.neoforged.fml.loading.FMLPaths;
 
@@ -25,8 +26,21 @@ public final class DAI_EarlyJsonRepository {
 
     public static Map<String, JsonObject> scan(String dataDirectory, String configDirectory) {
         LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
-        scanWorldDatapacks(result, dataDirectory);
-        scanGlobalDatapacks(result, dataDirectory);
+        scanWorldDatapacks(result, dataDirectory, false);
+        scanGlobalDatapacks(result, dataDirectory, false);
+        scanConfig(result, configDirectory);
+        return result;
+    }
+
+    /**
+     * Early scan restricted to datapacks that own a DAI main experience.
+     * Explicit addons are excluded from experience/title ownership even when
+     * they happen to ship similarly named definitions.
+     */
+    public static Map<String, JsonObject> scanMainPacks(String dataDirectory, String configDirectory) {
+        LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        scanWorldDatapacks(result, dataDirectory, true);
+        scanGlobalDatapacks(result, dataDirectory, true);
         scanConfig(result, configDirectory);
         return result;
     }
@@ -38,31 +52,32 @@ public final class DAI_EarlyJsonRepository {
      */
     public static Map<String, JsonObject> scanClientData(String dataDirectory, String configDirectory) {
         LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
-        scanGlobalDatapacks(result, dataDirectory);
+        scanGlobalDatapacks(result, dataDirectory, false);
         scanConfig(result, configDirectory);
         return result;
     }
 
-    private static void scanWorldDatapacks(Map<String, JsonObject> output, String directory) {
+    private static void scanWorldDatapacks(Map<String, JsonObject> output, String directory, boolean mainOnly) {
         Path saves = gameDirectory().resolve("saves");
         if (!Files.isDirectory(saves)) return;
         try (Stream<Path> worlds = Files.list(saves)) {
             for (Path world : worlds.filter(Files::isDirectory).sorted().toList()) {
-                scanDatapacks(output, world.resolve("datapacks"), directory);
+                scanDatapacks(output, world.resolve("datapacks"), directory, mainOnly);
             }
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn("<DAI>: Failed to early-scan '{}' definitions from world datapacks.", directory, exception);
         }
     }
 
-    private static void scanGlobalDatapacks(Map<String, JsonObject> output, String directory) {
-        scanDatapacks(output, DAI_GlobalDatapackLibrary.initialize(), directory);
+    private static void scanGlobalDatapacks(Map<String, JsonObject> output, String directory, boolean mainOnly) {
+        scanDatapacks(output, DAI_GlobalDatapackLibrary.initialize(), directory, mainOnly);
     }
 
-    private static void scanDatapacks(Map<String, JsonObject> output, Path datapacks, String directory) {
+    private static void scanDatapacks(Map<String, JsonObject> output, Path datapacks, String directory, boolean mainOnly) {
         if (!Files.isDirectory(datapacks)) return;
         try (Stream<Path> packs = Files.list(datapacks)) {
             for (Path pack : packs.sorted().toList()) {
+                if (mainOnly && !DAI_DatapackMetadata.isMain(pack)) continue;
                 if (Files.isDirectory(pack)) {
                     scanDirectoryPack(output, pack, directory);
                 } else if (pack.getFileName().toString().toLowerCase().endsWith(".zip")) {
