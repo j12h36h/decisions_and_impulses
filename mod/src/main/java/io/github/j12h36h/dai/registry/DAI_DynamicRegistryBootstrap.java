@@ -324,6 +324,7 @@ public final class DAI_DynamicRegistryBootstrap {
             );
         }
 
+        DAI_NativeItemComponents.apply(properties, spec.nativeComponents());
         return properties;
     }
 

@@ -71,6 +71,30 @@ public final class DAI_API {
         return DAI_ContentRegistry.ids();
     }
 
+
+    /** Registry keys discovered from the currently running Minecraft build. */
+    public static Set<String> runtimeRegistries() {
+        return DAI_RuntimeCapabilities.registries();
+    }
+
+    /** Built-in item/data component field names discovered at runtime. */
+    public static Set<String> runtimeDataComponents() {
+        return DAI_RuntimeCapabilities.dataComponents();
+    }
+
+    public static boolean hasMinecraftRegistry(String id) {
+        return DAI_RuntimeCapabilities.hasRegistry(id);
+    }
+
+    public static boolean hasMinecraftDataComponent(String id) {
+        return DAI_RuntimeCapabilities.hasDataComponent(id);
+    }
+
+    /** DAI folders that currently compile directly to Mojang data registries. */
+    public static java.util.Map<String, String> mojangRegistryBridges() {
+        return DAI_RuntimeCapabilities.bridgedFolders();
+    }
+
     /** True when this process discovered native ids that require another JVM start. */
     public static boolean registryRestartRequired() {
         return DAI_RegistryPreflight.restartRequired();

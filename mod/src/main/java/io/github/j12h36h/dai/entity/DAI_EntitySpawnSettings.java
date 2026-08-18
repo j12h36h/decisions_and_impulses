@@ -9,6 +9,7 @@ import java.util.List;
 public record DAI_EntitySpawnSettings(
         boolean natural,
         List<String> biomes,
+        List<String> dimensions,
         String placement,
         int weight,
         int minGroup,
@@ -20,20 +21,22 @@ public record DAI_EntitySpawnSettings(
         int minRadius,
         int maxRadius,
         int capPerPlayer,
-        int intervalTicks
+        int intervalTicks,
+        int attemptsPerPlayer
 ) {
 
     public static final DAI_EntitySpawnSettings DISABLED =
             new DAI_EntitySpawnSettings(
-                    false, List.of(), "on_ground", 10, 1, 1,
+                    false, List.of(), List.of(), "on_ground", 10, 1, 1,
                     0, 15, -2048, 2048,
-                    24, 48, 4, 80
+                    24, 48, 4, 80, 1
             );
 
     public static final Codec<DAI_EntitySpawnSettings> CODEC =
             RecordCodecBuilder.create(instance -> instance.group(
                     Codec.BOOL.optionalFieldOf("natural", false).forGetter(DAI_EntitySpawnSettings::natural),
                     Codec.STRING.listOf().optionalFieldOf("biomes", List.of()).forGetter(DAI_EntitySpawnSettings::biomes),
+                    Codec.STRING.listOf().optionalFieldOf("dimensions", List.of()).forGetter(DAI_EntitySpawnSettings::dimensions),
                     Codec.STRING.optionalFieldOf("placement", "on_ground").forGetter(DAI_EntitySpawnSettings::placement),
                     Codec.INT.optionalFieldOf("weight", 10).forGetter(DAI_EntitySpawnSettings::weight),
                     Codec.INT.optionalFieldOf("min_group", 1).forGetter(DAI_EntitySpawnSettings::minGroup),
@@ -45,11 +48,13 @@ public record DAI_EntitySpawnSettings(
                     Codec.INT.optionalFieldOf("min_radius", 24).forGetter(DAI_EntitySpawnSettings::minRadius),
                     Codec.INT.optionalFieldOf("max_radius", 48).forGetter(DAI_EntitySpawnSettings::maxRadius),
                     Codec.INT.optionalFieldOf("cap_per_player", 4).forGetter(DAI_EntitySpawnSettings::capPerPlayer),
-                    Codec.INT.optionalFieldOf("interval_ticks", 80).forGetter(DAI_EntitySpawnSettings::intervalTicks)
+                    Codec.INT.optionalFieldOf("interval_ticks", 80).forGetter(DAI_EntitySpawnSettings::intervalTicks),
+                    Codec.INT.optionalFieldOf("attempts_per_player", 1).forGetter(DAI_EntitySpawnSettings::attemptsPerPlayer)
             ).apply(instance, DAI_EntitySpawnSettings::new));
 
     public DAI_EntitySpawnSettings {
         biomes = biomes == null ? List.of() : List.copyOf(biomes);
+        dimensions = dimensions == null ? List.of() : List.copyOf(dimensions);
         placement = placement == null || placement.isBlank() ? "on_ground" : placement.trim().toLowerCase();
         weight = Math.max(1, Math.min(10000, weight));
         minGroup = Math.max(1, minGroup);
@@ -61,5 +66,6 @@ public record DAI_EntitySpawnSettings(
         maxRadius = Math.max(minRadius, maxRadius);
         capPerPlayer = Math.max(1, capPerPlayer);
         intervalTicks = Math.max(20, intervalTicks);
+        attemptsPerPlayer = Math.max(1, Math.min(16, attemptsPerPlayer));
     }
 }

@@ -36,6 +36,8 @@ public final class DAI_CustomizationValidator {
 
         validateActionReference(source, "sequence", definition.sequence(), false);
 
+        validateNaturalGeneration(source, kind, definition);
+
         for (var event : definition.events().entrySet()) {
             String value = event.getValue() == null ? "" : event.getValue().trim();
             if (value.isBlank()) continue;
@@ -70,6 +72,57 @@ public final class DAI_CustomizationValidator {
         }
     }
 
+    private static void validateNaturalGeneration(
+            String source,
+            DAI_GameCustomizationKind kind,
+            DAI_GameCustomizationDefinition definition
+    ) {
+        if (kind != DAI_GameCustomizationKind.STRUCTURE
+                && kind != DAI_GameCustomizationKind.FEATURE) return;
+        if (!definition.flag("natural", definition.flag("generate_naturally", false))) return;
+
+        String propertyCarrier = kind == DAI_GameCustomizationKind.STRUCTURE
+                ? definition.property("structure")
+                : definition.property("feature");
+        boolean hasCarrier = (!definition.carrier().isBlank()
+                && Identifier.tryParse(definition.carrier()) != null)
+                || (!propertyCarrier.isBlank() && Identifier.tryParse(propertyCarrier) != null);
+        boolean hasEntry = definition.entries().stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .anyMatch(value -> Identifier.tryParse(value) != null);
+        if (!hasCarrier && !hasEntry) {
+            DAI_ValidationReport.error(
+                    source,
+                    "natural generation requires a valid carrier or at least one valid entries resource id."
+            );
+        }
+
+        double spacing = definition.number("spacing_chunks",
+                kind == DAI_GameCustomizationKind.STRUCTURE ? 24.0D : 6.0D);
+        double separation = definition.number("separation_chunks", Math.max(0.0D, spacing / 3.0D));
+        if (spacing < 1.0D) {
+            DAI_ValidationReport.error(source, "spacing_chunks must be at least 1.");
+        }
+        if (separation < 0.0D || separation >= spacing) {
+            DAI_ValidationReport.error(source, "separation_chunks must be >= 0 and smaller than spacing_chunks.");
+        }
+
+        double frequency = definition.number("frequency", definition.number("chance", 1.0D));
+        if (frequency < 0.0D || frequency > 100.0D) {
+            DAI_ValidationReport.error(source, "frequency/chance must be between 0..1 or 0..100 percent.");
+        }
+
+        String placement = definition.property("placement").trim().toLowerCase(Locale.ROOT);
+        if (!placement.isBlank() && !java.util.Set.of(
+                "surface", "ocean_floor", "water_floor",
+                "underground", "cave", "cave_floor",
+                "fixed", "fixed_y", "any", "random_y"
+        ).contains(placement)) {
+            DAI_ValidationReport.error(source, "Unknown natural-generation placement '" + placement + "'.");
+        }
+    }
+
     private static void validateActionReference(
             String source,
             String field,
@@ -88,7 +141,7 @@ public final class DAI_CustomizationValidator {
 
     private static boolean expectsResourceId(DAI_GameCustomizationKind kind) {
         return switch (kind) {
-            case SOUND, MUSIC, STRUCTURE, FEATURE, LOOT, BIOME, DIMENSION, VEHICLE, FLUID -> true;
+            case SOUND, MUSIC, STRUCTURE, FEATURE, LOOT, BIOME, DIMENSION_TYPE, DIMENSION, VEHICLE, FLUID -> true;
             default -> false;
         };
     }

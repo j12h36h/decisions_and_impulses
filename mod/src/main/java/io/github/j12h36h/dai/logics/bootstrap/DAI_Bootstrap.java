@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.logics.bootstrap;
 
 import io.github.j12h36h.dai.content.DAI_ContentComponents;
+import io.github.j12h36h.dai.api.DAI_RuntimeCapabilities;
 import io.github.j12h36h.dai.entity.DAI_EntityBootstrap;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
@@ -25,6 +26,7 @@ public final class DAI_Bootstrap {
         // DAI 1.8.2: provide a global datapack library beside resourcepacks
         // before early experience/worldgen/native-content discovery begins.
         DAI_GlobalDatapackLibrary.initialize();
+        DAI_RuntimeCapabilities.refresh();
 
         // Compile friendly DAI world/dimension JSON into a required server-data
         // pack before Minecraft builds dynamic worldgen registries.

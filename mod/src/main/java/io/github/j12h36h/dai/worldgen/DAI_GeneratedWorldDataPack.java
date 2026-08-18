@@ -64,13 +64,27 @@ public final class DAI_GeneratedWorldDataPack {
             clearDirectory(root);
             Files.createDirectories(root.resolve("data"));
 
+            int biomes = compileBiomes(root);
+            int dimensionTypes = compileDimensionTypes(root);
+            int timelines = compileTimelines(root);
             int dimensions = compileDimensions(root);
             int presets = compileWorldPresets(root);
+            int bridged = DAI_VanillaDataBridge.compile(root, (path, json) -> {
+                try {
+                    writeJson(path, json);
+                } catch (IOException exception) {
+                    throw new RuntimeException(exception);
+                }
+            });
 
             DAI_Core.LOGGER.info(
-                    "<DAI>: Prepared generated world-data pack: {} dimension(s), {} world preset(s).",
+                    "<DAI>: Prepared generated world/data pack: {} biome(s), {} dimension type(s), {} timeline(s), {} dimension(s), {} world preset(s), {} bridged Mojang registry entry(s).",
+                    biomes,
+                    dimensionTypes,
+                    timelines,
                     dimensions,
-                    presets
+                    presets,
+                    bridged
             );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
@@ -79,6 +93,68 @@ public final class DAI_GeneratedWorldDataPack {
                     exception
             );
         }
+    }
+
+
+    private static int compileBiomes(Path root) throws IOException {
+        int count = 0;
+        Map<String, JsonObject> definitions =
+                DAI_EarlyJsonRepository.scan("dai_biomes", "biomes");
+
+        for (Map.Entry<String, JsonObject> entry : definitions.entrySet()) {
+            String id = normalizeId(entry.getKey());
+            IdParts parts = split(id);
+            if (parts == null) continue;
+
+            Path target = root.resolve("data")
+                    .resolve(parts.namespace())
+                    .resolve("worldgen")
+                    .resolve("biome")
+                    .resolve(parts.path() + ".json");
+            writeJson(target, DAI_BiomeCompiler.compile(entry.getValue()));
+            count++;
+        }
+        return count;
+    }
+
+    private static int compileDimensionTypes(Path root) throws IOException {
+        int count = 0;
+        Map<String, JsonObject> definitions =
+                DAI_EarlyJsonRepository.scan("dai_dimension_types", "dimension_types");
+
+        for (Map.Entry<String, JsonObject> entry : definitions.entrySet()) {
+            String id = normalizeId(entry.getKey());
+            IdParts parts = split(id);
+            if (parts == null) continue;
+
+            Path target = root.resolve("data")
+                    .resolve(parts.namespace())
+                    .resolve("dimension_type")
+                    .resolve(parts.path() + ".json");
+            writeJson(target, DAI_DimensionTypeCompiler.compile(entry.getValue()));
+            count++;
+        }
+        return count;
+    }
+
+    private static int compileTimelines(Path root) throws IOException {
+        int count = 0;
+        Map<String, JsonObject> definitions =
+                DAI_EarlyJsonRepository.scan("dai_timelines", "timelines");
+
+        for (Map.Entry<String, JsonObject> entry : definitions.entrySet()) {
+            String id = normalizeId(entry.getKey());
+            IdParts parts = split(id);
+            if (parts == null) continue;
+
+            Path target = root.resolve("data")
+                    .resolve(parts.namespace())
+                    .resolve("timeline")
+                    .resolve(parts.path() + ".json");
+            writeJson(target, DAI_TimelineCompiler.compile(entry.getValue()));
+            count++;
+        }
+        return count;
     }
 
     private static int compileDimensions(Path root) throws IOException {
@@ -167,7 +243,7 @@ public final class DAI_GeneratedWorldDataPack {
                 new PathPackResources.PathResourcesSupplier(root);
 
         Pack.Metadata metadata = new Pack.Metadata(
-                Component.literal("Generated dimensions and world presets from D.A.I. JSON"),
+                Component.literal("Generated Mojang registry/world data compiled from D.A.I. JSON"),
                 PackCompatibility.COMPATIBLE,
                 FeatureFlagSet.of(),
                 List.of(),

@@ -13,6 +13,7 @@ import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
 import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
 import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
+import io.github.j12h36h.dai.entity.DAI_EntityBehaviorVocabulary;
 import net.minecraft.resources.Identifier;
 
 import java.util.HashSet;
@@ -169,6 +170,9 @@ public final class DAI_ActionValidator {
                 action.hasType()
                         && !sequenceContainer
                         && !DAI_ActionRegistry.contains(
+                        action.type()
+                )
+                        && !DAI_EntityBehaviorVocabulary.supportsAction(
                         action.type()
                 )
         ) {
@@ -739,6 +743,9 @@ public final class DAI_ActionValidator {
         if (
                 !groupType
                         && !DAI_ConditionRegistry.contains(
+                        type
+                )
+                        && !DAI_EntityBehaviorVocabulary.supportsCondition(
                         type
                 )
         ) {

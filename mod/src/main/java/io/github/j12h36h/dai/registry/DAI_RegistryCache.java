@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public final class DAI_RegistryCache {
 
-    private static final int FORMAT = 2;
+    private static final int FORMAT = 3;
 
     private static final Gson GSON =
             new GsonBuilder()
@@ -162,6 +162,16 @@ public final class DAI_RegistryCache {
         JsonObject attributes = new JsonObject();
         spec.nativeAttributes().forEach(attributes::addProperty);
         object.add("native_attributes", attributes);
+
+        JsonObject components = new JsonObject();
+        spec.nativeComponents().forEach((id, json) -> {
+            try {
+                components.add(id, JsonParser.parseString(json));
+            } catch (Exception ignored) {
+                // Cache only validated/parseable component entries.
+            }
+        });
+        object.add("native_components", components);
         return object;
     }
 
@@ -194,6 +204,14 @@ public final class DAI_RegistryCache {
                 }
             }
 
+            java.util.LinkedHashMap<String, String> nativeComponents = new java.util.LinkedHashMap<>();
+            JsonObject components = object.getAsJsonObject("native_components");
+            if (components != null) {
+                for (var component : components.entrySet()) {
+                    try { nativeComponents.put(component.getKey(), component.getValue().toString()); } catch (Exception ignored) {}
+                }
+            }
+
             DAI_RegistrySpec.NativeRegistry nativeRegistry = switch (registry) {
                 case "item" -> DAI_RegistrySpec.NativeRegistry.ITEM;
                 case "block" -> DAI_RegistrySpec.NativeRegistry.BLOCK;
@@ -220,7 +238,8 @@ public final class DAI_RegistryCache {
                     entityFireImmune,
                     entitySummonable,
                     entitySaveable,
-                    nativeAttributes
+                    nativeAttributes,
+                    nativeComponents
             );
         } catch (Exception ignored) {
             return null;

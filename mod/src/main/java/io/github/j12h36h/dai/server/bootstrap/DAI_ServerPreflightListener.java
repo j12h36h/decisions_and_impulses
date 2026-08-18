@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import io.github.j12h36h.dai.server.entity.DAI_EntityRuntime;
+import io.github.j12h36h.dai.server.worldgen.DAI_NaturalGenerationRuntime;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenRepository;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -31,6 +32,7 @@ public final class DAI_ServerPreflightListener
         DAI_ExperienceRepository.reload();
         DAI_WorldgenRepository.reload();
         DAI_EntityRuntime.onDefinitionsReloaded();
+        DAI_NaturalGenerationRuntime.onDefinitionsReloaded();
 
         if (DAI_RegistryPreflight.restartRequired()) {
             DAI_Core.LOGGER.warn(

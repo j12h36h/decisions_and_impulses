@@ -49,8 +49,13 @@ public final class DAI_EarlyRegistryScanner {
 
         scanClasspath(state);
         scanInstalledMods(gameDir, state);
-        scanInstalledWorlds(gameDir, state);
+
+        // The global library is the source of truth for an installed/current
+        // DAI pack. Scan it before save-local copies so a stale version that
+        // DAI previously copied into a world cannot pin the JVM to an older
+        // native entity/item/block shell on the next launch.
         scanGlobalDatapacks(state);
+        scanInstalledWorlds(gameDir, state);
 
         return new ScanResult(
                 Collections.unmodifiableMap(new LinkedHashMap<>(state.specs)),
@@ -374,6 +379,25 @@ public final class DAI_EarlyRegistryScanner {
                 }
             }
 
+            LinkedHashMap<String, String> nativeComponents = new LinkedHashMap<>();
+            JsonObject components = null;
+            if (object.has("native_components") && object.get("native_components").isJsonObject()) {
+                components = object.getAsJsonObject("native_components");
+            } else if (object.has("components") && object.get("components").isJsonObject()) {
+                // `components` is the short/open API spelling. `native_components`
+                // remains available when a pack wants to be explicit.
+                components = object.getAsJsonObject("components");
+            }
+            if (components != null) {
+                for (var component : components.entrySet()) {
+                    if (component.getValue() == null || component.getValue().isJsonNull()) continue;
+                    nativeComponents.put(
+                            component.getKey().trim().toLowerCase(Locale.ROOT),
+                            component.getValue().toString()
+                    );
+                }
+            }
+
             DAI_RegistrySpec spec = new DAI_RegistrySpec(
                     id,
                     nativeRegistry,
@@ -391,7 +415,8 @@ public final class DAI_EarlyRegistryScanner {
                     bool(entity, "fire_immune", false),
                     bool(entity, "summonable", true),
                     bool(entity, "saveable", true),
-                    nativeAttributes
+                    nativeAttributes,
+                    nativeComponents
             );
 
             state.accept(spec, source);
@@ -490,11 +515,47 @@ public final class DAI_EarlyRegistryScanner {
             }
 
             String firstSource = sourceById.getOrDefault(existing.id(), "<unknown>");
+            boolean firstGlobal = isGlobalSource(firstSource);
+            boolean incomingGlobal = isGlobalSource(source);
+
+            // A globally installed pack is the update/source copy. Save-local
+            // MAIN datapacks are managed mirrors and can legitimately be one
+            // version behind at JVM bootstrap, before the experience stack has
+            // had a chance to replace them. Prefer the global definition rather
+            // than treating that expected stale mirror as a registry conflict.
+            if (firstGlobal && !incomingGlobal) {
+                DAI_Core.LOGGER.debug(
+                        "<DAI>: Early registry scan ignored stale save-local definition '{}' from '{}' because current global source '{}' owns the id.",
+                        spec.id(), source, firstSource
+                );
+                return;
+            }
+
+            if (incomingGlobal && !firstGlobal) {
+                specs.entrySet().removeIf(entry -> entry.getValue().id().equals(spec.id()));
+                specs.put(spec.key(), spec);
+                sourceById.put(spec.id(), source);
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Early registry scan selected current global definition '{}' over save-local/source copy '{}'.",
+                        spec.id(), firstSource
+                );
+                return;
+            }
+
             String conflict = "native id '" + spec.id()
                     + "' differs between '" + firstSource
                     + "' and '" + source + "'";
             if (!conflicts.contains(conflict)) {
                 conflicts.add(conflict);
+            }
+        }
+
+        private static boolean isGlobalSource(String source) {
+            if (source == null || source.isBlank()) return false;
+            try {
+                return DAI_GlobalDatapackLibrary.contains(Path.of(source));
+            } catch (Exception ignored) {
+                return false;
             }
         }
 

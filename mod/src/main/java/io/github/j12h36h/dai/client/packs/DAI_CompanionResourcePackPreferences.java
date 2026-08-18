@@ -212,6 +212,54 @@ public final class DAI_CompanionResourcePackPreferences {
         }
     }
 
+    /**
+     * Resolves the newest normal /resourcepacks companion for a MAIN
+     * experience. Used by application branding so pack.png can also become
+     * the OS window/taskbar icon without the datapack knowing a filename.
+     */
+    public static Path findCompanionForExperience(
+            String experienceId,
+            String explicitCompanionId
+    ) {
+        String namespace = experienceId == null ? "" : experienceId.trim().toLowerCase(Locale.ROOT);
+        int colon = namespace.indexOf(':');
+        if (colon >= 0) namespace = namespace.substring(0, colon);
+        String explicit = explicitCompanionId == null
+                ? ""
+                : explicitCompanionId.trim().toLowerCase(Locale.ROOT);
+
+        Path root = gameDirectory().resolve("resourcepacks");
+        if (!Files.isDirectory(root)) return null;
+
+        Path best = null;
+        long bestModified = Long.MIN_VALUE;
+        try (var entries = Files.list(root)) {
+            for (Path path : entries.toList()) {
+                Candidate candidate = inspectResourcePack(path, Set.of(namespace));
+                if (candidate == null) continue;
+
+                boolean idMatch = !explicit.isBlank()
+                        && explicit.equals(candidate.explicitId());
+                boolean namespaceMatch = !namespace.isBlank()
+                        && candidate.assetNamespaces().contains(namespace);
+                if (!idMatch && !namespaceMatch) continue;
+
+                long modified = modified(path);
+                if (best == null || modified >= bestModified) {
+                    best = path;
+                    bestModified = modified;
+                }
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Could not resolve companion pack for experience '{}'.",
+                    experienceId,
+                    exception
+            );
+        }
+        return best;
+    }
+
     private static Map<String, Companion> discoverCompanions() {
         Set<String> daiNamespaces = discoverGlobalDatapackNamespaces();
         Path root = gameDirectory().resolve("resourcepacks");
@@ -327,7 +375,11 @@ public final class DAI_CompanionResourcePackPreferences {
             key = "file:" + normalizeKey(fallbackName);
         }
 
-        return new Candidate(key);
+        return new Candidate(
+                key,
+                normalizeKey(explicitId),
+                Set.copyOf(assetNamespaces)
+        );
     }
 
     private static Set<String> discoverGlobalDatapackNamespaces() {
@@ -533,7 +585,17 @@ public final class DAI_CompanionResourcePackPreferences {
                 .resolve("companion_resourcepacks.json");
     }
 
-    private record Candidate(String key) {}
+    private record Candidate(
+            String key,
+            String explicitId,
+            Set<String> assetNamespaces
+    ) {
+        public Candidate {
+            key = key == null ? "" : key;
+            explicitId = explicitId == null ? "" : explicitId;
+            assetNamespaces = assetNamespaces == null ? Set.of() : Set.copyOf(assetNamespaces);
+        }
+    }
 
     private record Companion(
             String key,

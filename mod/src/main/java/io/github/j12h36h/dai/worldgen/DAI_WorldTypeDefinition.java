@@ -21,6 +21,7 @@ public record DAI_WorldTypeDefinition(
         String dimensionType,
         String biome,
         String noiseSettings,
+        JsonElement biomeSource,
         List<Layer> layers,
         int waterDepth,
         String floorBlock,
@@ -41,6 +42,7 @@ public record DAI_WorldTypeDefinition(
                     "minecraft:overworld",
                     "minecraft:plains",
                     "minecraft:overworld",
+                    null,
                     List.of(),
                     60,
                     "minecraft:bedrock",
@@ -60,6 +62,7 @@ public record DAI_WorldTypeDefinition(
         dimensionType = id(dimensionType, "minecraft:overworld");
         biome = id(biome, "minecraft:plains");
         noiseSettings = id(noiseSettings, defaultNoiseSettings(type));
+        biomeSource = biomeSource == null || biomeSource.isJsonNull() ? null : biomeSource.deepCopy();
         layers = layers == null ? List.of() : List.copyOf(layers);
         waterDepth = clamp(waterDepth, 0, 384);
         floorBlock = id(floorBlock, "minecraft:bedrock");
@@ -91,6 +94,7 @@ public record DAI_WorldTypeDefinition(
                 string(root, "dimension_type", "minecraft:overworld"),
                 string(root, "biome", defaultBiome(type)),
                 string(root, "noise_settings", defaultNoiseSettings(type)),
+                customBiomeSource(root),
                 layers,
                 integer(root, "water_depth", 60),
                 string(root, "floor_block", "minecraft:bedrock"),
@@ -192,18 +196,24 @@ public record DAI_WorldTypeDefinition(
     }
 
     private JsonObject noiseGenerator(boolean fixedBiome) {
-        JsonObject biomeSource = new JsonObject();
-        if (fixedBiome) {
-            biomeSource.addProperty("type", "minecraft:fixed");
-            biomeSource.addProperty("biome", biome);
+        JsonElement resolvedBiomeSource;
+        if (biomeSource != null && biomeSource.isJsonObject()) {
+            resolvedBiomeSource = biomeSource.deepCopy();
         } else {
-            biomeSource.addProperty("type", "minecraft:multi_noise");
-            biomeSource.addProperty("preset", "minecraft:overworld");
+            JsonObject generated = new JsonObject();
+            if (fixedBiome) {
+                generated.addProperty("type", "minecraft:fixed");
+                generated.addProperty("biome", biome);
+            } else {
+                generated.addProperty("type", "minecraft:multi_noise");
+                generated.addProperty("preset", "minecraft:overworld");
+            }
+            resolvedBiomeSource = generated;
         }
 
         JsonObject generator = new JsonObject();
         generator.addProperty("type", "minecraft:noise");
-        generator.add("biome_source", biomeSource);
+        generator.add("biome_source", resolvedBiomeSource);
         generator.addProperty("settings", noiseSettings);
         return generator;
     }
@@ -293,6 +303,25 @@ public record DAI_WorldTypeDefinition(
 
     private static boolean defaultStructures(String type) {
         return !normalizeType(type).equals("void");
+    }
+
+    private static JsonElement customBiomeSource(JsonObject root) {
+        if (root == null) return null;
+
+        JsonElement direct = root.get("biome_source");
+        if (direct != null && direct.isJsonObject()) return direct.deepCopy();
+
+        JsonArray biomes = array(root, "biomes");
+        if (biomes == null || biomes.size() == 0) return null;
+
+        // Friendly shorthand for a full multi-noise biome list. Each object in
+        // the array is passed through to Mojang's biome-source codec, allowing
+        // DAI-created biomes to be distributed by climate parameters without
+        // Java registration.
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:multi_noise");
+        source.add("biomes", biomes.deepCopy());
+        return source;
     }
 
     private static JsonArray array(JsonObject root, String key) {

@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client.bootstrap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.j12h36h.dai.client.entity.DAI_EntityClientBootstrap;
+import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.logics.core.DAI_ClientTick;
@@ -131,6 +132,7 @@ public final class DAI_ClientBootstrap {
 
         DAI_ExperienceLauncher.tickFreshLaunch();
         DAI_TitleScreenController.tick();
+        DAI_ClientBranding.tick();
 
         while (MENU_KEY.consumeClick()) {
 

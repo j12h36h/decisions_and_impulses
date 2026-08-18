@@ -9,6 +9,7 @@
     "Mixin_Advancements",
     "Mixin_CreativeModeInventoryScreen",
     "Mixin_Minecraft",
+    "Mixin_LoadingOverlay",
     "Mixin_MultiPlayerGameMode"
   ],
   "injectors": {

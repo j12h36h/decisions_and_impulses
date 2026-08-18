@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.registry.DAI_RegistryWorldStore;
 import io.github.j12h36h.dai.server.entity.DAI_EntityRuntime;
 import io.github.j12h36h.dai.server.network.DAI_ServerNetworkBootstrap;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
+import io.github.j12h36h.dai.server.worldgen.DAI_NaturalGenerationRuntime;
 import net.neoforged.bus.api.IEventBus;
 
 /**
@@ -23,6 +24,7 @@ public final class DAI_ServerBootstrap {
 
         DAI_RegistryWorldStore.initialize();
         DAI_WorldgenRuntime.initialize();
+        DAI_NaturalGenerationRuntime.initialize();
         DAI_EntityRuntime.initialize();
         DAI_ServerNetworkBootstrap.initialize(modBus);
         DAI_ServerDataBootstrap.initialize();

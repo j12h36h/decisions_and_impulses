@@ -32,7 +32,8 @@ public record DAI_RegistrySpec(
         boolean entityFireImmune,
         boolean entitySummonable,
         boolean entitySaveable,
-        Map<String, Double> nativeAttributes
+        Map<String, Double> nativeAttributes,
+        Map<String, String> nativeComponents
 ) {
 
     public enum NativeRegistry {
@@ -74,6 +75,7 @@ public record DAI_RegistrySpec(
         entityTrackingRange = Math.max(1, Math.min(64, entityTrackingRange));
         entityUpdateInterval = Math.max(1, Math.min(1200, entityUpdateInterval));
         nativeAttributes = nativeAttributes == null ? Map.of() : Map.copyOf(nativeAttributes);
+        nativeComponents = nativeComponents == null ? Map.of() : Map.copyOf(nativeComponents);
     }
 
     public static DAI_RegistrySpec from(DAI_ContentRegistry.Entry entry) {
@@ -95,8 +97,15 @@ public record DAI_RegistrySpec(
         String model = entry.definition().model();
         if (model.isBlank()) model = entry.definition().carrier();
 
+        String id = entry.id().toString();
+        String key = nativeRegistry.name().toLowerCase(Locale.ROOT) + "|" + normalize(id);
+        DAI_RegistrySpec boot = DAI_DynamicRegistryBootstrap.bootSpecs().get(key);
+        Map<String, String> nativeComponents = boot == null
+                ? Map.of()
+                : boot.nativeComponents();
+
         return new DAI_RegistrySpec(
-                entry.id().toString(),
+                id,
                 nativeRegistry,
                 entry.kind().id(),
                 entry.definition().displayName(),
@@ -112,7 +121,8 @@ public record DAI_RegistrySpec(
                 entity.fireImmune(),
                 entity.summonable(),
                 entity.saveable(),
-                entry.definition().nativeAttributes()
+                entry.definition().nativeAttributes(),
+                nativeComponents
         );
     }
 
@@ -147,7 +157,7 @@ public record DAI_RegistrySpec(
          * restart safety gate on Start Journey.
          */
         if (nativeRegistry != NativeRegistry.ENTITY) {
-            return true;
+            return nativeComponents.equals(other.nativeComponents);
         }
 
         return entityCategory.equals(other.entityCategory)

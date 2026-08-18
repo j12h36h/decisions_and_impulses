@@ -30,9 +30,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -722,17 +720,22 @@ public final class DAI_EntityRuntime {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void tickNaturalSpawns(net.minecraft.server.level.ServerLevel level) {
+        String dimensionId = level.dimension().identifier().toString();
+
         for (String idString : DAI_ContentRegistry.ids(DAI_ContentKind.ENTITY)) {
             DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(idString);
             if (entry == null) continue;
             DAI_EntitySpawnSettings spawning = entry.definition().entity().spawning();
             if (!spawning.natural() || serverTicks % spawning.intervalTicks() != 0) continue;
+            if (!matchesDimension(dimensionId, spawning.dimensions())) continue;
 
             Identifier id = Identifier.tryParse(idString);
             EntityType type = id == null ? null : BuiltInRegistries.ENTITY_TYPE.getValue(id);
             if (type == null) continue;
 
             for (var player : level.players()) {
+                if (!player.isAlive() || player.isSpectator()) continue;
+
                 AABB capBox = player.getBoundingBox().inflate(spawning.maxRadius());
                 int present = level.getEntitiesOfClass(
                         Mob.class,
@@ -741,27 +744,35 @@ public final class DAI_EntityRuntime {
                 ).size();
                 if (present >= spawning.capPerPlayer()) continue;
 
-                if (level.getRandom().nextInt(10000) >= spawning.weight()) continue;
+                for (int attempt = 0;
+                     attempt < spawning.attemptsPerPlayer() && present < spawning.capPerPlayer();
+                     attempt++) {
+                    if (level.getRandom().nextInt(10000) >= spawning.weight()) continue;
 
-                int group = spawning.minGroup();
-                if (spawning.maxGroup() > spawning.minGroup()) {
-                    group += level.getRandom().nextInt(spawning.maxGroup() - spawning.minGroup() + 1);
-                }
-
-                for (int index = 0; index < group && present + index < spawning.capPerPlayer(); index++) {
-                    BlockPos pos = chooseSpawnPos(level, player.blockPosition(), spawning);
-                    if (pos == null || !matchesSpawnRules(level, pos, spawning)) continue;
-
-                    try {
-                        Mob mob = DAI_EntityTemplateRegistry.create(type, level, entry.definition().carrier());
-                        mob.setPos(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D);
-                        mob.setYRot(level.getRandom().nextFloat() * 360.0F);
-                        if (!level.noCollision(mob)) continue;
-                        level.addFreshEntity(mob);
-                    } catch (RuntimeException exception) {
-                        DAI_Core.LOGGER.warn("<DAI>: Natural spawn failed for custom entity '{}'.", id, exception);
-                        break;
+                    int group = spawning.minGroup();
+                    if (spawning.maxGroup() > spawning.minGroup()) {
+                        group += level.getRandom().nextInt(spawning.maxGroup() - spawning.minGroup() + 1);
                     }
+
+                    int spawned = 0;
+                    for (int index = 0;
+                         index < group && present + spawned < spawning.capPerPlayer();
+                         index++) {
+                        BlockPos pos = chooseSpawnPos(level, player.blockPosition(), spawning);
+                        if (pos == null || !matchesSpawnRules(level, pos, spawning)) continue;
+
+                        try {
+                            Mob mob = DAI_EntityTemplateRegistry.create(type, level, entry.definition().carrier());
+                            mob.setPos(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D);
+                            mob.setYRot(level.getRandom().nextFloat() * 360.0F);
+                            if (!level.noCollision(mob)) continue;
+                            if (level.addFreshEntity(mob)) spawned++;
+                        } catch (RuntimeException exception) {
+                            DAI_Core.LOGGER.warn("<DAI>: Natural spawn failed for custom entity '{}'.", id, exception);
+                            break;
+                        }
+                    }
+                    present += spawned;
                 }
             }
         }
@@ -780,19 +791,69 @@ public final class DAI_EntityRuntime {
         int x = origin.getX() + (int) Math.round(Math.cos(angle) * radius);
         int z = origin.getZ() + (int) Math.round(Math.sin(angle) * radius);
 
+        BlockPos chunkProbe = new BlockPos(x, origin.getY(), z);
+        if (!level.hasChunkAt(chunkProbe)) return null;
+
         return switch (settings.placement()) {
             case "in_water", "water" -> {
                 int y = level.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) + 1;
                 yield new BlockPos(x, y, z);
             }
-            case "no_restrictions", "any" -> {
-                int min = Math.max(settings.minY(), origin.getY() - 12);
-                int max = Math.min(settings.maxY(), origin.getY() + 12);
-                int y = min >= max ? min : min + level.getRandom().nextInt(max - min + 1);
-                yield new BlockPos(x, y, z);
+            case "in_air", "air", "flying" -> randomY(level, x, z, origin.getY(), settings);
+            case "underground", "cave", "cave_floor" -> findCaveFloor(level, x, z, origin.getY(), settings);
+            case "no_restrictions", "any" -> randomY(level, x, z, origin.getY(), settings);
+            case "surface" -> new BlockPos(
+                    x,
+                    level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z),
+                    z
+            );
+            default -> {
+                int surface = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+                // on_ground adapts to the player's context: underground players
+                // receive cave-floor attempts rather than always projecting a
+                // custom creature onto the surface above them.
+                if (origin.getY() + 8 < surface) {
+                    BlockPos cave = findCaveFloor(level, x, z, origin.getY(), settings);
+                    if (cave != null) yield cave;
+                }
+                yield new BlockPos(x, surface, z);
             }
-            default -> new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
         };
+    }
+
+    private static BlockPos randomY(
+            net.minecraft.server.level.ServerLevel level,
+            int x,
+            int z,
+            int originY,
+            DAI_EntitySpawnSettings settings
+    ) {
+        int min = Math.max(settings.minY(), originY - 16);
+        int max = Math.min(settings.maxY(), originY + 16);
+        if (max < min) return null;
+        int y = min == max ? min : min + level.getRandom().nextInt(max - min + 1);
+        return new BlockPos(x, y, z);
+    }
+
+    private static BlockPos findCaveFloor(
+            net.minecraft.server.level.ServerLevel level,
+            int x,
+            int z,
+            int originY,
+            DAI_EntitySpawnSettings settings
+    ) {
+        int min = Math.max(settings.minY(), originY - 20);
+        int max = Math.min(settings.maxY(), originY + 20);
+        if (max < min) return null;
+
+        int start = min == max ? min : min + level.getRandom().nextInt(max - min + 1);
+        for (int offset = 0; offset <= max - min; offset++) {
+            int y = start - offset;
+            if (y < min) y = max - (min - y - 1);
+            BlockPos candidate = new BlockPos(x, y, z);
+            if (isOpenGround(level, candidate)) return candidate;
+        }
+        return null;
     }
 
     private static boolean matchesSpawnRules(
@@ -802,18 +863,39 @@ public final class DAI_EntityRuntime {
     ) {
         if (pos.getY() < settings.minY() || pos.getY() > settings.maxY()) return false;
 
-        int light = level.getBrightness(LightLayer.BLOCK, pos);
+        // Local raw brightness includes skylight. The old block-light-only
+        // check made a max_light=7 hostile rule spawn in full daylight.
+        int light = level.getMaxLocalRawBrightness(pos);
         if (light < settings.minLight() || light > settings.maxLight()) return false;
 
         if (!matchesBiome(level, pos, settings.biomes())) return false;
 
         return switch (settings.placement()) {
             case "in_water", "water" -> !level.getFluidState(pos).isEmpty();
+            case "in_air", "air", "flying" -> level.getBlockState(pos).isAir()
+                    && level.getBlockState(pos.above()).isAir();
             case "no_restrictions", "any" -> true;
-            default -> level.getBlockState(pos).isAir()
-                    && level.getBlockState(pos.above()).isAir()
-                    && !level.getBlockState(pos.below()).isAir();
+            default -> isOpenGround(level, pos);
         };
+    }
+
+    private static boolean isOpenGround(
+            net.minecraft.server.level.ServerLevel level,
+            BlockPos pos
+    ) {
+        return level.getBlockState(pos).isAir()
+                && level.getBlockState(pos.above()).isAir()
+                && !level.getBlockState(pos.below()).isAir()
+                && level.getFluidState(pos).isEmpty();
+    }
+
+    private static boolean matchesDimension(String dimensionId, List<String> allowed) {
+        if (allowed == null || allowed.isEmpty()) return true;
+        for (String raw : allowed) {
+            if (raw == null || raw.isBlank()) continue;
+            if (dimensionId.equals(raw.trim().toLowerCase(Locale.ROOT))) return true;
+        }
+        return false;
     }
 
     private static boolean matchesBiome(
@@ -827,7 +909,7 @@ public final class DAI_EntityRuntime {
 
         for (String raw : allowed) {
             if (raw == null || raw.isBlank()) continue;
-            String value = raw.trim().toLowerCase();
+            String value = raw.trim().toLowerCase(Locale.ROOT);
             if (value.startsWith("#")) {
                 Identifier id = Identifier.tryParse(value.substring(1));
                 if (id != null && biome.is(TagKey.create(Registries.BIOME, id))) return true;

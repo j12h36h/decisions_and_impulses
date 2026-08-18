@@ -17,7 +17,8 @@ public record DAI_ExperienceDefinition(
         String onFirstJoin,
         String onJoin,
         Ui ui,
-        Controls controls
+        Controls controls,
+        Branding branding
 ) {
     public DAI_ExperienceDefinition {
         id = normalize(id);
@@ -28,11 +29,15 @@ public record DAI_ExperienceDefinition(
         onJoin = normalize(onJoin);
         ui = ui == null ? Ui.DEFAULT : ui;
         controls = controls == null ? Controls.DEFAULT : controls;
+        branding = branding == null ? Branding.DEFAULT : branding;
     }
 
     public static DAI_ExperienceDefinition parse(String id, JsonObject root) {
         JsonObject ui = object(root, "ui");
         JsonObject controls = object(root, "controls");
+        JsonObject branding = object(root, "branding");
+        JsonObject earlyLoading = object(branding, "early_loading");
+        JsonObject worldLoading = object(branding, "world_loading");
         return new DAI_ExperienceDefinition(
                 id,
                 bool(root, "enabled", true),
@@ -62,6 +67,48 @@ public record DAI_ExperienceDefinition(
                         bool(controls, "automation_world_editing", true),
                         integer(controls, "max_actions_per_second", 0),
                         integer(controls, "max_action_queue_size", 0)
+                ),
+                new Branding(
+                        string(branding, "window_title", ""),
+                        string(branding, "loading_title", ""),
+                        string(branding, "loading_subtitle", ""),
+                        string(branding, "loading_background_texture", ""),
+                        string(branding, "loading_logo", ""),
+                        string(branding, "companion_id", ""),
+                        color(branding, "loading_background", 0xFF101318),
+                        color(branding, "loading_foreground", 0xFFFFFFFF),
+                        color(branding, "loading_accent", 0xFF5EE1FF),
+                        integer(branding, "loading_logo_size", 72),
+                        integer(branding, "loading_progress_width", 280),
+                        integer(branding, "loading_progress_height", 4),
+                        bool(branding, "custom_loading_screen", branding != null),
+                        bool(branding, "show_loading_progress", true),
+                        bool(branding, "use_resource_pack_icon", branding != null),
+                        new EarlyLoading(
+                                bool(earlyLoading, "enabled", bool(branding, "custom_loading_screen", branding != null)),
+                                string(earlyLoading, "background_texture", string(branding, "loading_background_texture", "")),
+                                string(earlyLoading, "logo", string(branding, "loading_logo", "")),
+                                bool(earlyLoading, "hide_mojang_logo", true),
+                                bool(earlyLoading, "show_progress", bool(branding, "show_loading_progress", true)),
+                                bool(earlyLoading, "show_startup_log", false),
+                                bool(earlyLoading, "show_performance", false)
+                        ),
+                        new WorldLoading(
+                                bool(worldLoading, "enabled", bool(branding, "custom_loading_screen", branding != null)),
+                                string(worldLoading, "title", string(branding, "loading_title", "")),
+                                string(worldLoading, "subtitle", string(branding, "loading_subtitle", "")),
+                                string(worldLoading, "background_texture", string(branding, "loading_background_texture", "")),
+                                string(worldLoading, "logo", string(branding, "loading_logo", "")),
+                                color(worldLoading, "background", color(branding, "loading_background", 0xFF101318)),
+                                color(worldLoading, "foreground", color(branding, "loading_foreground", 0xFFFFFFFF)),
+                                color(worldLoading, "accent", color(branding, "loading_accent", 0xFF5EE1FF)),
+                                integer(worldLoading, "logo_size", integer(branding, "loading_logo_size", 72)),
+                                integer(worldLoading, "progress_width", integer(branding, "loading_progress_width", 280)),
+                                integer(worldLoading, "progress_height", integer(branding, "loading_progress_height", 4)),
+                                bool(worldLoading, "show_progress", bool(branding, "show_loading_progress", true)),
+                                bool(worldLoading, "show_status_text", true),
+                                bool(worldLoading, "include_transitions", true)
+                        )
                 )
         );
     }
@@ -126,6 +173,110 @@ public record DAI_ExperienceDefinition(
         }
     }
 
+
+    /**
+     * Optional application/startup branding for a MAIN experience.
+     *
+     * The resource-pack icon path intentionally defaults to the companion
+     * pack's root pack.png. That keeps branding owned by the game's resource
+     * pack and avoids copying application assets into the DAI mod jar.
+     */
+    public record Branding(
+            String windowTitle,
+            String loadingTitle,
+            String loadingSubtitle,
+            String loadingBackgroundTexture,
+            String loadingLogo,
+            String companionId,
+            int loadingBackground,
+            int loadingForeground,
+            int loadingAccent,
+            int loadingLogoSize,
+            int loadingProgressWidth,
+            int loadingProgressHeight,
+            boolean customLoadingScreen,
+            boolean showLoadingProgress,
+            boolean useResourcePackIcon,
+            EarlyLoading earlyLoading,
+            WorldLoading worldLoading
+    ) {
+        public static final Branding DEFAULT = new Branding(
+                "", "", "", "", "", "",
+                0xFF101318, 0xFFFFFFFF, 0xFF5EE1FF,
+                72, 280, 4,
+                false, true, false,
+                EarlyLoading.DEFAULT,
+                WorldLoading.DEFAULT
+        );
+
+        public Branding {
+            windowTitle = windowTitle == null ? "" : windowTitle.trim();
+            loadingTitle = loadingTitle == null ? "" : loadingTitle.trim();
+            loadingSubtitle = loadingSubtitle == null ? "" : loadingSubtitle.trim();
+            loadingBackgroundTexture = normalize(loadingBackgroundTexture);
+            loadingLogo = normalize(loadingLogo);
+            companionId = normalize(companionId);
+            loadingLogoSize = Math.max(0, Math.min(512, loadingLogoSize));
+            loadingProgressWidth = Math.max(32, Math.min(2048, loadingProgressWidth));
+            loadingProgressHeight = Math.max(1, Math.min(64, loadingProgressHeight));
+            earlyLoading = earlyLoading == null ? EarlyLoading.DEFAULT : earlyLoading;
+            worldLoading = worldLoading == null ? WorldLoading.DEFAULT : worldLoading;
+        }
+    }
+
+    /** Branding copied into FancyModLoader's official config/fml theme for the next JVM launch. */
+    public record EarlyLoading(
+            boolean enabled,
+            String backgroundTexture,
+            String logo,
+            boolean hideMojangLogo,
+            boolean showProgress,
+            boolean showStartupLog,
+            boolean showPerformance
+    ) {
+        public static final EarlyLoading DEFAULT = new EarlyLoading(false, "", "", true, true, false, false);
+
+        public EarlyLoading {
+            backgroundTexture = normalize(backgroundTexture);
+            logo = normalize(logo);
+        }
+    }
+
+    /** Presentation policy for world generation, terrain loading, and optional level transitions. */
+    public record WorldLoading(
+            boolean enabled,
+            String title,
+            String subtitle,
+            String backgroundTexture,
+            String logo,
+            int background,
+            int foreground,
+            int accent,
+            int logoSize,
+            int progressWidth,
+            int progressHeight,
+            boolean showProgress,
+            boolean showStatusText,
+            boolean includeTransitions
+    ) {
+        public static final WorldLoading DEFAULT = new WorldLoading(
+                false, "", "", "", "",
+                0xFF101318, 0xFFFFFFFF, 0xFF5EE1FF,
+                72, 280, 4,
+                true, true, true
+        );
+
+        public WorldLoading {
+            title = title == null ? "" : title.trim();
+            subtitle = subtitle == null ? "" : subtitle.trim();
+            backgroundTexture = normalize(backgroundTexture);
+            logo = normalize(logo);
+            logoSize = Math.max(0, Math.min(512, logoSize));
+            progressWidth = Math.max(32, Math.min(2048, progressWidth));
+            progressHeight = Math.max(1, Math.min(64, progressHeight));
+        }
+    }
+
     private static JsonObject object(JsonObject root, String key) {
         if (root == null) return null;
         JsonElement value = root.get(key);
@@ -145,6 +296,23 @@ public record DAI_ExperienceDefinition(
     private static int integer(JsonObject root, String key, int fallback) {
         if (root == null || !root.has(key)) return fallback;
         try { return root.get(key).getAsInt(); } catch (Exception ignored) { return fallback; }
+    }
+
+    private static int color(JsonObject root, String key, int fallback) {
+        if (root == null || !root.has(key)) return fallback;
+        JsonElement element = root.get(key);
+        if (element == null || element.isJsonNull()) return fallback;
+        try {
+            if (element.getAsJsonPrimitive().isNumber()) return element.getAsInt();
+            String raw = element.getAsString().trim();
+            if (raw.startsWith("#")) raw = raw.substring(1);
+            else if (raw.startsWith("0x") || raw.startsWith("0X")) raw = raw.substring(2);
+            if (raw.length() == 6) return (int) (0xFF000000L | Long.parseLong(raw, 16));
+            if (raw.length() == 8) return (int) Long.parseLong(raw, 16);
+        } catch (Exception ignored) {
+            // Fall through to authored/default fallback.
+        }
+        return fallback;
     }
 
     private static String path(String id) {

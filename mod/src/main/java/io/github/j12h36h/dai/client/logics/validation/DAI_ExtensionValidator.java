@@ -120,6 +120,8 @@ public final class DAI_ExtensionValidator {
                     );
                 }
 
+                validateNaturalSpawning(source, definition.entity().spawning());
+
                 var gameplay = definition.entity().gameplay();
                 validateCustomizationReference(source + ".entity.gameplay.faction", DAI_GameCustomizationKind.FACTION, gameplay.faction());
                 validateCustomizationReference(source + ".entity.gameplay.dialogue", DAI_GameCustomizationKind.DIALOGUE, gameplay.dialogue());
@@ -167,6 +169,48 @@ public final class DAI_ExtensionValidator {
             }
             for (Map.Entry<String, String> event : definition.events().entrySet()) {
                 validateActionReference(source + ".events." + event.getKey(), event.getValue());
+            }
+        }
+    }
+
+    private static void validateNaturalSpawning(
+            String source,
+            io.github.j12h36h.dai.entity.DAI_EntitySpawnSettings spawning
+    ) {
+        if (spawning == null || !spawning.natural()) return;
+
+        if (!java.util.Set.of(
+                "on_ground", "surface",
+                "underground", "cave", "cave_floor",
+                "in_water", "water",
+                "in_air", "air", "flying",
+                "no_restrictions", "any"
+        ).contains(spawning.placement())) {
+            DAI_ValidationReport.error(
+                    source + ".entity.spawning",
+                    "Unknown natural-spawn placement '" + spawning.placement() + "'."
+            );
+        }
+
+        for (String raw : spawning.dimensions()) {
+            if (raw == null || raw.isBlank()) continue;
+            if (Identifier.tryParse(raw.trim()) == null) {
+                DAI_ValidationReport.error(
+                        source + ".entity.spawning.dimensions",
+                        "Invalid dimension id '" + raw + "'."
+                );
+            }
+        }
+
+        for (String raw : spawning.biomes()) {
+            if (raw == null || raw.isBlank()) continue;
+            String value = raw.trim();
+            if (value.startsWith("#")) value = value.substring(1);
+            if (Identifier.tryParse(value) == null) {
+                DAI_ValidationReport.error(
+                        source + ".entity.spawning.biomes",
+                        "Invalid biome id/tag '" + raw + "'."
+                );
             }
         }
     }
