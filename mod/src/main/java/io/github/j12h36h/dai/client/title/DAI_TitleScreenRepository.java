@@ -65,6 +65,7 @@ public final class DAI_TitleScreenRepository {
         Map<String, DAI_TitleScreenDefinition> definitions = new HashMap<>();
 
         loadBuiltins(definitions);
+        scanModDatapacks(definitions);
         scanWorldDatapacks(definitions);
         scanGlobalDatapacks(definitions);
         scanConfig(definitions);
@@ -104,6 +105,27 @@ public final class DAI_TitleScreenRepository {
             } catch (Exception exception) {
                 DAI_Core.LOGGER.warn("<DAI>: Failed to read built-in title screen '{}'.", resource, exception);
             }
+        }
+    }
+
+
+    /** Early title discovery for MAIN experiences embedded directly in mod JARs. */
+    private static void scanModDatapacks(Map<String, DAI_TitleScreenDefinition> output) {
+        Path mods = gameDirectory().resolve("mods");
+        if (!Files.isDirectory(mods)) return;
+
+        try (Stream<Path> entries = Files.list(mods)) {
+            for (Path mod : entries.filter(Files::isRegularFile).sorted().toList()) {
+                String name = mod.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                if (!name.endsWith(".jar")) continue;
+                if (!DAI_DatapackMetadata.isMain(mod)) continue;
+                scanDatapackZip(output, "mod:" + mod.getFileName(), mod);
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Failed to early-scan installed mod datapacks for title screens.",
+                    exception
+            );
         }
     }
 

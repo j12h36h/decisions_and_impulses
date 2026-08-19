@@ -13,8 +13,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.stream.Stream;
@@ -22,10 +25,14 @@ import java.util.stream.Stream;
 /** Small early-startup JSON scanner shared by experience and worldgen definitions. */
 public final class DAI_EarlyJsonRepository {
 
+    /** Installed mod archives are immutable for the lifetime of this JVM. */
+    private static final Map<String, Map<String, JsonObject>> MOD_SCAN_CACHE = new ConcurrentHashMap<>();
+
     private DAI_EarlyJsonRepository() {}
 
     public static Map<String, JsonObject> scan(String dataDirectory, String configDirectory) {
         LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        scanModDatapacks(result, dataDirectory, false);
         scanWorldDatapacks(result, dataDirectory, false);
         scanGlobalDatapacks(result, dataDirectory, false);
         scanConfig(result, configDirectory);
@@ -39,6 +46,7 @@ public final class DAI_EarlyJsonRepository {
      */
     public static Map<String, JsonObject> scanMainPacks(String dataDirectory, String configDirectory) {
         LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        scanModDatapacks(result, dataDirectory, true);
         scanWorldDatapacks(result, dataDirectory, true);
         scanGlobalDatapacks(result, dataDirectory, true);
         scanConfig(result, configDirectory);
@@ -52,9 +60,49 @@ public final class DAI_EarlyJsonRepository {
      */
     public static Map<String, JsonObject> scanClientData(String dataDirectory, String configDirectory) {
         LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        scanModDatapacks(result, dataDirectory, false);
         scanGlobalDatapacks(result, dataDirectory, false);
         scanConfig(result, configDirectory);
         return result;
+    }
+
+
+    /**
+     * Mod JARs expose their data/<namespace> tree as a built-in server data
+     * pack once Minecraft's ResourceManager exists. Early DAI systems run
+     * before that point, so mirror the same discovery directly from /mods.
+     * World/global datapacks are scanned afterwards and therefore retain
+     * normal higher-precedence override behavior.
+     */
+    private static void scanModDatapacks(Map<String, JsonObject> output, String directory, boolean mainOnly) {
+        String key = (directory == null ? "" : directory) + "|main=" + mainOnly;
+        Map<String, JsonObject> cached = MOD_SCAN_CACHE.computeIfAbsent(
+                key,
+                ignored -> scanModDatapacksUncached(directory, mainOnly)
+        );
+        output.putAll(cached);
+    }
+
+    private static Map<String, JsonObject> scanModDatapacksUncached(String directory, boolean mainOnly) {
+        LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        Path mods = gameDirectory().resolve("mods");
+        if (!Files.isDirectory(mods)) return Map.of();
+
+        try (Stream<Path> entries = Files.list(mods)) {
+            for (Path mod : entries.filter(Files::isRegularFile).sorted().toList()) {
+                String name = mod.getFileName().toString().toLowerCase(Locale.ROOT);
+                if (!name.endsWith(".jar")) continue;
+                if (mainOnly && !DAI_DatapackMetadata.isMain(mod)) continue;
+                scanZipPack(result, mod, directory);
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Failed to early-scan '{}' definitions from installed mod datapacks.",
+                    directory,
+                    exception
+            );
+        }
+        return Collections.unmodifiableMap(new LinkedHashMap<>(result));
     }
 
     private static void scanWorldDatapacks(Map<String, JsonObject> output, String directory, boolean mainOnly) {

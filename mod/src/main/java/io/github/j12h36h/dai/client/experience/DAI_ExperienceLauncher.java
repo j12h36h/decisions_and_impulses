@@ -714,6 +714,12 @@ public final class DAI_ExperienceLauncher {
         Path game = savesDirectory().getParent();
         Path selected = null;
 
+        // A MAIN experience may be distributed directly inside another mod
+        // JAR. Treat that archive as the source owner for launch bookkeeping;
+        // the server runtime knows not to copy a mod JAR into world/datapacks.
+        Path embeddedMod = findPackContaining(game.resolve("mods"), entry);
+        if (embeddedMod != null) selected = embeddedMod;
+
         Path saves = game.resolve("saves");
         if (Files.isDirectory(saves)) {
             try (var worlds = Files.list(saves)) {
@@ -761,7 +767,7 @@ public final class DAI_ExperienceLauncher {
                 }
 
                 String name = pack.getFileName().toString().toLowerCase(Locale.ROOT);
-                if (!name.endsWith(".zip")) continue;
+                if (!name.endsWith(".zip") && !name.endsWith(".jar")) continue;
                 try (ZipFile zip = new ZipFile(pack.toFile())) {
                     if (zip.getEntry(entry) != null) selected = pack;
                 } catch (Exception ignored) {

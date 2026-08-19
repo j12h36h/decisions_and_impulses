@@ -76,6 +76,7 @@ public final class DAI_DatapackMetadata {
         List<Path> result = new ArrayList<>();
         try (Stream<Path> entries = Files.list(root)) {
             for (Path entry : entries.sorted(Comparator.comparing(path -> path.getFileName().toString())).toList()) {
+                if (!isWorldDatapackCandidate(entry)) continue;
                 if (isAddon(entry)) result.add(entry.toAbsolutePath().normalize());
             }
         } catch (Exception exception) {
@@ -194,6 +195,15 @@ public final class DAI_DatapackMetadata {
     }
 
     private static boolean isPackCandidate(Path path) {
+        if (path == null) return false;
+        if (Files.isDirectory(path)) return Files.isRegularFile(path.resolve(PACK_META));
+        if (!Files.isRegularFile(path)) return false;
+        String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
+        return name.endsWith(".zip") || name.endsWith(".jar");
+    }
+
+    /** Vanilla world/global datapacks remain directories or ZIP archives only. */
+    private static boolean isWorldDatapackCandidate(Path path) {
         if (path == null) return false;
         if (Files.isDirectory(path)) return Files.isRegularFile(path.resolve(PACK_META));
         return Files.isRegularFile(path)

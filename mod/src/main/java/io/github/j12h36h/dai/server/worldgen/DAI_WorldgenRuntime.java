@@ -11,6 +11,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_DatapackRole;
+import io.github.j12h36h.dai.packs.DAI_DatapackSync;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -164,9 +165,10 @@ public final class DAI_WorldgenRuntime {
 
     /**
      * Copies/enables globally installed DAI ADDON packs for an ordinary world
-     * that was not launched through a MAIN experience. Existing world pack
-     * selections are preserved verbatim; this path never enforces MAIN
-     * exclusivity and never removes/deselects user-owned datapacks.
+     * that was not launched through a MAIN experience. Existing selections
+     * are preserved. The only files this path may replace/remove are stale
+     * DAI-managed mirrors whose stable identity matches a newer global pack;
+     * unrelated user-owned datapacks remain untouched.
      */
     private static CompletableFuture<?> installStandaloneAddonStack(
             MinecraftServer server,
@@ -176,45 +178,67 @@ public final class DAI_WorldgenRuntime {
             return CompletableFuture.completedFuture(null);
         }
 
-        if (!DAI_Config.autoEnableAddons()) {
-            DAI_Core.LOGGER.info(
-                    "<DAI>: Automatic ADDON datapack inclusion is disabled; standalone world addon layering skipped."
-            );
-            return CompletableFuture.completedFuture(null);
-        }
-
         try {
             Path datapacks = worldRoot.resolve("datapacks");
             Files.createDirectories(datapacks);
 
-            List<Path> installedAddons = new ArrayList<>();
-            for (Path addon : DAI_DatapackMetadata.globalAddons()) {
-                if (addon == null || !Files.exists(addon)) continue;
+            // Preserve the world owner's existing selection across filename-
+            // version updates. Example: ACMS_v0.5.2.zip in the save becomes
+            // ACMS_v0.5.3.zip from the global library without requiring the
+            // player to revisit the datapack screen.
+            Set<String> selectedBefore = selectedWorldPackFilenames(server, datapacks);
+            DAI_DatapackSync.SyncResult sync =
+                    DAI_DatapackSync.reconcileExistingWorldPacks(datapacks);
+            List<Path> preservedSelections = selectedReplacementTargets(
+                    sync,
+                    selectedBefore,
+                    null
+            );
+            Set<String> staleNames = replacedOldFileNames(sync);
+            boolean forceReload = intersects(selectedBefore, sync.changedFileNames());
 
-                Path target = installPackFile(datapacks, addon, "standalone addon");
-                if (target != null && !installedAddons.contains(target)) {
-                    installedAddons.add(target);
+            List<Path> installedAddons = new ArrayList<>();
+            if (DAI_Config.autoEnableAddons()) {
+                for (Path addon : DAI_DatapackMetadata.globalAddons()) {
+                    if (addon == null || !Files.exists(addon)) continue;
+
+                    Path target = installPackFile(datapacks, addon, "standalone addon");
+                    if (target != null && !installedAddons.contains(target)) {
+                        installedAddons.add(target);
+                    }
                 }
+            } else {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Automatic ADDON datapack inclusion is disabled; existing managed-pack version synchronization remains active."
+                );
             }
 
-            if (installedAddons.isEmpty()) {
+            if (installedAddons.isEmpty() && preservedSelections.isEmpty() && !forceReload) {
                 DAI_Core.LOGGER.debug(
-                        "<DAI>: No global DAI ADDON datapacks were available for standalone world '{}'.",
+                        "<DAI>: No global DAI datapack changes were required for standalone world '{}'.",
                         worldRoot.getFileName()
                 );
                 return CompletableFuture.completedFuture(null);
             }
 
-            DAI_Core.LOGGER.info(
-                    "<DAI>: Prepared {} standalone DAI ADDON datapack(s) for world '{}'.",
-                    installedAddons.size(),
-                    worldRoot.getFileName()
-            );
+            if (!installedAddons.isEmpty()) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Prepared {} standalone DAI ADDON datapack(s) for world '{}'.",
+                        installedAddons.size(),
+                        worldRoot.getFileName()
+                );
+            }
 
-            return enableStandaloneAddons(server, installedAddons);
+            return enableStandaloneAddons(
+                    server,
+                    installedAddons,
+                    preservedSelections,
+                    staleNames,
+                    forceReload
+            );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
-                    "<DAI>: Could not prepare standalone DAI ADDON datapacks for world '{}'.",
+                    "<DAI>: Could not prepare standalone DAI datapacks for world '{}'.",
                     worldRoot.getFileName(),
                     exception
             );
@@ -225,13 +249,16 @@ public final class DAI_WorldgenRuntime {
     }
 
     /**
-     * Enables only the supplied ADDON packs, starting from Minecraft's current
-     * selected-pack set. This deliberately leaves every pre-existing selection
-     * untouched, including any MAIN pack that was installed manually.
+     * Enables global ADDONs plus any selected pack whose versioned filename
+     * was replaced by the global synchronization pass. Unrelated selections
+     * remain untouched.
      */
     private static CompletableFuture<?> enableStandaloneAddons(
             MinecraftServer server,
-            List<Path> addons
+            List<Path> addons,
+            List<Path> preservedSelections,
+            Set<String> staleFileNames,
+            boolean forceReload
     ) {
         try {
             Object repository = invokeNoArg(server, "getPackRepository");
@@ -243,6 +270,22 @@ public final class DAI_WorldgenRuntime {
             Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
             Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
             LinkedHashSet<String> requested = new LinkedHashSet<>(selected);
+
+            if (staleFileNames != null && !staleFileNames.isEmpty()) {
+                requested.removeIf(id -> matchesAnyFilename(id, staleFileNames));
+            }
+
+            for (Path replacement : preservedSelections) {
+                if (replacement == null) continue;
+                String packId = findPackIdByFilename(available, replacement.getFileName().toString());
+                if (packId == null) {
+                    throw new IllegalStateException(
+                            "Synchronized datapack was not exposed by PackRepository: "
+                                    + replacement.getFileName()
+                    );
+                }
+                requested.add(packId);
+            }
 
             int enabledAddons = 0;
             for (Path addon : addons) {
@@ -259,10 +302,9 @@ public final class DAI_WorldgenRuntime {
                 if (requested.add(packId)) enabledAddons++;
             }
 
-            if (requested.equals(selected)) {
+            if (!forceReload && requested.equals(selected)) {
                 DAI_Core.LOGGER.info(
-                        "<DAI>: Standalone DAI ADDON stack already enabled ({} addon(s)); skipping redundant reload.",
-                        addons.size()
+                        "<DAI>: Standalone DAI datapack stack already current; skipping redundant reload."
                 );
                 return CompletableFuture.completedFuture(null);
             }
@@ -273,12 +315,13 @@ public final class DAI_WorldgenRuntime {
                 future.whenComplete((ignored, error) -> {
                     if (error == null) {
                         DAI_Core.LOGGER.info(
-                                "<DAI>: Enabled {} standalone DAI ADDON datapack(s) without a MAIN experience.",
-                                addonTotal
+                                "<DAI>: Reloaded standalone DAI datapacks ({} newly enabled addon(s), {} preserved replacement selection(s)).",
+                                addonTotal,
+                                preservedSelections.size()
                         );
                     } else {
                         DAI_Core.LOGGER.error(
-                                "<DAI>: Standalone DAI ADDON datapack reload failed.",
+                                "<DAI>: Standalone DAI datapack reload failed.",
                                 error
                         );
                     }
@@ -287,13 +330,14 @@ public final class DAI_WorldgenRuntime {
             }
 
             DAI_Core.LOGGER.info(
-                    "<DAI>: Enabled {} standalone DAI ADDON datapack(s) without a MAIN experience.",
-                    enabledAddons
+                    "<DAI>: Reloaded standalone DAI datapacks ({} newly enabled addon(s), {} preserved replacement selection(s)).",
+                    enabledAddons,
+                    preservedSelections.size()
             );
             return CompletableFuture.completedFuture(null);
         } catch (Throwable exception) {
             DAI_Core.LOGGER.error(
-                    "<DAI>: Could not enable standalone DAI ADDON datapacks.",
+                    "<DAI>: Could not enable standalone DAI datapacks.",
                     exception
             );
             CompletableFuture<Void> failed = new CompletableFuture<>();
@@ -315,12 +359,35 @@ public final class DAI_WorldgenRuntime {
             Path datapacks = worldRoot.resolve("datapacks");
             Files.createDirectories(datapacks);
 
+            Set<String> selectedBefore = selectedWorldPackFilenames(server, datapacks);
+            DAI_DatapackSync.SyncResult sync =
+                    DAI_DatapackSync.reconcileExistingWorldPacks(datapacks);
+            boolean forceReload = intersects(selectedBefore, sync.changedFileNames());
+
             List<Path> installedTargets = new ArrayList<>();
+            // Preserve selected ADDONs whose versioned filename was replaced.
+            // MAIN ownership is handled separately by the one-main rule below.
+            installedTargets.addAll(selectedReplacementTargets(
+                    sync,
+                    selectedBefore,
+                    DAI_DatapackRole.ADDON
+            ));
+
             Path mainTarget = null;
 
             if (sourceMainPack != null && Files.exists(sourceMainPack)) {
-                mainTarget = installPackFile(datapacks, sourceMainPack, "main experience");
-                if (mainTarget != null) installedTargets.add(mainTarget);
+                if (isEmbeddedModPack(sourceMainPack)) {
+                    DAI_Core.LOGGER.info(
+                            "<DAI>: MAIN experience '{}' is embedded in mod archive '{}'; no world-local datapack copy is required.",
+                            currentExperience == null ? "<unknown>" : currentExperience.id(),
+                            sourceMainPack.getFileName()
+                    );
+                } else {
+                    mainTarget = installPackFile(datapacks, sourceMainPack, "main experience");
+                    if (mainTarget != null && !installedTargets.contains(mainTarget)) {
+                        installedTargets.add(mainTarget);
+                    }
+                }
             }
 
             int addonCount = 0;
@@ -353,7 +420,13 @@ public final class DAI_WorldgenRuntime {
                     datapacks
             );
 
-            return enablePackStack(server, worldRoot, mainTarget, installedTargets);
+            return enablePackStack(
+                    server,
+                    worldRoot,
+                    mainTarget,
+                    installedTargets,
+                    forceReload
+            );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
                     "<DAI>: Could not prepare the DAI experience/addon datapack stack.",
@@ -466,7 +539,8 @@ public final class DAI_WorldgenRuntime {
             MinecraftServer server,
             Path worldRoot,
             Path selectedMain,
-            List<Path> prepared
+            List<Path> prepared,
+            boolean forceReload
     ) {
         try {
             Object repository = invokeNoArg(server, "getPackRepository");
@@ -520,7 +594,7 @@ public final class DAI_WorldgenRuntime {
                 if (DAI_DatapackMetadata.role(pack) == DAI_DatapackRole.ADDON) enabledAddons++;
             }
 
-            if (requested.equals(selected)) {
+            if (!forceReload && requested.equals(selected)) {
                 DAI_Core.LOGGER.info(
                         "<DAI>: DAI datapack stack already enabled (1 main max, {} addon(s)); skipping redundant reload.",
                         enabledAddons
@@ -563,17 +637,101 @@ public final class DAI_WorldgenRuntime {
         }
     }
 
+    private static Set<String> selectedWorldPackFilenames(
+            MinecraftServer server,
+            Path datapacks
+    ) {
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        if (server == null || datapacks == null || !Files.isDirectory(datapacks)) return result;
+
+        try {
+            Object repository = invokeNoArg(server, "getPackRepository");
+            if (repository == null) return result;
+
+            Set<String> available = stringSet(invokeNoArg(repository, "getAvailableIds"));
+            Set<String> selected = stringSet(invokeNoArg(repository, "getSelectedIds"));
+
+            try (Stream<Path> entries = Files.list(datapacks)) {
+                for (Path pack : entries.sorted().toList()) {
+                    String fileName = pack.getFileName().toString();
+                    String id = findPackIdByFilename(available, fileName);
+                    if (id != null && selected.contains(id)) result.add(fileName);
+                }
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.debug(
+                    "<DAI>: Could not capture selected world datapack filenames before synchronization.",
+                    exception
+            );
+        }
+        return result;
+    }
+
+    private static List<Path> selectedReplacementTargets(
+            DAI_DatapackSync.SyncResult sync,
+            Set<String> selectedBefore,
+            DAI_DatapackRole roleFilter
+    ) {
+        LinkedHashSet<Path> result = new LinkedHashSet<>();
+        if (sync == null || selectedBefore == null || selectedBefore.isEmpty()) {
+            return List.of();
+        }
+
+        for (DAI_DatapackSync.Replacement replacement : sync.replacements()) {
+            if (replacement == null || replacement.newPath() == null) continue;
+            if (roleFilter != null && replacement.role() != roleFilter) continue;
+            if (!selectedBefore.contains(replacement.oldFileName())) continue;
+            result.add(replacement.newPath().toAbsolutePath().normalize());
+        }
+        return List.copyOf(result);
+    }
+
+    private static Set<String> replacedOldFileNames(DAI_DatapackSync.SyncResult sync) {
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        if (sync == null) return result;
+        for (DAI_DatapackSync.Replacement replacement : sync.replacements()) {
+            if (replacement == null || replacement.oldFileName() == null) continue;
+            if (!replacement.oldFileName().isBlank()) result.add(replacement.oldFileName());
+        }
+        return result;
+    }
+
+    private static boolean intersects(Set<String> left, Set<String> right) {
+        if (left == null || right == null || left.isEmpty() || right.isEmpty()) return false;
+        for (String value : left) {
+            if (right.contains(value)) return true;
+        }
+        return false;
+    }
+
+    private static boolean isEmbeddedModPack(Path source) {
+        if (source == null || !Files.isRegularFile(source)) return false;
+        return source.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar");
+    }
+
+    private static boolean matchesAnyFilename(String packId, Set<String> fileNames) {
+        if (packId == null || fileNames == null || fileNames.isEmpty()) return false;
+        for (String fileName : fileNames) {
+            if (packIdMatchesFilename(packId, fileName)) return true;
+        }
+        return false;
+    }
+
+    private static boolean packIdMatchesFilename(String packId, String fileName) {
+        String normalized = packId == null ? "" : packId.toLowerCase(Locale.ROOT);
+        String needle = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+        if (normalized.isBlank() || needle.isBlank()) return false;
+        return normalized.equals("file/" + needle)
+                || normalized.endsWith("/" + needle)
+                || normalized.endsWith(needle);
+    }
+
     private static String findPackIdByFilename(Set<String> available, String fileName) {
         String needle = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
         if (needle.isBlank()) return null;
 
         for (String id : available) {
-            String normalized = id.toLowerCase(Locale.ROOT);
-            if (normalized.equals("file/" + needle)
-                    || normalized.endsWith("/" + needle)
-                    || normalized.endsWith(needle)) {
-                return id;
-            }
+            if (packIdMatchesFilename(id, needle)) return id;
         }
         return null;
     }

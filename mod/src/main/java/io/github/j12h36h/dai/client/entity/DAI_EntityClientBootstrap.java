@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.client.entity;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.client.entity.mesh.DAI_MeshModelLibrary;
+import io.github.j12h36h.dai.client.entity.mesh.DAI_NativeMeshEntityRenderer;
 import io.github.j12h36h.dai.registry.DAI_DynamicRegistryBootstrap;
 import io.github.j12h36h.dai.registry.DAI_RegistrySpec;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -8,6 +10,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 
 import java.lang.reflect.Constructor;
 
@@ -18,6 +22,7 @@ public final class DAI_EntityClientBootstrap {
 
     public static void initialize(IEventBus modBus) {
         modBus.addListener(DAI_EntityClientBootstrap::registerRenderers);
+        modBus.addListener(DAI_EntityClientBootstrap::registerReloadListeners);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -28,7 +33,10 @@ public final class DAI_EntityClientBootstrap {
             if (type == null) continue;
 
             if (io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry.isNative(spec.carrier())) {
-                event.registerEntityRenderer(type, DAI_InvisibleEntityRenderer::new);
+                event.registerEntityRenderer(
+                        type,
+                        context -> new DAI_NativeMeshEntityRenderer(context, spec.id(), spec.model())
+                );
                 continue;
             }
 
@@ -43,6 +51,14 @@ public final class DAI_EntityClientBootstrap {
 
             event.registerEntityRenderer(type, context -> instantiate(rendererClass, context, spec.id()));
         }
+    }
+
+
+    private static void registerReloadListeners(AddClientReloadListenersEvent event) {
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "native_mesh_models"),
+                new DAI_MeshModelLibrary()
+        );
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
