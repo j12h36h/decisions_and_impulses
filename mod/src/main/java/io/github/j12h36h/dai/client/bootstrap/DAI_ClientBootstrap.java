@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client.bootstrap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.j12h36h.dai.client.entity.DAI_EntityClientBootstrap;
+import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
@@ -119,6 +120,10 @@ public final class DAI_ClientBootstrap {
         NeoForge.EVENT_BUS.addListener(
                 ClientTickEvent.Post.class,
                 DAI_ClientBootstrap::onClientTick
+        );
+
+        NeoForge.EVENT_BUS.addListener(
+                DAI_MusashiDirectionalCombat::onRenderHand
         );
 
         DAI_Core.debug(
