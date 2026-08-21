@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public final class DAI_RegistryCache {
 
-    private static final int FORMAT = 3;
+    private static final int FORMAT = 8;
 
     private static final Gson GSON =
             new GsonBuilder()
@@ -150,6 +150,54 @@ public final class DAI_RegistryCache {
         object.addProperty("carrier", spec.carrier());
         object.addProperty("stack_size", spec.stackSize());
         object.addProperty("durability", spec.durability());
+
+        JsonObject block = new JsonObject();
+        block.addProperty("hardness", spec.block().hardness());
+        block.addProperty("explosion_resistance", spec.block().explosionResistance());
+        block.addProperty("sound", spec.block().sound());
+        block.addProperty("luminance", spec.block().luminance());
+        block.addProperty("friction", spec.block().friction());
+        block.addProperty("speed_factor", spec.block().speedFactor());
+        block.addProperty("jump_factor", spec.block().jumpFactor());
+        block.addProperty("requires_correct_tool", spec.block().requiresCorrectTool());
+        block.addProperty("no_occlusion", spec.block().noOcclusion());
+        block.addProperty("no_collision", spec.block().noCollision());
+        block.addProperty("replaceable", spec.block().replaceable());
+        block.addProperty("random_ticks", spec.block().randomTicks());
+        block.addProperty("ignited_by_lava", spec.block().ignitedByLava());
+        block.addProperty("emissive_rendering", spec.block().emissiveRendering());
+        block.addProperty("map_color", spec.block().mapColor());
+        block.addProperty("push_reaction", spec.block().pushReaction());
+        com.google.gson.JsonArray states = new com.google.gson.JsonArray();
+        spec.block().states().forEach(states::add);
+        block.add("states", states);
+        com.google.gson.JsonArray outline = new com.google.gson.JsonArray();
+        spec.block().outlineShape().forEach(outline::add);
+        block.add("outline_shape", outline);
+        com.google.gson.JsonArray collision = new com.google.gson.JsonArray();
+        spec.block().collisionShape().forEach(collision::add);
+        block.add("collision_shape", collision);
+        block.addProperty("redstone_signal", spec.block().redstoneSignal());
+        block.addProperty("climbable", spec.block().climbable());
+        block.addProperty("redstone_state", spec.block().redstoneState());
+        block.addProperty("use_toggle_state", spec.block().useToggleState());
+        block.addProperty("scheduled_tick_delay", spec.block().scheduledTickDelay());
+        object.add("block", block);
+
+        JsonObject effect = new JsonObject();
+        effect.addProperty("category", spec.effect().category());
+        effect.addProperty("color", spec.effect().color());
+        effect.addProperty("tick_interval", spec.effect().tickInterval());
+        object.add("effect", effect);
+        JsonObject potion = new JsonObject();
+        JsonArray potionEffects = new JsonArray();
+        spec.potion().effects().forEach(potionEffects::add);
+        potion.add("effects", potionEffects);
+        object.add("potion", potion);
+        JsonObject particle = new JsonObject();
+        particle.addProperty("texture", spec.particle().texture());
+        object.add("particle", particle);
+
         object.addProperty("entity_category", spec.entityCategory());
         object.addProperty("entity_width", spec.entityWidth());
         object.addProperty("entity_height", spec.entityHeight());
@@ -188,6 +236,10 @@ public final class DAI_RegistryCache {
             String carrier = string(object, "carrier");
             int stackSize = integer(object, "stack_size", 1);
             int durability = integer(object, "durability", 0);
+            io.github.j12h36h.dai.content.DAI_BlockSettings block = readBlockSettings(object);
+            io.github.j12h36h.dai.content.DAI_EffectSettings effect = readEffectSettings(object);
+            io.github.j12h36h.dai.content.DAI_PotionSettings potion = readPotionSettings(object);
+            io.github.j12h36h.dai.content.DAI_ParticleSettings particle = readParticleSettings(object);
             String entityCategory = string(object, "entity_category");
             float entityWidth = decimal(object, "entity_width", 0.6F);
             float entityHeight = decimal(object, "entity_height", 1.0F);
@@ -216,6 +268,9 @@ public final class DAI_RegistryCache {
                 case "item" -> DAI_RegistrySpec.NativeRegistry.ITEM;
                 case "block" -> DAI_RegistrySpec.NativeRegistry.BLOCK;
                 case "entity" -> DAI_RegistrySpec.NativeRegistry.ENTITY;
+                case "effect" -> DAI_RegistrySpec.NativeRegistry.EFFECT;
+                case "potion" -> DAI_RegistrySpec.NativeRegistry.POTION;
+                case "particle" -> DAI_RegistrySpec.NativeRegistry.PARTICLE;
                 default -> null;
             };
 
@@ -230,6 +285,10 @@ public final class DAI_RegistryCache {
                     carrier,
                     stackSize,
                     durability,
+                    block,
+                    effect,
+                    potion,
+                    particle,
                     entityCategory,
                     entityWidth,
                     entityHeight,
@@ -244,6 +303,88 @@ public final class DAI_RegistryCache {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+
+
+    private static io.github.j12h36h.dai.content.DAI_ParticleSettings readParticleSettings(JsonObject object) {
+        JsonObject p = object.getAsJsonObject("particle");
+        if (p == null) return io.github.j12h36h.dai.content.DAI_ParticleSettings.DEFAULT;
+        var d = io.github.j12h36h.dai.content.DAI_ParticleSettings.DEFAULT;
+        return new io.github.j12h36h.dai.content.DAI_ParticleSettings(
+                d.shape(), d.count(), d.spreadX(), d.spreadY(), d.spreadZ(), d.speed(), d.radius(), d.force(),
+                stringOr(p, "texture", d.texture()), d.lifetime(), d.gravity(), d.friction(), d.scale(),
+                d.color(), d.alpha(), d.fullBright(), d.collision());
+    }
+
+    private static io.github.j12h36h.dai.content.DAI_EffectSettings readEffectSettings(JsonObject object) {
+        JsonObject e = object.getAsJsonObject("effect");
+        if (e == null) return io.github.j12h36h.dai.content.DAI_EffectSettings.DEFAULT;
+        return new io.github.j12h36h.dai.content.DAI_EffectSettings(
+                stringOr(e, "category", "neutral"), integer(e, "color", 0xFFFFFF), integer(e, "tick_interval", 1));
+    }
+
+    private static io.github.j12h36h.dai.content.DAI_PotionSettings readPotionSettings(JsonObject object) {
+        JsonObject p = object.getAsJsonObject("potion");
+        if (p == null) return io.github.j12h36h.dai.content.DAI_PotionSettings.DEFAULT;
+        return new io.github.j12h36h.dai.content.DAI_PotionSettings(stringList(p, "effects"));
+    }
+
+    private static io.github.j12h36h.dai.content.DAI_BlockSettings readBlockSettings(JsonObject object) {
+        JsonObject block = object.getAsJsonObject("block");
+        if (block == null) return io.github.j12h36h.dai.content.DAI_BlockSettings.DEFAULT;
+
+        return new io.github.j12h36h.dai.content.DAI_BlockSettings(
+                decimal(block, "hardness", 1.5F),
+                decimal(block, "explosion_resistance", 6.0F),
+                stringOr(block, "sound", "stone"),
+                integer(block, "luminance", 0),
+                decimal(block, "friction", 0.6F),
+                decimal(block, "speed_factor", 1.0F),
+                decimal(block, "jump_factor", 1.0F),
+                bool(block, "requires_correct_tool", false),
+                bool(block, "no_occlusion", false),
+                bool(block, "no_collision", false),
+                bool(block, "replaceable", false),
+                bool(block, "random_ticks", false),
+                bool(block, "ignited_by_lava", false),
+                bool(block, "emissive_rendering", false),
+                string(block, "map_color"),
+                stringOr(block, "push_reaction", "normal"),
+                stringList(block, "states"),
+                doubleList(block, "outline_shape"),
+                doubleList(block, "collision_shape"),
+                integer(block, "redstone_signal", 0),
+                bool(block, "climbable", false),
+                string(block, "redstone_state"),
+                string(block, "use_toggle_state"),
+                integer(block, "scheduled_tick_delay", 0)
+        );
+    }
+
+    private static java.util.List<String> stringList(JsonObject object, String key) {
+        JsonArray array = object.getAsJsonArray(key);
+        if (array == null) return java.util.List.of();
+        java.util.ArrayList<String> out = new java.util.ArrayList<>();
+        for (JsonElement element : array) {
+            try { out.add(element.getAsString()); } catch (Exception ignored) {}
+        }
+        return java.util.List.copyOf(out);
+    }
+
+    private static java.util.List<Double> doubleList(JsonObject object, String key) {
+        JsonArray array = object.getAsJsonArray(key);
+        if (array == null) return java.util.List.of();
+        java.util.ArrayList<Double> out = new java.util.ArrayList<>();
+        for (JsonElement element : array) {
+            try { out.add(element.getAsDouble()); } catch (Exception ignored) {}
+        }
+        return java.util.List.copyOf(out);
+    }
+
+    private static String stringOr(JsonObject object, String key, String fallback) {
+        String value = string(object, key);
+        return value.isBlank() ? fallback : value;
     }
 
     private static String string(JsonObject object, String key) {

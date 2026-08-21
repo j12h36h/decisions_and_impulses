@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputReactionBridge;
+import io.github.j12h36h.dai.client.logics.input.DAI_VehicleInputBridge;
 import io.github.j12h36h.dai.client.logics.input.DAI_KeybindStateTracker;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
@@ -116,6 +117,7 @@ public final class DAI_ClientTick {
         DAI_MusashiDirectionalCombat.tick();
         DAI_KeybindStateTracker.tick();
         DAI_InputReactionBridge.tick();
+        DAI_VehicleInputBridge.tick();
 
         /*
          * Persistent navigation advances before queue dispatch so controller

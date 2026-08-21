@@ -2,6 +2,10 @@ package io.github.j12h36h.dai.registry;
 
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
+import io.github.j12h36h.dai.content.DAI_BlockSettings;
+import io.github.j12h36h.dai.content.DAI_EffectSettings;
+import io.github.j12h36h.dai.content.DAI_PotionSettings;
+import io.github.j12h36h.dai.content.DAI_ParticleSettings;
 import io.github.j12h36h.dai.entity.DAI_EntitySettings;
 import net.minecraft.resources.Identifier;
 
@@ -24,6 +28,10 @@ public record DAI_RegistrySpec(
         String carrier,
         int stackSize,
         int durability,
+        DAI_BlockSettings block,
+        DAI_EffectSettings effect,
+        DAI_PotionSettings potion,
+        DAI_ParticleSettings particle,
         String entityCategory,
         float entityWidth,
         float entityHeight,
@@ -39,7 +47,10 @@ public record DAI_RegistrySpec(
     public enum NativeRegistry {
         ITEM,
         BLOCK,
-        ENTITY;
+        ENTITY,
+        EFFECT,
+        POTION,
+        PARTICLE;
 
         public static NativeRegistry parse(String value, DAI_ContentKind kind) {
             String normalized = value == null
@@ -49,6 +60,9 @@ public record DAI_RegistrySpec(
             if (normalized.isBlank()) {
                 if (kind == DAI_ContentKind.BLOCK) return BLOCK;
                 if (kind == DAI_ContentKind.ENTITY) return ENTITY;
+                if (kind == DAI_ContentKind.EFFECT) return EFFECT;
+                if (kind == DAI_ContentKind.POTION) return POTION;
+                if (kind == DAI_ContentKind.PARTICLE) return PARTICLE;
                 return ITEM;
             }
 
@@ -56,6 +70,9 @@ public record DAI_RegistrySpec(
                 case "item" -> ITEM;
                 case "block" -> BLOCK;
                 case "entity", "entity_type" -> ENTITY;
+                case "effect", "mob_effect" -> EFFECT;
+                case "potion" -> POTION;
+                case "particle", "particle_type" -> PARTICLE;
                 default -> null;
             };
         }
@@ -69,6 +86,10 @@ public record DAI_RegistrySpec(
         carrier = normalize(carrier);
         stackSize = Math.max(1, Math.min(99, stackSize));
         durability = Math.max(0, durability);
+        block = block == null ? DAI_BlockSettings.DEFAULT : block;
+        effect = effect == null ? DAI_EffectSettings.DEFAULT : effect;
+        potion = potion == null ? DAI_PotionSettings.DEFAULT : potion;
+        particle = particle == null ? DAI_ParticleSettings.DEFAULT : particle;
         entityCategory = normalize(entityCategory);
         entityWidth = finiteClamp(entityWidth, 0.05F, 32.0F, 0.6F);
         entityHeight = finiteClamp(entityHeight, 0.05F, 32.0F, 1.0F);
@@ -100,9 +121,10 @@ public record DAI_RegistrySpec(
         String id = entry.id().toString();
         String key = nativeRegistry.name().toLowerCase(Locale.ROOT) + "|" + normalize(id);
         DAI_RegistrySpec boot = DAI_DynamicRegistryBootstrap.bootSpecs().get(key);
-        Map<String, String> nativeComponents = boot == null
-                ? Map.of()
-                : boot.nativeComponents();
+        Map<String, String> decodedComponents = entry.definition().nativeComponents().values();
+        Map<String, String> nativeComponents = !decodedComponents.isEmpty()
+                ? decodedComponents
+                : (boot == null ? Map.of() : boot.nativeComponents());
 
         return new DAI_RegistrySpec(
                 id,
@@ -113,6 +135,10 @@ public record DAI_RegistrySpec(
                 entry.definition().carrier(),
                 entry.definition().stats().stackSize(),
                 entry.definition().stats().durability(),
+                entry.definition().block(),
+                entry.definition().effect(),
+                entry.definition().potion(),
+                entry.definition().particle(),
                 entity.category(),
                 entity.width(),
                 entity.height(),
@@ -156,8 +182,22 @@ public record DAI_RegistrySpec(
          * block look "changed" after reload, which incorrectly armed the
          * restart safety gate on Start Journey.
          */
-        if (nativeRegistry != NativeRegistry.ENTITY) {
+        if (nativeRegistry == NativeRegistry.ITEM) {
             return nativeComponents.equals(other.nativeComponents);
+        }
+
+        if (nativeRegistry == NativeRegistry.BLOCK) {
+            return block.equals(other.block)
+                    && nativeComponents.equals(other.nativeComponents);
+        }
+        if (nativeRegistry == NativeRegistry.EFFECT) {
+            return effect.equals(other.effect) && nativeAttributes.equals(other.nativeAttributes);
+        }
+        if (nativeRegistry == NativeRegistry.POTION) {
+            return potion.equals(other.potion);
+        }
+        if (nativeRegistry == NativeRegistry.PARTICLE) {
+            return particle.texture().equals(other.particle.texture());
         }
 
         return entityCategory.equals(other.entityCategory)

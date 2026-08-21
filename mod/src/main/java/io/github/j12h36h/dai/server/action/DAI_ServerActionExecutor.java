@@ -7,6 +7,11 @@ import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
 import io.github.j12h36h.dai.server.network.DAI_ServerAccessPolicy;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_ProjectileRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_AudioRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_PotionRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_EffectRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_ParticleRuntime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -99,6 +104,21 @@ public final class DAI_ServerActionExecutor {
 
                 case "give_item", "server_give_item" ->
                         giveItem(actor, payload.action(), count(payload.value()));
+
+                case "projectile_spawn", "server_projectile_spawn" ->
+                        DAI_ProjectileRuntime.spawn(actor, payload.action());
+
+                case "particle_emit", "server_particle_emit" ->
+                        DAI_ParticleRuntime.emit(actor, payload.action());
+
+                case "effect_apply", "server_effect_apply" ->
+                        DAI_EffectRuntime.apply(actor, payload.action(), parseInt(payload.target(), 0), (int)Math.round(payload.value()));
+
+                case "effect_remove", "server_effect_remove" ->
+                        DAI_EffectRuntime.remove(actor, payload.action());
+
+                case "potion_apply", "server_potion_apply" ->
+                        DAI_PotionRuntime.apply(actor, payload.action());
 
                 case "take_item", "server_take_item" ->
                         takeItem(actor, payload.action(), count(payload.value()));
@@ -269,6 +289,7 @@ public final class DAI_ServerActionExecutor {
         String eventName = normalize(eventParts.length == 0 ? "" : eventParts[0]);
         String runtimeTarget = eventParts.length > 1 ? eventParts[1].trim() : "";
         if (eventName.isBlank()) eventName = "run";
+        DAI_AudioRuntime.onCustomizationEvent(actor, kind, entry, eventName);
         String dispatch = definition.event(eventName);
 
         if (dispatch.isBlank()) {
@@ -346,22 +367,29 @@ public final class DAI_ServerActionExecutor {
                 if (carrier.isBlank()) yield "";
                 String source = definition.property("source");
                 if (source.isBlank()) source = "master";
+                String audience = definition.property("audience");
+                if (audience.isBlank()) audience = "@s";
                 if (event.equals("stop")) {
-                    yield "command:stopsound @s " + source + " " + carrier;
+                    yield "command:stopsound " + audience + " " + source + " " + carrier;
                 }
                 double volume = definition.number("volume", 1.0D);
                 double pitch = definition.number("pitch", 1.0D);
+                double minVolume = Math.max(0.0D, definition.number("min_volume", 0.0D));
                 yield "command:playsound " + carrier + " " + source
-                        + " @s ~ ~ ~ " + volume + " " + pitch;
+                        + " " + audience + " " + target + " " + volume + " " + pitch + " " + minVolume;
             }
             case MUSIC -> {
                 if (carrier.isBlank()) yield "";
+                String audience = definition.property("audience");
+                if (audience.isBlank()) audience = "@s";
                 if (event.equals("stop")) {
-                    yield "command:stopsound @s music " + carrier;
+                    yield "command:stopsound " + audience + " music " + carrier;
                 }
                 double volume = definition.number("volume", 1.0D);
                 double pitch = definition.number("pitch", 1.0D);
-                yield "command:playsound " + carrier + " music @s ~ ~ ~ " + volume + " " + pitch;
+                double minVolume = Math.max(0.0D, definition.number("min_volume", 0.0D));
+                yield "command:playsound " + carrier + " music " + audience + " " + target
+                        + " " + volume + " " + pitch + " " + minVolume;
             }
             case STRUCTURE -> carrier.isBlank()
                     ? ""
@@ -645,6 +673,11 @@ public final class DAI_ServerActionExecutor {
         if (value.equals("true") || value.equals("yes") || value.equals("1")) return true;
         if (value.equals("false") || value.equals("no") || value.equals("0")) return false;
         return fallback;
+    }
+
+    private static int parseInt(String raw, int fallback) {
+        try { return Integer.parseInt(raw == null ? "" : raw.trim()); }
+        catch (NumberFormatException ignored) { return fallback; }
     }
 
     private static String normalize(String value) {

@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client.bootstrap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.j12h36h.dai.client.entity.DAI_EntityClientBootstrap;
+import io.github.j12h36h.dai.client.particle.DAI_ParticleClientBootstrap;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
@@ -9,6 +10,7 @@ import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.logics.core.DAI_ClientTick;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
+import io.github.j12h36h.dai.client.logics.input.DAI_VehicleInputBridge;
 import io.github.j12h36h.dai.client.menus.DAI_MenuCore;
 import io.github.j12h36h.dai.client.menus.DAI_ScreenManager;
 import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
@@ -68,6 +70,7 @@ public final class DAI_ClientBootstrap {
         );
 
         DAI_EntityClientBootstrap.initialize(modBus);
+        DAI_ParticleClientBootstrap.initialize(modBus);
 
         modBus.addListener(
                 DAI_ClientBootstrap::registerKeyMappings

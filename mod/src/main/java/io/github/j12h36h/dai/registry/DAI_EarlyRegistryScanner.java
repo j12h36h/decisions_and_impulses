@@ -4,6 +4,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
+import io.github.j12h36h.dai.content.DAI_BlockSettings;
+import io.github.j12h36h.dai.content.DAI_EffectSettings;
+import io.github.j12h36h.dai.content.DAI_PotionSettings;
+import io.github.j12h36h.dai.content.DAI_ParticleSettings;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 
@@ -407,6 +411,10 @@ public final class DAI_EarlyRegistryScanner {
                     carrier,
                     integer(stats, "stack_size", 1),
                     integer(stats, "durability", 0),
+                    blockSettings(object),
+                    effectSettings(object),
+                    potionSettings(object),
+                    particleSettings(object),
                     entityCategory,
                     decimal(entity, "width", 0.6F),
                     decimal(entity, "height", 1.0F),
@@ -429,6 +437,108 @@ public final class DAI_EarlyRegistryScanner {
                     exception
             );
         }
+    }
+
+
+
+    private static DAI_EffectSettings effectSettings(JsonObject object) {
+        JsonObject effect = object.has("effect") && object.get("effect").isJsonObject() ? object.getAsJsonObject("effect") : new JsonObject();
+        return new DAI_EffectSettings(
+                stringOr(effect, "category", "neutral"),
+                integer(effect, "color", 0xFFFFFF),
+                integer(effect, "tick_interval", 1)
+        );
+    }
+
+    private static DAI_PotionSettings potionSettings(JsonObject object) {
+        JsonObject potion = object.has("potion") && object.get("potion").isJsonObject() ? object.getAsJsonObject("potion") : new JsonObject();
+        return new DAI_PotionSettings(stringList(potion, "effects"));
+    }
+
+
+    private static DAI_ParticleSettings particleSettings(JsonObject object) {
+        JsonObject p = object.has("particle") && object.get("particle").isJsonObject()
+                ? object.getAsJsonObject("particle") : new JsonObject();
+        return new DAI_ParticleSettings(
+                stringOr(p, "shape", "point"),
+                integer(p, "count", 1),
+                doubleValue(p, "spread_x", 0.0D),
+                doubleValue(p, "spread_y", 0.0D),
+                doubleValue(p, "spread_z", 0.0D),
+                doubleValue(p, "speed", 0.0D),
+                doubleValue(p, "radius", 1.0D),
+                bool(p, "force", false),
+                stringOr(p, "texture", "minecraft:generic"),
+                integer(p, "lifetime", 20),
+                doubleValue(p, "gravity", 0.0D),
+                doubleValue(p, "friction", 0.98D),
+                doubleValue(p, "scale", 1.0D),
+                integer(p, "color", 0xFFFFFF),
+                doubleValue(p, "alpha", 1.0D),
+                bool(p, "full_bright", false),
+                bool(p, "collision", false)
+        );
+    }
+
+    private static DAI_BlockSettings blockSettings(JsonObject object) {
+        JsonObject block = object.has("block") && object.get("block").isJsonObject()
+                ? object.getAsJsonObject("block")
+                : new JsonObject();
+
+        return new DAI_BlockSettings(
+                decimal(block, "hardness", 1.5F),
+                decimal(block, "explosion_resistance", 6.0F),
+                stringOr(block, "sound", "stone"),
+                integer(block, "luminance", 0),
+                decimal(block, "friction", 0.6F),
+                decimal(block, "speed_factor", 1.0F),
+                decimal(block, "jump_factor", 1.0F),
+                bool(block, "requires_correct_tool", false),
+                bool(block, "no_occlusion", false),
+                bool(block, "no_collision", false),
+                bool(block, "replaceable", false),
+                bool(block, "random_ticks", false),
+                bool(block, "ignited_by_lava", false),
+                bool(block, "emissive_rendering", false),
+                string(block, "map_color"),
+                stringOr(block, "push_reaction", "normal"),
+                stringList(block, "states"),
+                doubleList(block, "outline_shape"),
+                doubleList(block, "collision_shape"),
+                integer(block, "redstone_signal", 0),
+                bool(block, "climbable", false),
+                string(block, "redstone_state"),
+                string(block, "use_toggle_state"),
+                integer(block, "scheduled_tick_delay", 0)
+        );
+    }
+
+    private static java.util.List<String> stringList(JsonObject object, String key) {
+        if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return java.util.List.of();
+        java.util.ArrayList<String> values = new java.util.ArrayList<>();
+        for (var element : object.getAsJsonArray(key)) {
+            if (element != null && element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+                String value = element.getAsString().trim();
+                if (!value.isBlank()) values.add(value);
+            }
+        }
+        return java.util.List.copyOf(values);
+    }
+
+    private static java.util.List<Double> doubleList(JsonObject object, String key) {
+        if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return java.util.List.of();
+        java.util.ArrayList<Double> values = new java.util.ArrayList<>();
+        for (var element : object.getAsJsonArray(key)) {
+            try {
+                if (element != null && element.isJsonPrimitive()) values.add(element.getAsDouble());
+            } catch (RuntimeException ignored) { }
+        }
+        return java.util.List.copyOf(values);
+    }
+
+    private static String stringOr(JsonObject object, String key, String fallback) {
+        String value = string(object, key);
+        return value.isBlank() ? fallback : value;
     }
 
     private static boolean isArchive(Path path) {
@@ -466,6 +576,11 @@ public final class DAI_EarlyRegistryScanner {
     private static int integer(JsonObject object, String key, int fallback) {
         JsonElement value = object.get(key);
         return value == null || value.isJsonNull() ? fallback : value.getAsInt();
+    }
+
+    private static double doubleValue(JsonObject object, String key, double fallback) {
+        if (object == null || !object.has(key)) return fallback;
+        try { return object.get(key).getAsDouble(); } catch (Exception ignored) { return fallback; }
     }
 
     private static float decimal(JsonObject object, String key, float fallback) {

@@ -34,6 +34,7 @@ public final class DAI_ActionPermissions {
             "creative_remove_block", "creative_place_block", "creative_set_block",
             "creative_build_blueprint", "creative_blueprint_cell", "wait_for_creative_build",
             "server_set_block", "server_break_block",
+            "server_projectile_spawn", "projectile_spawn",
             "structure_place", "feature_place",
             "fluid_apply", "fluid_remove"
     );

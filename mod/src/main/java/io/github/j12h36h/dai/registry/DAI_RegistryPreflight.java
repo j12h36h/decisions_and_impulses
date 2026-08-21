@@ -162,13 +162,22 @@ public final class DAI_RegistryPreflight {
         }
 
         DAI_RegistrySpec spec = DAI_RegistrySpec.from(entry);
+        if (spec == null || !registered.containsKey(spec.key())) {
+            return "";
+        }
+
+        /*
+         * Only ITEM and BLOCK native registrations own an Item registry entry.
+         * EFFECT/POTION/PARTICLE/ENTITY are valid native DAI content, but they
+         * cannot be handed to the give-item mutation path.
+         */
         if (
-                spec == null
-                        || spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.ENTITY
-                        || !registered.containsKey(spec.key())
+                spec.nativeRegistry() != DAI_RegistrySpec.NativeRegistry.ITEM
+                        && spec.nativeRegistry() != DAI_RegistrySpec.NativeRegistry.BLOCK
         ) {
             return "";
         }
+
         return spec.id();
     }
 
@@ -197,6 +206,9 @@ public final class DAI_RegistryPreflight {
             case BLOCK -> BuiltInRegistries.BLOCK.containsKey(id)
                     && BuiltInRegistries.ITEM.containsKey(id);
             case ENTITY -> BuiltInRegistries.ENTITY_TYPE.containsKey(id);
+            case EFFECT -> BuiltInRegistries.MOB_EFFECT.containsKey(id);
+            case POTION -> BuiltInRegistries.POTION.containsKey(id);
+            case PARTICLE -> BuiltInRegistries.PARTICLE_TYPE.containsKey(id);
         };
     }
 }

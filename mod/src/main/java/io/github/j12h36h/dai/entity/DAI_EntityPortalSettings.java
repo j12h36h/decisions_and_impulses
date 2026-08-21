@@ -3,12 +3,13 @@ package io.github.j12h36h.dai.entity;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Optional portal behavior attached to a living JSON-defined DAI entity.
  * The entity remains a normal registry-backed LivingEntity/Mob; this profile
- * simply turns its proximity volume into a configurable dimension gateway.
+ * turns its proximity volume into a configurable dimension gateway.
  */
 public record DAI_EntityPortalSettings(
         boolean enabled,
@@ -24,7 +25,8 @@ public record DAI_EntityPortalSettings(
         float yaw,
         float pitch,
         String enterCommand,
-        String exitCommand
+        String exitCommand,
+        List<String> affects
 ) {
     public static final DAI_EntityPortalSettings DISABLED =
             new DAI_EntityPortalSettings(
@@ -33,7 +35,8 @@ public record DAI_EntityPortalSettings(
                     1.0D, 40,
                     true, true,
                     0.0F, 0.0F,
-                    "", ""
+                    "", "",
+                    List.of("players")
             );
 
     public static final Codec<DAI_EntityPortalSettings> CODEC =
@@ -51,7 +54,8 @@ public record DAI_EntityPortalSettings(
                     Codec.FLOAT.optionalFieldOf("yaw", 0.0F).forGetter(DAI_EntityPortalSettings::yaw),
                     Codec.FLOAT.optionalFieldOf("pitch", 0.0F).forGetter(DAI_EntityPortalSettings::pitch),
                     Codec.STRING.optionalFieldOf("enter_command", "").forGetter(DAI_EntityPortalSettings::enterCommand),
-                    Codec.STRING.optionalFieldOf("exit_command", "").forGetter(DAI_EntityPortalSettings::exitCommand)
+                    Codec.STRING.optionalFieldOf("exit_command", "").forGetter(DAI_EntityPortalSettings::exitCommand),
+                    Codec.STRING.listOf().optionalFieldOf("affects", List.of("players")).forGetter(DAI_EntityPortalSettings::affects)
             ).apply(instance, DAI_EntityPortalSettings::new));
 
     public DAI_EntityPortalSettings {
@@ -66,6 +70,24 @@ public record DAI_EntityPortalSettings(
         pitch = Float.isFinite(pitch) ? pitch : 0.0F;
         enterCommand = enterCommand == null ? "" : enterCommand.trim();
         exitCommand = exitCommand == null ? "" : exitCommand.trim();
+        affects = normalizeAffects(affects);
+    }
+
+    public boolean affects(String kind) {
+        String normalized = normalizeMode(kind);
+        return affects.contains("all")
+                || affects.contains("any")
+                || affects.contains(normalized);
+    }
+
+    private static List<String> normalizeAffects(List<String> values) {
+        if (values == null || values.isEmpty()) return List.of("players");
+        List<String> normalized = values.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(DAI_EntityPortalSettings::normalizeMode)
+                .distinct()
+                .toList();
+        return normalized.isEmpty() ? List.of("players") : normalized;
     }
 
     private static String normalizeId(String value) {
@@ -73,7 +95,7 @@ public record DAI_EntityPortalSettings(
     }
 
     private static String normalizeMode(String value) {
-        if (value == null || value.isBlank()) return "same_coordinates";
+        if (value == null || value.isBlank()) return "";
         return value.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 

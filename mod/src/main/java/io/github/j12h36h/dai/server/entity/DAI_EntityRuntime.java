@@ -22,10 +22,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
@@ -36,6 +39,14 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.EntityMountEvent;
+import io.github.j12h36h.dai.server.runtime.DAI_RuntimeDispatch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,11 +74,19 @@ public final class DAI_EntityRuntime {
     private static final Map<UUID, MovementState> MOVEMENT_STATE = new HashMap<>();
     private static final Map<UUID, Long> PORTAL_COOLDOWNS = new HashMap<>();
     private static final Set<UUID> INITIALIZED_GAMEPLAY = new HashSet<>();
+    private static final Map<UUID, GameplayState> GAMEPLAY_STATE = new HashMap<>();
 
     private DAI_EntityRuntime() {}
 
     public static void initialize() {
         NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onServerTick);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onDamage);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onDeath);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onAttack);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onInteract);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onJump);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onFall);
+        NeoForge.EVENT_BUS.addListener(DAI_EntityRuntime::onMount);
     }
 
     /**
@@ -80,9 +99,98 @@ public final class DAI_EntityRuntime {
     public static void onDefinitionsReloaded() {
         BEHAVIOR_STATE.clear();
         MOVEMENT_STATE.clear();
+        GAMEPLAY_STATE.clear();
         DAI_Core.LOGGER.info(
                 "<DAI>: Custom-entity runtime adopted reloaded behavior/spawn definitions."
         );
+    }
+
+    private static void onDamage(LivingDamageEvent.Post event) {
+        if (event.getEntity().level().isClientSide()) return;
+        if (event.getEntity() instanceof Mob victim) {
+            DAI_EntitySettings settings = settings(victim);
+            if (settings != null) runGameplayEvent(victim, settings, "hurt");
+        }
+        Entity source = event.getSource().getEntity();
+        if (source instanceof Mob attacker) {
+            DAI_EntitySettings settings = settings(attacker);
+            if (settings != null) runGameplayEvent(attacker, settings, "damage_dealt");
+        }
+    }
+
+    private static void onDeath(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+        if (event.getEntity() instanceof Mob victim) {
+            DAI_EntitySettings settings = settings(victim);
+            if (settings != null) {
+                runGameplayEvent(victim, settings, "death");
+                String loot = settings.gameplay().loot();
+                if (!loot.isBlank()) DAI_RuntimeDispatch.dispatch(victim, "command:loot spawn ~ ~ ~ loot " + loot);
+            }
+        }
+        Entity source = event.getSource().getEntity();
+        if (source instanceof Mob killer) {
+            DAI_EntitySettings settings = settings(killer);
+            if (settings != null) runGameplayEvent(killer, settings, "kill");
+        }
+    }
+
+    private static void onAttack(AttackEntityEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+        if (event.getTarget() instanceof Mob target) {
+            DAI_EntitySettings settings = settings(target);
+            if (settings != null) runGameplayEvent(target, settings, "attacked");
+        }
+    }
+
+    private static void onInteract(PlayerInteractEvent.EntityInteract event) {
+        if (event.getLevel().isClientSide()) return;
+        if (!(event.getTarget() instanceof Mob mob)) return;
+        DAI_EntitySettings settings = settings(mob);
+        if (settings == null) return;
+        runGameplayEvent(mob, settings, "interact");
+
+        String dialogueId = settings.gameplay().dialogue();
+        if (dialogueId.isBlank()) return;
+        DAI_GameCustomizationRegistry.Entry dialogue =
+                DAI_GameCustomizationRegistry.get(DAI_GameCustomizationKind.DIALOGUE, dialogueId);
+        if (dialogue == null) return;
+        String reference = dialogue.definition().event("open");
+        if (reference.isBlank()) reference = dialogue.definition().event("run");
+        if (reference.isBlank()) reference = dialogue.definition().command();
+        if (!reference.isBlank()) DAI_RuntimeDispatch.dispatch(event.getEntity(), reference);
+    }
+
+    private static void onJump(LivingEvent.LivingJumpEvent event) {
+        if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof Mob mob)) return;
+        DAI_EntitySettings settings = settings(mob);
+        if (settings != null) runGameplayEvent(mob, settings, "jump");
+    }
+
+    private static void onFall(LivingFallEvent event) {
+        if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof Mob mob)) return;
+        DAI_EntitySettings settings = settings(mob);
+        if (settings != null) runGameplayEvent(mob, settings, "fall");
+    }
+
+    private static void onMount(EntityMountEvent event) {
+        if (event.getEntityMounting().level().isClientSide()) return;
+        if (event.getEntityBeingMounted() instanceof Mob vehicle) {
+            DAI_EntitySettings settings = settings(vehicle);
+            if (settings != null) runGameplayEvent(vehicle, settings, event.isMounting() ? "passenger_added" : "passenger_removed");
+        }
+        if (event.getEntityMounting() instanceof Mob rider) {
+            DAI_EntitySettings settings = settings(rider);
+            if (settings != null) runGameplayEvent(rider, settings, event.isMounting() ? "mounted" : "dismounted");
+        }
+    }
+
+    private static DAI_EntitySettings settings(Mob mob) {
+        if (mob == null) return null;
+        Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
+        if (id == null) return null;
+        DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(id.toString());
+        return entry != null && entry.kind() == DAI_ContentKind.ENTITY ? entry.definition().entity() : null;
     }
 
     private static void onServerTick(ServerTickEvent.Post event) {
@@ -111,6 +219,7 @@ public final class DAI_EntityRuntime {
 
                 DAI_EntitySettings settings = entry.definition().entity();
                 initializeGameplay(mob, settings);
+                tickGameplayEvents(mob, settings);
                 tickMovement(mob, settings.movement());
                 tickPortal(mob, settings.portal());
                 if (settings.behaviorSequence().isBlank()) continue;
@@ -156,6 +265,67 @@ public final class DAI_EntityRuntime {
                 continue;
             }
             mob.setItemSlot(slot, new ItemStack(item));
+        }
+
+        applyGameplayFaction(mob, settings);
+        runGameplayEvent(mob, settings, "spawn");
+    }
+
+    private static void applyGameplayFaction(Mob mob, DAI_EntitySettings settings) {
+        String factionId = settings.gameplay().faction();
+        if (factionId.isBlank()) return;
+
+        DAI_GameCustomizationRegistry.Entry faction =
+                DAI_GameCustomizationRegistry.get(DAI_GameCustomizationKind.FACTION, factionId);
+        if (faction == null) return;
+
+        String primaryTag = faction.definition().property("tag");
+        if (!primaryTag.isBlank()) mob.addTag(primaryTag);
+        for (String tag : faction.definition().tags()) {
+            if (tag != null && !tag.isBlank()) mob.addTag(tag.trim());
+        }
+    }
+
+    private static void tickGameplayEvents(Mob mob, DAI_EntitySettings settings) {
+        if (mob == null || settings == null) return;
+        GameplayState state = GAMEPLAY_STATE.computeIfAbsent(mob.getUUID(), ignored -> new GameplayState());
+
+        if (serverTicks >= state.nextTick) {
+            runGameplayEvent(mob, settings, "tick");
+            state.nextTick = serverTicks + Math.max(1, settings.behaviorInterval());
+        }
+
+        UUID target = mob.getTarget() == null ? null : mob.getTarget().getUUID();
+        if (!java.util.Objects.equals(target, state.target)) {
+            if (target != null) runGameplayEvent(mob, settings, "target_acquired");
+            else if (state.target != null) runGameplayEvent(mob, settings, "target_lost");
+            state.target = target;
+        }
+
+        boolean mounted = mob.isVehicle();
+        if (mounted != state.mounted) {
+            runGameplayEvent(mob, settings, mounted ? "mount" : "dismount");
+            state.mounted = mounted;
+        }
+    }
+
+    private static void runGameplayEvent(Mob mob, DAI_EntitySettings settings, String eventName) {
+        if (mob == null || settings == null || eventName == null) return;
+        String reference = settings.gameplay().event(eventName);
+        if (reference.isBlank()) return;
+
+        List<DAI_ActionDefinition> actions = resolveBehavior(reference);
+        if (actions.isEmpty()) {
+            DAI_Core.debug(
+                    "<DAI>: Entity gameplay event '{}' could not resolve action reference '{}'.",
+                    eventName,
+                    reference
+            );
+            return;
+        }
+
+        for (DAI_ActionDefinition action : actions) {
+            if (entityConditionsPass(mob, action.conditions())) executeActorAction(mob, action);
         }
     }
 
@@ -302,27 +472,40 @@ public final class DAI_EntityRuntime {
         if (!(portalEntity.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
 
         AABB trigger = portalEntity.getBoundingBox().inflate(portal.triggerRadius());
-        for (ServerPlayer player : level.getEntitiesOfClass(
-                ServerPlayer.class,
+        for (Entity subject : level.getEntitiesOfClass(
+                Entity.class,
                 trigger,
-                value -> value.isAlive() && !value.isSpectator()
+                value -> value != portalEntity && value.isAlive() && portalAffects(portal, value)
         )) {
-            long readyTick = PORTAL_COOLDOWNS.getOrDefault(player.getUUID(), 0L);
-            if (serverTicks < readyTick) continue;
-            if (player.distanceToSqr(portalEntity) > portal.triggerRadius() * portal.triggerRadius()) continue;
+            if (subject instanceof ServerPlayer player && player.isSpectator()) continue;
 
-            if (teleportThroughPortal(player, portalEntity, portal)) {
-                PORTAL_COOLDOWNS.put(player.getUUID(), serverTicks + portal.cooldownTicks());
+            long readyTick = PORTAL_COOLDOWNS.getOrDefault(subject.getUUID(), 0L);
+            if (serverTicks < readyTick) continue;
+            if (subject.distanceToSqr(portalEntity) > portal.triggerRadius() * portal.triggerRadius()) continue;
+
+            if (teleportThroughPortal(subject, portalEntity, portal)) {
+                PORTAL_COOLDOWNS.put(subject.getUUID(), serverTicks + portal.cooldownTicks());
             }
         }
     }
 
+    private static boolean portalAffects(DAI_EntityPortalSettings portal, Entity subject) {
+        if (portal == null || subject == null) return false;
+        if (portal.affects("all") || portal.affects("any")) return true;
+        if (subject instanceof Player && portal.affects("players")) return true;
+        if (subject instanceof Mob && portal.affects("mobs")) return true;
+        if (subject instanceof ItemEntity && portal.affects("items")) return true;
+        if (subject instanceof Projectile && portal.affects("projectiles")) return true;
+        if (subject.isVehicle() && portal.affects("vehicles")) return true;
+        return !(subject instanceof Player) && portal.affects("entities");
+    }
+
     private static boolean teleportThroughPortal(
-            ServerPlayer player,
+            Entity subject,
             Mob portalEntity,
             DAI_EntityPortalSettings portal
     ) {
-        MinecraftServer server = player.level().getServer();
+        MinecraftServer server = subject.level().getServer();
         if (server == null) return false;
 
         Destination destination = resolvePortalDestination(portal.destination());
@@ -343,30 +526,30 @@ public final class DAI_EntityRuntime {
 
         Vec3 target = switch (portal.targetMode()) {
             case "fixed" -> new Vec3(portal.x(), portal.y(), portal.z());
-            case "relative", "offset" -> player.position().add(portal.x(), portal.y(), portal.z());
+            case "relative", "offset" -> subject.position().add(portal.x(), portal.y(), portal.z());
             case "portal_relative" -> portalEntity.position().add(portal.x(), portal.y(), portal.z());
-            case "dimension_default" -> destination.target() == null ? player.position() : destination.target();
-            default -> player.position();
+            case "dimension_default" -> destination.target() == null ? subject.position() : destination.target();
+            default -> subject.position();
         };
 
-        Vec3 velocity = player.getDeltaMovement();
-        float yaw = portal.preserveRotation() ? player.getYRot() : portal.yaw();
-        float pitch = portal.preserveRotation() ? player.getXRot() : portal.pitch();
+        Vec3 velocity = subject.getDeltaMovement();
+        float yaw = portal.preserveRotation() ? subject.getYRot() : portal.yaw();
+        float pitch = portal.preserveRotation() ? subject.getXRot() : portal.pitch();
 
         if (!portal.enterCommand().isBlank()) {
-            performServerCommand(player, portal.enterCommand());
+            performServerCommand(subject, portal.enterCommand());
         }
 
         String command = "execute in " + destination.dimension() + " run tp @s "
                 + target.x + " " + target.y + " " + target.z + " " + yaw + " " + pitch;
-        if (!performServerCommand(player, command)) return false;
+        if (!performServerCommand(subject, command)) return false;
 
         if (portal.preserveVelocity()) {
-            player.setDeltaMovement(velocity);
+            subject.setDeltaMovement(velocity);
         }
 
         if (!portal.exitCommand().isBlank()) {
-            performServerCommand(player, portal.exitCommand());
+            performServerCommand(subject, portal.exitCommand());
         }
 
         return true;
@@ -400,7 +583,7 @@ public final class DAI_EntityRuntime {
         }
     }
 
-    private static boolean performServerCommand(ServerPlayer actor, String rawCommand) {
+    private static boolean performServerCommand(Entity actor, String rawCommand) {
         MinecraftServer server = actor.level().getServer();
         if (server == null) return false;
         String command = rawCommand == null ? "" : rawCommand.trim();
@@ -706,6 +889,12 @@ public final class DAI_EntityRuntime {
                 double z = mob.getZ() + random.nextInt(radius * 2 + 1) - radius;
                 mob.getNavigation().moveTo(x, mob.getY(), z, speed);
             }
+            case "function", "run_function", "server_run_function" -> {
+                if (!action.action().isBlank()) performServerCommand(mob, "function " + action.action());
+            }
+            case "command", "run_command", "server_command" -> {
+                if (!action.action().isBlank()) performServerCommand(mob, action.action());
+            }
             case "wait", "idle", "noop" -> { }
             default -> DAI_Core.debug(
                     "<DAI>: Entity behavior skipped unsupported actor action type '{}'.",
@@ -921,6 +1110,12 @@ public final class DAI_EntityRuntime {
     }
 
     private record Destination(String dimension, Vec3 target) {}
+
+    private static final class GameplayState {
+        private long nextTick;
+        private UUID target;
+        private boolean mounted;
+    }
 
     private static final class MovementState {
         private long nextTick;

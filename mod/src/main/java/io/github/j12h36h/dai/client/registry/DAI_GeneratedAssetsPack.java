@@ -61,10 +61,17 @@ public final class DAI_GeneratedAssetsPack {
 
             int items = 0;
             int blocks = 0;
+            int particles = 0;
             if (specs != null) {
                 for (DAI_RegistrySpec spec : specs) {
                     if (spec == null || spec.identifier() == null) continue;
-                    if (spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.ENTITY) continue;
+                    if (spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.PARTICLE) {
+                        writeParticleDescription(spec, root);
+                        particles++;
+                        continue;
+                    }
+                    if (spec.nativeRegistry() != DAI_RegistrySpec.NativeRegistry.ITEM
+                            && spec.nativeRegistry() != DAI_RegistrySpec.NativeRegistry.BLOCK) continue;
                     writeClientItem(spec, root);
                     items++;
                     if (spec.nativeRegistry() == DAI_RegistrySpec.NativeRegistry.BLOCK) {
@@ -75,9 +82,10 @@ public final class DAI_GeneratedAssetsPack {
             }
 
             DAI_Core.LOGGER.info(
-                    "<DAI>: Prepared generated client aliases for {} item id(s) and {} block id(s).",
+                    "<DAI>: Prepared generated client aliases for {} item id(s), {} block id(s), and {} particle description(s).",
                     items,
-                    blocks
+                    blocks,
+                    particles
             );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
@@ -125,6 +133,21 @@ public final class DAI_GeneratedAssetsPack {
                 "<DAI>: Added required generated registry asset pack '{}'.",
                 PACK_ID
         );
+    }
+
+
+    private static void writeParticleDescription(DAI_RegistrySpec spec, Path root) throws IOException {
+        IdParts id = split(spec.id());
+        if (id == null) return;
+        JsonObject description = new JsonObject();
+        com.google.gson.JsonArray textures = new com.google.gson.JsonArray();
+        textures.add(spec.particle().texture());
+        description.add("textures", textures);
+        Path target = root.resolve("assets")
+                .resolve(id.namespace)
+                .resolve("particles")
+                .resolve(id.path + ".json");
+        writeJson(target, description);
     }
 
     private static void writeClientItem(DAI_RegistrySpec spec, Path root) throws IOException {

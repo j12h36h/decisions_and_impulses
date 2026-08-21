@@ -29,6 +29,7 @@ public enum DAI_GameCustomizationKind {
     TIMELINE("dai_timelines"),
     RULESET("dai_rules"),
     VEHICLE("dai_vehicles"),
+    PORTAL("dai_portals"),
     INTERACTIVE("dai_interactives"),
     FLUID("dai_fluids"),
     ENVIRONMENT("dai_environments");

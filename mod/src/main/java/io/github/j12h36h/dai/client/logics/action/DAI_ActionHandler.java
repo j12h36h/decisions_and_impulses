@@ -287,6 +287,25 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "server_projectile_spawn",
+                DAI_ServerActionLogic::spawnProjectile
+        );
+
+        register(
+                "projectile_spawn",
+                DAI_ServerActionLogic::spawnProjectile
+        );
+
+        register("server_particle_emit", DAI_ServerActionLogic::emitParticle);
+        register("particle_emit", DAI_ServerActionLogic::emitParticle);
+        register("server_effect_apply", DAI_ServerActionLogic::applyEffect);
+        register("effect_apply", DAI_ServerActionLogic::applyEffect);
+        register("server_effect_remove", DAI_ServerActionLogic::removeEffect);
+        register("effect_remove", DAI_ServerActionLogic::removeEffect);
+        register("server_potion_apply", DAI_ServerActionLogic::applyPotion);
+        register("potion_apply", DAI_ServerActionLogic::applyPotion);
+
+        register(
                 "server_mark_experience_started",
                 DAI_ServerActionLogic::markExperienceStarted
         );

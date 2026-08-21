@@ -32,6 +32,23 @@ public final class DAI_ServerActionLogic {
         send(action, "take_item");
     }
 
+    public static void spawnProjectile(DAI_ActionDefinition action) {
+        send(action, "projectile_spawn");
+    }
+
+
+    public static void emitParticle(DAI_ActionDefinition action) { send(action, "particle_emit"); }
+
+    public static void applyEffect(DAI_ActionDefinition action) {
+        if (action == null) { fail("Server effect action requires an action definition."); return; }
+        boolean sent = DAI_ServerBridge.send(new DAI_ServerActionPayload(
+                "effect_apply", action.action(), Integer.toString(action.ticks()), Boolean.toString(action.state()), action.value()));
+        DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
+    }
+
+    public static void removeEffect(DAI_ActionDefinition action) { send(action, "effect_remove"); }
+    public static void applyPotion(DAI_ActionDefinition action) { send(action, "potion_apply"); }
+
     public static void markExperienceStarted(DAI_ActionDefinition action) {
         send(action, "experience_startup_dispatched");
     }

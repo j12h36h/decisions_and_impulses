@@ -1,0 +1,26 @@
+{
+  "registry_backed": true,
+  "native_registry": "block",
+  "display_name": "DAI Native Grid Lamp",
+  "model": "decisions_and_impulses:block/native_grid_lamp",
+  "stats": {
+    "stack_size": 64
+  },
+  "block": {
+    "hardness": 2.0,
+    "explosion_resistance": 8.0,
+    "sound": "metal",
+    "luminance": 15,
+    "friction": 0.6,
+    "speed_factor": 1.0,
+    "jump_factor": 1.0,
+    "requires_correct_tool": false,
+    "no_occlusion": false,
+    "replaceable": false,
+    "random_ticks": false,
+    "ignited_by_lava": false,
+    "map_color": "color_cyan",
+    "push_reaction": "normal",
+    "emissive_rendering": true
+  }
+}

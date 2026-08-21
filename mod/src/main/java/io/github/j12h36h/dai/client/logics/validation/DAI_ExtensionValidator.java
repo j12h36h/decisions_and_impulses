@@ -149,6 +149,18 @@ public final class DAI_ExtensionValidator {
                 for (Map.Entry<String, String> event : gameplay.events().entrySet()) {
                     validateActionReference(source + ".entity.gameplay.events." + event.getKey(), event.getValue());
                 }
+
+                for (String affect : definition.entity().portal().affects()) {
+                    if (!java.util.Set.of(
+                            "players", "entities", "mobs", "items",
+                            "projectiles", "vehicles", "all", "any"
+                    ).contains(affect)) {
+                        DAI_ValidationReport.error(
+                                source + ".entity.portal.affects",
+                                "Unknown portal target class '" + affect + "'."
+                        );
+                    }
+                }
             }
 
             for (String attribute : definition.attributes().keySet()) {

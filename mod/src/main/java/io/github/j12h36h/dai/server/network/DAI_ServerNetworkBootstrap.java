@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.server.network;
 
 import io.github.j12h36h.dai.network.DAI_ServerMutationPayload;
 import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
+import io.github.j12h36h.dai.network.DAI_VehicleInputPayload;
+import io.github.j12h36h.dai.server.runtime.DAI_VehicleRuntime;
 import io.github.j12h36h.dai.server.action.DAI_ServerActionExecutor;
 
 import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
@@ -42,6 +44,21 @@ public final class DAI_ServerNetworkBootstrap {
                 DAI_ServerActionPayload.STREAM_CODEC,
                 DAI_ServerNetworkBootstrap::handleServerAction
         );
+        registrar.playToServer(
+                DAI_VehicleInputPayload.TYPE,
+                DAI_VehicleInputPayload.STREAM_CODEC,
+                DAI_ServerNetworkBootstrap::handleVehicleInput
+        );
+    }
+
+
+    private static void handleVehicleInput(
+            DAI_VehicleInputPayload payload,
+            IPayloadContext context
+    ) {
+        if (context.player() instanceof ServerPlayer sender) {
+            DAI_VehicleRuntime.accept(sender, payload);
+        }
     }
 
     private static void handleServerAction(

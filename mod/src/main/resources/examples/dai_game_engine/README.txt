@@ -100,3 +100,92 @@ Static registry note:
    custom_title_screens
    overlay_opacity
    debugging
+
+9) Native block properties
+   Registry-backed dai_blocks may include an optional "block" object. All
+   fields are static registry-shell properties and therefore require a full
+   Minecraft restart when changed after startup.
+
+   Supported keys:
+     hardness                 (-1 = unbreakable-style destroy time)
+     explosion_resistance
+     sound                    (SoundType field name, e.g. stone, metal, glass)
+     luminance                (0..15)
+     friction
+     speed_factor
+     jump_factor
+     requires_correct_tool
+     no_occlusion
+     replaceable
+     random_ticks
+     ignited_by_lava
+     emissive_rendering       (full-bright face rendering; separate from light)
+     map_color                (MapColor field name, e.g. color_cyan)
+     push_reaction            (normal, destroy, block, ignore, push_only)
+
+   native_block_properties.json demonstrates the full shape. Omitted block
+   settings preserve the old DAI defaults: hardness=1.5, resistance=6,
+   stone sound and no emitted light.
+
+10) Entity gameplay events + factions
+   entity.gameplay.faction now applies the referenced dai_factions tag(s) to
+   the entity during its one-time gameplay initialization. The following
+   entity.gameplay.events action references are consumed by the server actor
+   runtime without requiring a player carrier:
+
+     spawn
+     tick                   (uses entity.behavior_interval as its cadence)
+     target_acquired
+     target_lost
+     mount
+     dismount
+
+   Actor action sequences may use the existing movement/combat vocabulary and
+   may also dispatch "function" / "run_function" / "server_run_function" or
+   "command" / "run_command" / "server_command" actions as the entity.
+
+11) Portal target classes
+   Entity portal profiles remain player-only by default for compatibility.
+   Add an "affects" array to opt into additional entity classes:
+
+     players
+     entities               (non-player entities)
+     mobs
+     items
+     projectiles
+     vehicles
+     all
+
+   Example:
+     "affects": ["players", "vehicles", "projectiles"]
+
+   The same trigger radius, destination, coordinate mode, cooldown, velocity,
+   rotation and enter/exit command fields are reused for every subject type.
+
+12) Sound/music runtime targeting
+   dai_sounds and dai_music keep their existing carrier/source/volume/pitch
+   behavior and now also honor:
+
+     properties.audience      selector used by playsound/stopsound (default @s)
+     numbers.min_volume       vanilla playsound minimum-volume argument
+     target                   sound position, default ~ ~ ~
+
+   A runtime target supplied by the calling customization action still wins
+   over the definition's target field. Sound variants, weights, streaming,
+   preload and subtitle ownership remain resource-pack sounds.json concerns;
+   looping/crossfade state is not faked by this command-backed layer.
+
+13) Native item/block-item components
+   The short top-level "components" map is now decoded by the normal DAI
+   content reload path as well as by the early startup scanner. Values remain
+   open JSON and are handed to the registered Minecraft DataComponentType
+   codec, so DAI does not need a hardcoded field for every vanilla/modded
+   component.
+
+   This also means editing "components" during a running JVM is visible to
+   registry preflight and is correctly staged for the next launch when the
+   native item shell no longer matches startup.
+
+   The older explicit "native_components" spelling is still accepted by the
+   early scanner/cache for compatibility. Prefer "components" for new packs so
+   reload preflight can compare the current definition directly.
