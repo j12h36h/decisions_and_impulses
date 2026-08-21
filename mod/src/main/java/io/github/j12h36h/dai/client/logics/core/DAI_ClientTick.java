@@ -4,6 +4,8 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 
 import io.github.j12h36h.dai.client.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
+import io.github.j12h36h.dai.client.logics.input.DAI_InputReactionBridge;
+import io.github.j12h36h.dai.client.logics.input.DAI_KeybindStateTracker;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
@@ -66,6 +68,7 @@ public final class DAI_ClientTick {
             DAI_OverlayManager.clear();
             DAI_GameCustomizationLogic.clearState();
             DAI_MusashiDirectionalCombat.reset();
+            DAI_KeybindStateTracker.reset();
 
             sessionActive =
                     false;
@@ -111,6 +114,8 @@ public final class DAI_ClientTick {
         DAI_ContentRuntime.tick();
         DAI_GameCustomizationLogic.tick();
         DAI_MusashiDirectionalCombat.tick();
+        DAI_KeybindStateTracker.tick();
+        DAI_InputReactionBridge.tick();
 
         /*
          * Persistent navigation advances before queue dispatch so controller
@@ -184,5 +189,6 @@ public final class DAI_ClientTick {
         DAI_OverlayManager.clear();
         DAI_GameCustomizationLogic.clearState();
         DAI_MusashiDirectionalCombat.reset();
+        DAI_KeybindStateTracker.reset();
     }
 }

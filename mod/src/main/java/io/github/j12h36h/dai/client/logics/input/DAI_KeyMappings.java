@@ -4,6 +4,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -52,15 +53,106 @@ public final class DAI_KeyMappings {
         // Utility class.
     }
 
+    /**
+     * Resolves either a DAI shorthand alias (for example {@code jump}) or any
+     * key mapping registered with Minecraft/NeoForge by its translation id.
+     *
+     * Custom mappings may be referenced directly, for example
+     * {@code key.examplemod.special}, or with the convenience form
+     * {@code examplemod:special}.
+     */
     public static KeyMapping get(String id) {
-        if (id == null || id.isBlank()) {
+
+        String normalized = normalize(id);
+        if (normalized.isEmpty()) {
             return null;
         }
-        Supplier<KeyMapping> supplier = MAPPINGS.get(id.trim());
-        return supplier == null ? null : supplier.get();
+
+        Supplier<KeyMapping> supplier = MAPPINGS.get(normalized);
+        if (supplier != null) {
+            KeyMapping mapping = safeGet(supplier);
+            if (mapping != null) {
+                return mapping;
+            }
+        }
+
+        KeyMapping mapping = findRegistered(normalized);
+        if (mapping != null) {
+            return mapping;
+        }
+
+        String translationId = toTranslationId(normalized);
+        if (!translationId.equals(normalized)) {
+            return findRegistered(translationId);
+        }
+
+        return null;
+    }
+
+    public static String canonicalId(KeyMapping mapping) {
+        if (mapping == null || mapping.getName() == null) {
+            return "";
+        }
+        return normalize(mapping.getName());
+    }
+
+    private static KeyMapping findRegistered(String id) {
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (
+                minecraft == null
+                        || minecraft.options == null
+                        || minecraft.options.keyMappings == null
+        ) {
+            return null;
+        }
+
+        for (KeyMapping mapping : minecraft.options.keyMappings) {
+            if (
+                    mapping != null
+                            && canonicalId(mapping).equals(id)
+            ) {
+                return mapping;
+            }
+        }
+
+        return null;
+    }
+
+    private static String toTranslationId(String id) {
+
+        if (id.startsWith("key.")) {
+            return id;
+        }
+
+        int separator = id.indexOf(':');
+        if (separator <= 0 || separator >= id.length() - 1) {
+            return id;
+        }
+
+        String namespace = id.substring(0, separator);
+        String path = id.substring(separator + 1)
+                .replace('/', '.')
+                .replace(':', '.');
+
+        return "key." + namespace + "." + path;
+    }
+
+    private static KeyMapping safeGet(Supplier<KeyMapping> supplier) {
+        try {
+            return supplier.get();
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private static String normalize(String id) {
+        return id == null
+                ? ""
+                : id.trim().toLowerCase(Locale.ROOT);
     }
 
     private static void register(String id, Supplier<KeyMapping> supplier) {
-        MAPPINGS.put(id, supplier);
+        MAPPINGS.put(normalize(id), supplier);
     }
 }

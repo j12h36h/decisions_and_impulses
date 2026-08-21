@@ -9,6 +9,22 @@ public final class DAI_ConditionsPlayer {
     public static void registerAll() {
 
         DAI_ConditionRegistry.register(
+                "input_attack_held",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                context.minecraft().options.keyAttack.isDown()
+                        )
+        );
+
+        DAI_ConditionRegistry.register(
+                "input_use_held",
+                (context, condition) ->
+                        DAI_ConditionValue.bool(
+                                context.minecraft().options.keyUse.isDown()
+                        )
+        );
+
+        DAI_ConditionRegistry.register(
                 "player_exists",
                 (context, condition) ->
                         DAI_ConditionValue.bool(

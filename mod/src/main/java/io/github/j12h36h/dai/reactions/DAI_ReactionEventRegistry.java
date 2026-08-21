@@ -10,6 +10,12 @@ import java.util.Set;
 
 public final class DAI_ReactionEventRegistry {
 
+    public static final String PLAYER_ATTACK_INPUT =
+            "player_attack_input";
+
+    public static final String PLAYER_INPUT_TICK =
+            "player_input_tick";
+
     public static final String PLAYER_ATTACK_ENTITY =
             "player_attack_entity";
 
@@ -39,6 +45,22 @@ public final class DAI_ReactionEventRegistry {
 
         EVENTS.clear();
         BUILT_IN_EVENTS.clear();
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_ATTACK_INPUT,
+                        true,
+                        true
+                )
+        );
+
+        registerBuiltIn(
+                DAI_ReactionEventDefinition.allPhases(
+                        PLAYER_INPUT_TICK,
+                        false,
+                        false
+                )
+        );
 
         registerBuiltIn(
                 DAI_ReactionEventDefinition.allPhases(
