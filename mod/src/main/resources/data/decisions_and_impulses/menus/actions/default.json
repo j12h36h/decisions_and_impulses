@@ -3,41 +3,41 @@
   "buttons": [
     {
       "slot": 0,
-      "id": "run_all",
-      "text": "Run Full Demo",
-      "action": "decisions_and_impulses:showcase_run_all",
+      "id": "automation_creator",
+      "text": "Automation Creator",
+      "action": "decisions_and_impulses:open_automation_creator",
       "style": {
-        "background": "#6A5524",
-        "hover": "#8A7132",
-        "selected": "#AA914A",
-        "text": "#FFF3C4",
-        "border": "#332811"
+        "background": "#130B1D",
+        "hover": "#2A143E",
+        "selected": "#452061",
+        "text": "#F8EEFF",
+        "border": "#A855F7"
       }
     },
     {
       "slot": 1,
-      "id": "content",
-      "text": "Custom Content",
-      "action": "decisions_and_impulses:showcase_menu_open_content",
+      "id": "automation",
+      "text": "Automation Library",
+      "action": "decisions_and_impulses:menu_open_automation",
       "style": {
-        "background": "#355E3B",
-        "hover": "#4D7A52",
-        "selected": "#6A946F",
-        "text": "#FFFFFF",
-        "border": "#1E3522"
+        "background": "#1A0D16",
+        "hover": "#3A1729",
+        "selected": "#59213C",
+        "text": "#FFF2E8",
+        "border": "#FF8A2A"
       }
     },
     {
       "slot": 2,
-      "id": "engine",
-      "text": "Engine Primitives",
-      "action": "decisions_and_impulses:showcase_menu_open_engine",
+      "id": "available",
+      "text": "Available Actions",
+      "action": "decisions_and_impulses:menu_open_available",
       "style": {
-        "background": "#4A4A4A",
-        "hover": "#626262",
-        "selected": "#7A7A7A",
-        "text": "#FFFFFF",
-        "border": "#202020"
+        "background": "#160D1B",
+        "hover": "#301629",
+        "selected": "#4A2238",
+        "text": "#FFF4EA",
+        "border": "#D66B35"
       }
     }
   ]

@@ -144,10 +144,12 @@ public final class DAI_MenuDatapack {
         }
 
         DAI_Layout.Layout buttonLayout =
-                layout.sub(
-                        category,
-                        slot
-                );
+                menu.focusedMode()
+                        ? menu.focusedSub(slot)
+                        : layout.sub(
+                                category,
+                                slot
+                        );
 
         Button button =
                 new DAI_StyledButton(

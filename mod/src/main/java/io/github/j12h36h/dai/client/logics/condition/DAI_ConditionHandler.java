@@ -15,6 +15,7 @@ public final class DAI_ConditionHandler {
         DAI_ConditionsServer.registerAll();
         DAI_ConditionsPlayer.registerAll();
         DAI_ConditionsInput.registerAll();
+        DAI_ConditionsUi.registerAll();
         DAI_ConditionsMode.registerAll();
         DAI_ConditionsStatus.registerAll();
         DAI_ConditionsMovement.registerAll();

@@ -10,6 +10,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.Level;
+import io.github.j12h36h.dai.registry.DAI_DynamicRegistryBootstrap;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -33,7 +39,7 @@ import java.util.Locale;
  * through a short-lived ThreadLocal. Registration is single-threaded on the mod
  * bus and the value is cleared in finally by create().
  */
-public final class DAI_JsonBlock extends Block {
+public final class DAI_JsonBlock extends Block implements EntityBlock {
     private static final ThreadLocal<DAI_BlockSettings> CONSTRUCTION = new ThreadLocal<>();
 
     private final DAI_BlockSettings settings;
@@ -55,6 +61,21 @@ public final class DAI_JsonBlock extends Block {
     private static DAI_BlockSettings current() {
         DAI_BlockSettings value = CONSTRUCTION.get();
         return value == null ? DAI_BlockSettings.DEFAULT : value;
+    }
+
+    public DAI_BlockSettings settings() { return settings; }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return settings.blockEntity() ? new DAI_JsonBlockEntity(pos, state) : null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        BlockEntityType<DAI_JsonBlockEntity> expected = DAI_DynamicRegistryBootstrap.jsonBlockEntityType();
+        if (!settings.blockEntity() || expected == null || type != expected) return null;
+        return (BlockEntityTicker) (BlockEntityTicker<DAI_JsonBlockEntity>) DAI_JsonBlockEntity::tick;
     }
 
     @Override

@@ -26,7 +26,8 @@ public record DAI_TitleScreenDefinition(
         int titleColor,
         int subtitleColor,
         SaveBrowserDefinition saveBrowser,
-        List<ButtonDefinition> buttons
+        List<ButtonDefinition> buttons,
+        List<DecorationDefinition> decorations
 ) {
 
     public DAI_TitleScreenDefinition {
@@ -36,6 +37,7 @@ public record DAI_TitleScreenDefinition(
         theme = safe(theme, "gradient").trim().toLowerCase(Locale.ROOT);
         saveBrowser = saveBrowser == null ? SaveBrowserDefinition.DISABLED : saveBrowser;
         buttons = buttons == null ? List.of() : List.copyOf(buttons);
+        decorations = decorations == null ? List.of() : List.copyOf(decorations);
     }
 
     public static DAI_TitleScreenDefinition parse(
@@ -49,7 +51,9 @@ public record DAI_TitleScreenDefinition(
         JsonObject background = object(root, "background");
         JsonObject saveBrowser = object(root, "experience_save_browser");
         JsonArray buttonArray = array(root, "buttons");
+        JsonArray decorationArray = array(root, "decorations");
         List<ButtonDefinition> buttons = new ArrayList<>();
+        List<DecorationDefinition> decorations = new ArrayList<>();
 
         if (buttonArray != null) {
             for (JsonElement element : buttonArray) {
@@ -57,6 +61,17 @@ public record DAI_TitleScreenDefinition(
                     ButtonDefinition button = parseButton(element.getAsJsonObject());
                     if (button != null) {
                         buttons.add(button);
+                    }
+                }
+            }
+        }
+
+        if (decorationArray != null) {
+            for (JsonElement element : decorationArray) {
+                if (element != null && element.isJsonObject()) {
+                    DecorationDefinition decoration = parseDecoration(element.getAsJsonObject());
+                    if (decoration != null) {
+                        decorations.add(decoration);
                     }
                 }
             }
@@ -74,7 +89,8 @@ public record DAI_TitleScreenDefinition(
                 color(root, "title_color", 0xFFFFFFFF),
                 color(root, "subtitle_color", 0xFF9EB6C7),
                 parseSaveBrowser(saveBrowser),
-                buttons
+                buttons,
+                decorations
         );
     }
 
@@ -91,6 +107,7 @@ public record DAI_TitleScreenDefinition(
                 0xFFFFFFFF,
                 0xFF9EB6C7,
                 SaveBrowserDefinition.DISABLED,
+                List.of(),
                 List.of()
         );
     }
@@ -223,6 +240,68 @@ public record DAI_TitleScreenDefinition(
             width = Math.max(210, width);
             height = Math.max(116, height);
             rows = Math.max(1, Math.min(6, rows));
+        }
+    }
+
+    private static DecorationDefinition parseDecoration(JsonObject object) {
+        String texture = string(object, "texture", "");
+        if (texture.isBlank()) return null;
+
+        return new DecorationDefinition(
+                string(object, "id", "decoration"),
+                string(object, "type", "sprite_sheet"),
+                texture,
+                string(object, "anchor", "center"),
+                integer(object, "x", 0),
+                integer(object, "y", 0),
+                integer(object, "width", 96),
+                integer(object, "height", 96),
+                integer(object, "frame_width", 96),
+                integer(object, "frame_height", 96),
+                integer(object, "frames", 1),
+                integer(object, "columns", integer(object, "frames", 1)),
+                integer(object, "frame_ticks", 4),
+                bool(object, "loop", true),
+                bool(object, "hide_when_save_browser_wide", false),
+                decimal(object, "bob_amount", 0.0F),
+                decimal(object, "bob_speed", 1.0F),
+                color(object, "tint", 0xFFFFFFFF)
+        );
+    }
+
+    public record DecorationDefinition(
+            String id,
+            String type,
+            String texture,
+            String anchor,
+            int x,
+            int y,
+            int width,
+            int height,
+            int frameWidth,
+            int frameHeight,
+            int frames,
+            int columns,
+            int frameTicks,
+            boolean loop,
+            boolean hideWhenSaveBrowserWide,
+            float bobAmount,
+            float bobSpeed,
+            int tint
+    ) {
+        public DecorationDefinition {
+            id = safe(id, "decoration");
+            type = safe(type, "sprite_sheet").trim().toLowerCase(Locale.ROOT);
+            texture = safe(texture, "");
+            anchor = safe(anchor, "center").trim().toLowerCase(Locale.ROOT);
+            width = Math.max(1, width);
+            height = Math.max(1, height);
+            frameWidth = Math.max(1, frameWidth);
+            frameHeight = Math.max(1, frameHeight);
+            frames = Math.max(1, frames);
+            columns = Math.max(1, columns);
+            frameTicks = Math.max(1, frameTicks);
+            bobSpeed = Math.max(0.0F, bobSpeed);
         }
     }
 

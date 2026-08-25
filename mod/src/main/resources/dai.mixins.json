@@ -10,7 +10,8 @@
     "Mixin_CreativeModeInventoryScreen",
     "Mixin_Minecraft",
     "Mixin_LoadingOverlay",
-    "Mixin_MultiPlayerGameMode"
+    "Mixin_MultiPlayerGameMode",
+    "Mixin_Camera"
   ],
   "injectors": {
     "defaultRequire": 1

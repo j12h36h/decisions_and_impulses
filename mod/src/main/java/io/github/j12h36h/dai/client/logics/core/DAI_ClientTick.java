@@ -3,10 +3,13 @@ package io.github.j12h36h.dai.client.logics.core;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 
 import io.github.j12h36h.dai.client.logics.DAI_AutomationLogic;
+import io.github.j12h36h.dai.client.learning.DAI_LearningRuntime;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputReactionBridge;
 import io.github.j12h36h.dai.client.logics.input.DAI_VehicleInputBridge;
 import io.github.j12h36h.dai.client.logics.input.DAI_KeybindStateTracker;
+import io.github.j12h36h.dai.client.logics.input.DAI_RawKeyStateTracker;
+import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
@@ -70,6 +73,9 @@ public final class DAI_ClientTick {
             DAI_GameCustomizationLogic.clearState();
             DAI_MusashiDirectionalCombat.reset();
             DAI_KeybindStateTracker.reset();
+            DAI_RawKeyStateTracker.reset();
+            DAI_MouseState.reset();
+            DAI_LearningRuntime.resetSession();
 
             sessionActive =
                     false;
@@ -115,9 +121,14 @@ public final class DAI_ClientTick {
         DAI_ContentRuntime.tick();
         DAI_GameCustomizationLogic.tick();
         DAI_MusashiDirectionalCombat.tick();
+        DAI_MouseState.tick();
         DAI_KeybindStateTracker.tick();
+        DAI_RawKeyStateTracker.tick();
         DAI_InputReactionBridge.tick();
         DAI_VehicleInputBridge.tick();
+
+        /* Persistent JSON learning: observe manual play before autonomous dispatch. */
+        DAI_LearningRuntime.tick();
 
         /*
          * Persistent navigation advances before queue dispatch so controller
@@ -181,6 +192,7 @@ public final class DAI_ClientTick {
          * input-processing window, then retire it deterministically.
          */
         DAI_CreativeInputState.tick();
+        DAI_MouseState.finishTick();
     }
 
     public static void reset() {
@@ -192,5 +204,8 @@ public final class DAI_ClientTick {
         DAI_GameCustomizationLogic.clearState();
         DAI_MusashiDirectionalCombat.reset();
         DAI_KeybindStateTracker.reset();
+        DAI_RawKeyStateTracker.reset();
+        DAI_MouseState.reset();
+        DAI_LearningRuntime.resetSession();
     }
 }

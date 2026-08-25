@@ -26,5 +26,11 @@
   "decisions_and_impulses.configuration.customTitleScreens": "Allow Custom Experience Title Screens",
   "decisions_and_impulses.configuration.overlayOpacity": "DAI Overlay Opacity",
   "key.decisions_and_impulses.menu": "Open DAI Menu",
-  "key.category.decisions_and_impulses.general": "Decisions and Impulses"
+  "key.category.decisions_and_impulses.general": "Decisions and Impulses",
+  "decisions_and_impulses.configuration.creatorEnabled": "Enable DAI Creator",
+  "decisions_and_impulses.configuration.automationCreatorEnabled": "Enable Automation Creator",
+  "decisions_and_impulses.configuration.daiLoadingScreens": "Use DAI Universe Loading Screens",
+  "decisions_and_impulses.configuration.creatorAccessMode": "DAI Creator Server Access",
+  "decisions_and_impulses.configuration.creatorAllowedPlayers": "DAI Creator Allowed Players",
+  "key.decisions_and_impulses.companion_chat": "Open DAI Companion Chat"
 }

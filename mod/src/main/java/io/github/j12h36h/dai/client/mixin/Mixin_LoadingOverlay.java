@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
+import io.github.j12h36h.dai.client.branding.DAI_UniverseLoadingRenderer;
+import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -41,11 +43,9 @@ public abstract class Mixin_LoadingOverlay {
             float partialTick,
             CallbackInfo callback
     ) {
-        if (DAI_ClientBranding.preferredExperience() == null) return;
-
         DAI_ClientBranding.applyNow();
+        DAI_ExperienceDefinition experience = DAI_ClientBranding.preferredExperience();
         DAI_ExperienceDefinition.Branding branding = DAI_ClientBranding.currentBranding();
-        if (!branding.customLoadingScreen()) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.getWindow() == null) return;
@@ -53,6 +53,14 @@ public abstract class Mixin_LoadingOverlay {
         int width = minecraft.getWindow().getGuiScaledWidth();
         int height = minecraft.getWindow().getGuiScaledHeight();
         if (width <= 0 || height <= 0) return;
+
+        // Experience branding always wins. DAI's universe presentation is the
+        // low-priority fallback when no Experience supplies its own screen.
+        if (experience == null || !branding.customLoadingScreen()) {
+            if (!DAI_ClientConfig.loadingScreens()) return;
+            DAI_UniverseLoadingRenderer.render(graphics, width, height, DAI_ClientBranding.reloadProgress(this));
+            return;
+        }
 
         Identifier background = DAI_ClientBranding.loadingBackgroundTexture();
         if (background != null) {

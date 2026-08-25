@@ -509,7 +509,11 @@ public final class DAI_EarlyRegistryScanner {
                 bool(block, "climbable", false),
                 string(block, "redstone_state"),
                 string(block, "use_toggle_state"),
-                integer(block, "scheduled_tick_delay", 0)
+                integer(block, "scheduled_tick_delay", 0),
+                bool(block, "block_entity", false),
+                integer(block, "inventory_slots", 0),
+                bool(block, "block_entity_sync", true),
+                integer(block, "block_entity_tick_interval", 0)
         );
     }
 

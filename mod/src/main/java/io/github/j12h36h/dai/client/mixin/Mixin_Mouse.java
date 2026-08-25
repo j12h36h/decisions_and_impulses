@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
+import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.MouseButtonInfo;
@@ -24,6 +25,8 @@ public abstract class Mixin_Mouse {
             int action,
             CallbackInfo callbackInfo
     ) {
+        DAI_MouseState.onButton(rawButtonInfo.button(), action);
+
         if (action != GLFW.GLFW_PRESS
                 || rawButtonInfo.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return;

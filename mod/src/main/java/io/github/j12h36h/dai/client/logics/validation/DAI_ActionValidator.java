@@ -309,7 +309,29 @@ public final class DAI_ActionValidator {
                         "content_activate",
                         "content_deactivate",
                         "content_event",
-                        "content_give"
+                        "content_give",
+                        "screen_open",
+                        "open_data_screen",
+                        "projectile_spawn",
+                        "server_projectile_spawn",
+                        "particle_emit",
+                        "server_particle_emit",
+                        "effect_apply",
+                        "server_effect_apply",
+                        "effect_remove",
+                        "server_effect_remove",
+                        "potion_apply",
+                        "server_potion_apply",
+                        "item_component_set",
+                        "item_component_remove",
+                        "item_component_copy",
+                        "block_entity_set_boolean",
+                        "block_entity_set_number",
+                        "block_entity_set_string",
+                        "block_entity_add_number",
+                        "block_entity_toggle_boolean",
+                        "block_entity_clear",
+                        "block_entity_slot_set"
                 ).contains(type)
                         && action.action().isBlank()
         ) {
@@ -544,6 +566,35 @@ public final class DAI_ActionValidator {
 
         if ("overlay_remove".equals(action.type()) && action.action().isBlank()) {
             DAI_ValidationReport.error(source, "overlay_remove requires action='<overlay id>'.");
+        }
+
+
+        if (Set.of(
+                "overlay_set_position",
+                "overlay_move",
+                "overlay_set_size",
+                "overlay_set_z",
+                "overlay_set_interactable",
+                "overlay_lock_transform",
+                "overlay_clamp_to_screen",
+                "overlay_repel_mouse",
+                "overlay_text",
+                "overlay_button"
+        ).contains(action.type()) && action.action().isBlank()) {
+            DAI_ValidationReport.error(source, action.type() + " requires action='<overlay id>'.");
+        }
+
+        if ("overlay_text".equals(action.type()) && action.target().isBlank()) {
+            DAI_ValidationReport.error(source, "overlay_text requires target='<text>'.");
+        }
+        if ("overlay_button".equals(action.type())) {
+            if (action.target().isBlank()) DAI_ValidationReport.error(source, "overlay_button requires target='<button text>'.");
+            if (action.open().isBlank()) DAI_ValidationReport.error(source, "overlay_button requires open='<click action id>'.");
+        }
+
+        if ("overlay_set_size".equals(action.type())
+                && (action.yaw() <= 0.0F || action.pitch() <= 0.0F)) {
+            DAI_ValidationReport.error(source, "overlay_set_size requires positive yaw=<width> and pitch=<height>.");
         }
     }
 
@@ -806,7 +857,11 @@ public final class DAI_ActionValidator {
                         "content_kind",
                         "content_tag",
                         "content_capability",
-                        "holding_content"
+                        "holding_content",
+                        "item_component_exists",
+                        "item_component_json",
+                        "block_entity_state",
+                        "block_entity_state_exists"
                 ).contains(type)
                         && condition.parameter().isBlank()
         ) {

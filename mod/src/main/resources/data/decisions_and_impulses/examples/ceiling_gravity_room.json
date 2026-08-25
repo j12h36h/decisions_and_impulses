@@ -1,0 +1,44 @@
+{
+  "display_name": "Ceiling Gravity Room",
+  "description": "Smoothly flips every entity in this volume toward the ceiling.",
+  "target": "0 80 0",
+  "properties": {
+    "shape": "box",
+    "dimension": "minecraft:overworld",
+    "affects": "all"
+  },
+  "numbers": {
+    "x": 0.0,
+    "y": 80.0,
+    "z": 0.0,
+    "width": 16.0,
+    "height": 8.0,
+    "depth": 16.0,
+    "gravity_x": 0.0,
+    "gravity_y": 1.0,
+    "gravity_z": 0.0,
+    "gravity_strength": 0.08,
+    "terminal_speed": 3.92,
+    "movement_acceleration": 0.035,
+    "movement_scale": 1.0,
+    "jump_velocity": 0.42,
+    "transition_ticks": 20.0,
+    "priority": 10.0,
+    "linear_drag": 0.0,
+    "surface_drag": 0.08,
+    "restitution": 0.0,
+    "max_speed": 0.0
+  },
+  "flags": {
+    "enabled": true,
+    "align_camera": true,
+    "align_entity": true,
+    "project_movement": true,
+    "reset_fall_distance": true
+  },
+  "events": {
+    "enter": "",
+    "tick": "",
+    "exit": ""
+  }
+}

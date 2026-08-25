@@ -10,6 +10,17 @@ import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
 import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLoader;
+import io.github.j12h36h.dai.learning.DAI_LearningAgentDefinition;
+import io.github.j12h36h.dai.learning.DAI_LearningAgentLoader;
+import io.github.j12h36h.dai.state.DAI_StateDefinition;
+import io.github.j12h36h.dai.state.DAI_StateLoader;
+import io.github.j12h36h.dai.state.DAI_StateRegistry;
+import io.github.j12h36h.dai.client.logics.input.DAI_KeybindDefinition;
+import io.github.j12h36h.dai.client.logics.input.DAI_KeybindLoader;
+import io.github.j12h36h.dai.client.logics.input.DAI_KeybindRegistry;
+import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenDefinition;
+import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenLoader;
+import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenRegistry;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.creation.DAI_RecipeParser;
 import io.github.j12h36h.dai.client.objectives.recognition.DAI_RecogLoader;
@@ -97,6 +108,21 @@ public final class DAI_ClientDataBootstrap {
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_validation"),
                 new DAI_ValidationListener()
         );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_learning_agents"),
+                new DAI_LearningAgentLoader()
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_keybinds"),
+                new DAI_KeybindLoader()
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_data_screens"),
+                new DAI_DataScreenLoader()
+        );
     }
 
     public static synchronized void reloadLocalData() {
@@ -118,6 +144,10 @@ public final class DAI_ClientDataBootstrap {
         loadScreenProfiles(builtIn);
         loadRecipes(builtIn);
         loadCustomization(builtIn);
+        loadLearningAgents(builtIn);
+        loadStates(builtIn);
+        loadKeybinds(builtIn);
+        loadDataScreens(builtIn);
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Client-local data bootstrap complete: {} action(s), {} recognition(s), {} group(s), {} processing recipe(s), {} game-customization definition(s).",
@@ -193,6 +223,38 @@ public final class DAI_ClientDataBootstrap {
             definitions.forEach((id, definition) ->
                     DAI_GameCustomizationRegistry.register(kind, id, definition));
         }
+    }
+
+    private static void loadLearningAgents(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_LearningAgentDefinition> definitions =
+                decodeFolder(builtIn, DAI_LearningAgentLoader.FOLDER, DAI_LearningAgentDefinition.CODEC);
+        mergeExternal(definitions, DAI_LearningAgentLoader.FOLDER, DAI_LearningAgentDefinition.CODEC);
+        DAI_LearningAgentLoader.applyDefinitions(definitions);
+    }
+
+    private static void loadStates(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_StateDefinition> definitions =
+                decodeFolder(builtIn, DAI_StateLoader.FOLDER, DAI_StateDefinition.CODEC);
+        mergeExternal(definitions, DAI_StateLoader.FOLDER, DAI_StateDefinition.CODEC);
+        DAI_StateRegistry.clear();
+        definitions.forEach(DAI_StateRegistry::register);
+    }
+
+    private static void loadKeybinds(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_KeybindDefinition> definitions =
+                decodeFolder(builtIn, DAI_KeybindLoader.FOLDER, DAI_KeybindDefinition.CODEC);
+        mergeExternal(definitions, DAI_KeybindLoader.FOLDER, DAI_KeybindDefinition.CODEC);
+        DAI_KeybindRegistry.clear();
+        definitions.forEach(DAI_KeybindRegistry::register);
+    }
+
+
+    private static void loadDataScreens(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_DataScreenDefinition> definitions =
+                decodeFolder(builtIn, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
+        mergeExternal(definitions, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
+        DAI_DataScreenRegistry.clear();
+        definitions.forEach(DAI_DataScreenRegistry::register);
     }
 
     private static <T> void mergeExternal(

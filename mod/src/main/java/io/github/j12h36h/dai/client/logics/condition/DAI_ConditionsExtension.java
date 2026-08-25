@@ -5,6 +5,8 @@ import io.github.j12h36h.dai.api.DAI_Reference;
 import io.github.j12h36h.dai.client.api.DAI_ReferenceStore;
 import io.github.j12h36h.dai.api.DAI_StateStore;
 import io.github.j12h36h.dai.api.DAI_StateValue;
+import io.github.j12h36h.dai.state.DAI_StateDefinition;
+import io.github.j12h36h.dai.state.DAI_StateRegistry;
 import io.github.j12h36h.dai.client.api.DAI_EntityTargetResolver;
 import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
 import io.github.j12h36h.dai.attributes.DAI_AttributeStore;
@@ -14,7 +16,11 @@ import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.content.DAI_ContentStack;
+import io.github.j12h36h.dai.content.DAI_ItemComponentRuntime;
+import io.github.j12h36h.dai.content.DAI_JsonBlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
@@ -39,9 +45,8 @@ public final class DAI_ConditionsExtension {
                 "state_exists",
                 (context, condition) ->
                         DAI_ConditionValue.bool(
-                                DAI_StateStore.contains(
-                                        condition.parameter()
-                                )
+                                DAI_StateStore.contains(condition.parameter())
+                                        || DAI_StateRegistry.get(condition.parameter()) != null
                         )
         );
 
@@ -314,6 +319,77 @@ public final class DAI_ConditionsExtension {
         );
 
         DAI_ConditionRegistry.register(
+                "item_component_exists",
+                (context, condition) -> {
+                    Minecraft minecraft = Minecraft.getInstance();
+                    if (minecraft == null || minecraft.player == null) return DAI_ConditionValue.bool(false);
+                    return DAI_ConditionValue.bool(DAI_ItemComponentRuntime.exists(
+                            DAI_ItemComponentRuntime.resolveStack(minecraft.player, condition.target()),
+                            condition.parameter()
+                    ));
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "item_component_json",
+                (context, condition) -> {
+                    Minecraft minecraft = Minecraft.getInstance();
+                    if (minecraft == null || minecraft.player == null || minecraft.level == null) return DAI_ConditionValue.missing();
+                    String json = DAI_ItemComponentRuntime.readJson(
+                            DAI_ItemComponentRuntime.resolveStack(minecraft.player, condition.target()),
+                            condition.parameter(), minecraft.level.registryAccess()
+                    );
+                    return json.isBlank() ? DAI_ConditionValue.missing() : DAI_ConditionValue.string(json);
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "block_entity_state",
+                (context, condition) -> {
+                    DAI_JsonBlockEntity blockEntity = blockEntity(condition.target());
+                    if (blockEntity == null) return DAI_ConditionValue.missing();
+                    DAI_StateValue value = blockEntity.getState(condition.parameter());
+                    return switch (value.type()) {
+                        case BOOLEAN -> DAI_ConditionValue.bool(value.booleanValue());
+                        case NUMBER -> DAI_ConditionValue.number(value.numberValue());
+                        case STRING -> DAI_ConditionValue.string(value.stringValue());
+                        case MISSING -> DAI_ConditionValue.missing();
+                    };
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "block_entity_state_exists",
+                (context, condition) -> {
+                    DAI_JsonBlockEntity blockEntity = blockEntity(condition.target());
+                    return DAI_ConditionValue.bool(blockEntity != null && blockEntity.containsState(condition.parameter()));
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "block_entity_slot_item",
+                (context, condition) -> {
+                    DAI_JsonBlockEntity blockEntity = blockEntity(condition.target());
+                    int slot = (int)Math.round(condition.parameterNumber());
+                    if (blockEntity == null || slot < 0 || slot >= blockEntity.getContainerSize()) return DAI_ConditionValue.missing();
+                    var stack = blockEntity.getItem(slot);
+                    if (stack.isEmpty()) return DAI_ConditionValue.string("");
+                    var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                    return id == null ? DAI_ConditionValue.missing() : DAI_ConditionValue.string(id.toString());
+                }
+        );
+
+        DAI_ConditionRegistry.register(
+                "block_entity_slot_count",
+                (context, condition) -> {
+                    DAI_JsonBlockEntity blockEntity = blockEntity(condition.target());
+                    int slot = (int)Math.round(condition.parameterNumber());
+                    if (blockEntity == null || slot < 0 || slot >= blockEntity.getContainerSize()) return DAI_ConditionValue.missing();
+                    return DAI_ConditionValue.number(blockEntity.getItem(slot).getCount());
+                }
+        );
+
+        DAI_ConditionRegistry.register(
                 "held_content",
                 (context, condition) -> {
                     Minecraft minecraft = Minecraft.getInstance();
@@ -337,14 +413,49 @@ public final class DAI_ConditionsExtension {
         );
     }
 
+
+    private static DAI_JsonBlockEntity blockEntity(String rawTarget) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.level == null || minecraft.player == null) return null;
+        BlockPos pos = clientBlockPos(minecraft, rawTarget);
+        return pos != null && minecraft.level.hasChunkAt(pos) && minecraft.level.getBlockEntity(pos) instanceof DAI_JsonBlockEntity blockEntity
+                ? blockEntity : null;
+    }
+
+    private static BlockPos clientBlockPos(Minecraft minecraft, String raw) {
+        String target = raw == null ? "" : raw.trim();
+        if (target.isBlank() || target.equalsIgnoreCase("self")) return minecraft.player.blockPosition();
+        String[] parts = target.replace(',', ' ').trim().split("\\s+");
+        if (parts.length != 3) return null;
+        Double x = clientCoordinate(parts[0], minecraft.player.getX());
+        Double y = clientCoordinate(parts[1], minecraft.player.getY());
+        Double z = clientCoordinate(parts[2], minecraft.player.getZ());
+        if (x == null || y == null || z == null) return null;
+        return new BlockPos((int)Math.floor(x), (int)Math.floor(y), (int)Math.floor(z));
+    }
+
+    private static Double clientCoordinate(String raw, double base) {
+        try {
+            String token = raw == null ? "" : raw.trim();
+            if (token.startsWith("~")) {
+                String delta = token.substring(1);
+                return base + (delta.isBlank() ? 0.0D : Double.parseDouble(delta));
+            }
+            return Double.parseDouble(token);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
     private static DAI_ConditionValue readState(
             String key
     ) {
 
-        DAI_StateValue value =
-                DAI_StateStore.get(
-                        key
-                );
+        DAI_StateValue value = DAI_StateStore.get(key);
+        if (value.isMissing()) {
+            DAI_StateDefinition definition = DAI_StateRegistry.get(key);
+            if (definition != null) value = definition.defaultValue();
+        }
 
         return switch (value.type()) {
 

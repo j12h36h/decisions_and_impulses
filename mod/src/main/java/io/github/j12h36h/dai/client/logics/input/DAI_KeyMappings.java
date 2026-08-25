@@ -89,6 +89,15 @@ public final class DAI_KeyMappings {
         return null;
     }
 
+
+    public static void registerDynamic(String id, KeyMapping mapping) {
+        if (mapping == null) return;
+        String normalized = normalize(id);
+        if (!normalized.isBlank()) MAPPINGS.put(normalized, () -> mapping);
+        String canonical = canonicalId(mapping);
+        if (!canonical.isBlank()) MAPPINGS.put(canonical, () -> mapping);
+    }
+
     public static String canonicalId(KeyMapping mapping) {
         if (mapping == null || mapping.getName() == null) {
             return "";

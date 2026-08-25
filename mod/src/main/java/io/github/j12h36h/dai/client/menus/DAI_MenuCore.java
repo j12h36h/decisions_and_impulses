@@ -8,6 +8,7 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.client.logics.DAI_ActionLogic;
 import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
+import io.github.j12h36h.dai.client.menus.system.DAI_ButtonStyle;
 import io.github.j12h36h.dai.client.menus.system.DAI_SystemManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -22,6 +23,11 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class DAI_MenuCore extends Screen {
+
+    private static final DAI_ButtonStyle ROOT_SYSTEM_STYLE = new DAI_ButtonStyle(
+            "#B0140B09", "#DE35170A", "#E95A2710", "#FFF4EA", "#FF8A2A");
+    private static final DAI_ButtonStyle ROOT_ACTION_STYLE = new DAI_ButtonStyle(
+            "#B0100918", "#DE27123B", "#E6421C60", "#FAF0FF", "#A855F7");
 
     private final DAI_MenuState state =
             new DAI_MenuState();
@@ -45,6 +51,7 @@ public class DAI_MenuCore extends Screen {
             new DAI_MenuAvailable();
 
     private long lastQueueRevision = -1L;
+    private boolean focusedMode;
 
     public DAI_MenuCore() {
         super(Component.empty());
@@ -63,12 +70,12 @@ public class DAI_MenuCore extends Screen {
 
         createRootButton(
                 DAI_MenuCategory.SYSTEM,
-                "System"
+                "CREATE"
         );
 
         createRootButton(
                 DAI_MenuCategory.ACTION,
-                "Actions"
+                "AUTOMATE"
         );
 
         updateSystemRootButton();
@@ -87,19 +94,15 @@ public class DAI_MenuCore extends Screen {
         DAI_Layout.Layout buttonLayout =
                 layout.root(category);
 
-        Button button =
-                Button.builder(
-                                Component.literal(text),
-                                pressedButton ->
-                                        toggleMenu(category)
-                        )
-                        .bounds(
-                                buttonLayout.x(),
-                                buttonLayout.y(),
-                                buttonLayout.width(),
-                                buttonLayout.height()
-                        )
-                        .build();
+        Button button = new DAI_StyledButton(
+                buttonLayout.x(),
+                buttonLayout.y(),
+                buttonLayout.width(),
+                buttonLayout.height(),
+                Component.literal(text),
+                pressedButton -> toggleMenu(category),
+                category == DAI_MenuCategory.SYSTEM ? ROOT_SYSTEM_STYLE : ROOT_ACTION_STYLE
+        );
 
         state.setRootButton(
                 category,
@@ -124,6 +127,30 @@ public class DAI_MenuCore extends Screen {
                 category.name(),
                 "default"
         );
+    }
+
+    /**
+     * Focused presentation mode is intended for scripted one-choice prompts.
+     * It hides the normal DAI root controls and positions datapack buttons in
+     * a centered dialogue lane without changing the underlying menu system.
+     */
+    public void setFocusedMode(boolean focused) {
+        this.focusedMode = focused;
+        if (!focused) return;
+        for (DAI_MenuCategory category : DAI_MenuCategory.values()) {
+            Button rootButton = state.rootButton(category);
+            if (rootButton != null) removeMenuWidget(rootButton);
+        }
+    }
+
+    public boolean focusedMode() { return focusedMode; }
+
+    public DAI_Layout.Layout focusedSub(int slot) {
+        int buttonWidth = Math.max(120, Math.min(320, width - 40));
+        int buttonHeight = 20;
+        int x = (width - buttonWidth) / 2;
+        int y = (height / 2) + 10 + (slot * (buttonHeight + 4));
+        return new DAI_Layout.Layout(io.github.j12h36h.dai.logics.core.DAI_Position.MID_LEFT, x, y, buttonWidth, buttonHeight);
     }
 
     public void updateMenu(
@@ -436,7 +463,7 @@ public class DAI_MenuCore extends Screen {
                             Component.literal("Hotbar");
 
                     default ->
-                            Component.literal("System");
+                            Component.literal("Create");
                 };
 
         button.setMessage(text);
@@ -462,7 +489,7 @@ public class DAI_MenuCore extends Screen {
         ) {
 
             button.setMessage(
-                    Component.literal("Actions")
+                    Component.literal("Automate")
             );
 
             return;
@@ -496,6 +523,24 @@ public class DAI_MenuCore extends Screen {
             int mouseY,
             float partialTick
     ) {
+        if (focusedMode) {
+            super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
+
+        // Website/index-universe inspired control-plane framing. The live
+        // world remains visible; only sparse orange/purple wire geometry is
+        // added behind the compact menu controls.
+        graphics.fillGradient(0, 0, width, 34, 0xB0090610, 0x7012091B);
+        graphics.text(font, Component.literal("D.A.I. // UNIVERSAL CONTROL"), 10, 8, 0xFFFF9B45);
+        graphics.text(font, Component.literal("CREATOR / AUTOMATION / RUNTIME"), 10, 19, 0xFFC58AEF);
+        int cx = width / 2;
+        int cy = height / 2;
+        graphics.outline(cx - 34, cy - 18, 68, 36, 0x2FA855F7);
+        graphics.outline(cx - 52, cy - 28, 104, 56, 0x22FF8428);
+        graphics.fill(cx - 1, cy - 46, cx + 1, cy - 22, 0x33A855F7);
+        graphics.fill(cx - 68, cy, cx - 42, cy + 1, 0x33FF8428);
+        graphics.fill(cx + 42, cy, cx + 68, cy + 1, 0x33A855F7);
 
         super.extractRenderState(
                 graphics,

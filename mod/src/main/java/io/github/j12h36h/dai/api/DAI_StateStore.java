@@ -15,6 +15,14 @@ public final class DAI_StateStore {
         // Utility class.
     }
 
+    public static void set(String key, DAI_StateValue value) {
+        if (value == null || value.isMissing()) {
+            remove(key);
+            return;
+        }
+        VALUES.put(requireKey(key), value);
+    }
+
     public static void setBoolean(
             String key,
             boolean value

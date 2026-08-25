@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.animations;
 
 import io.github.j12h36h.dai.animations.DAI_AnimationDefinition;
+import io.github.j12h36h.dai.animations.DAI_AnimationKeyframe;
 import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
 import io.github.j12h36h.dai.animations.DAI_AnimationSink;
 
@@ -23,6 +24,96 @@ public final class DAI_AnimationRuntime {
     private static final List<DAI_AnimationSink> SINKS = new ArrayList<>();
 
     private DAI_AnimationRuntime() {}
+
+    public record Transform(
+            double x, double y, double z,
+            double pitch, double yaw, double roll,
+            double scaleX, double scaleY, double scaleZ
+    ) {
+        public static final Transform IDENTITY = new Transform(0,0,0,0,0,0,1,1,1);
+    }
+
+    /** Samples the highest-priority full-entity/root track for native mesh rendering. */
+    public static Transform sample(Entity entity, float partialTick) {
+        if (entity == null) return Transform.IDENTITY;
+        Map<String, Active> channels = ACTIVE.get(entity.getId());
+        if (channels == null || channels.isEmpty()) return Transform.IDENTITY;
+        Active best = null;
+        List<DAI_AnimationKeyframe> track = null;
+        for (Active active : channels.values()) {
+            List<DAI_AnimationKeyframe> candidate = rootTrack(active.definition);
+            if (candidate == null || candidate.isEmpty()) continue;
+            if (best == null || active.definition.priority() >= best.definition.priority()) {
+                best = active;
+                track = candidate;
+            }
+        }
+        if (best == null || track == null) return Transform.IDENTITY;
+        double time = best.tick + Math.max(0.0D, Math.min(1.0D, partialTick));
+        return interpolate(track, time);
+    }
+
+    private static List<DAI_AnimationKeyframe> rootTrack(DAI_AnimationDefinition definition) {
+        if (definition == null || definition.tracks().isEmpty()) return null;
+        for (String key : List.of("root", "full_body", "entity")) {
+            List<DAI_AnimationKeyframe> track = definition.tracks().get(key);
+            if (track != null && !track.isEmpty()) return track;
+        }
+        return null;
+    }
+
+    private static Transform interpolate(List<DAI_AnimationKeyframe> rawTrack, double time) {
+        List<DAI_AnimationKeyframe> track = rawTrack.stream()
+                .filter(frame -> frame != null)
+                .sorted(java.util.Comparator.comparingInt(DAI_AnimationKeyframe::tick))
+                .toList();
+        if (track.isEmpty()) return Transform.IDENTITY;
+        if (track.size() == 1 || time <= track.getFirst().tick()) return transform(track.getFirst());
+        if (time >= track.getLast().tick()) return transform(track.getLast());
+        DAI_AnimationKeyframe from = track.getFirst();
+        DAI_AnimationKeyframe to = track.getLast();
+        for (int i = 1; i < track.size(); i++) {
+            if (time <= track.get(i).tick()) {
+                from = track.get(i - 1);
+                to = track.get(i);
+                break;
+            }
+        }
+        double duration = Math.max(1.0D, to.tick() - from.tick());
+        double alpha = Math.max(0.0D, Math.min(1.0D, (time - from.tick()) / duration));
+        if (from.interpolation().equals("step")) alpha = 0.0D;
+        else {
+            alpha = ease(alpha, from.easing());
+            if (from.interpolation().equals("smooth") || from.interpolation().equals("cubic")) {
+                alpha = alpha * alpha * (3.0D - 2.0D * alpha);
+            }
+        }
+        return new Transform(
+                lerp(from.x(), to.x(), alpha), lerp(from.y(), to.y(), alpha), lerp(from.z(), to.z(), alpha),
+                lerp(from.pitch(), to.pitch(), alpha), lerp(from.yaw(), to.yaw(), alpha), lerp(from.roll(), to.roll(), alpha),
+                lerp(from.scaleX(), to.scaleX(), alpha), lerp(from.scaleY(), to.scaleY(), alpha), lerp(from.scaleZ(), to.scaleZ(), alpha)
+        );
+    }
+
+    private static Transform transform(DAI_AnimationKeyframe frame) {
+        return new Transform(frame.x(), frame.y(), frame.z(), frame.pitch(), frame.yaw(), frame.roll(),
+                frame.scaleX(), frame.scaleY(), frame.scaleZ());
+    }
+
+    private static double lerp(double a, double b, double t) { return a + (b - a) * t; }
+
+    private static double ease(double t, String raw) {
+        String easing = raw == null ? "linear" : raw.trim().toLowerCase();
+        return switch (easing) {
+            case "ease_in", "in", "quad_in" -> t * t;
+            case "ease_out", "out", "quad_out" -> 1.0D - (1.0D - t) * (1.0D - t);
+            case "ease_in_out", "in_out", "smoothstep" -> t * t * (3.0D - 2.0D * t);
+            case "cubic_in" -> t * t * t;
+            case "cubic_out" -> 1.0D - Math.pow(1.0D - t, 3.0D);
+            default -> t;
+        };
+    }
+
 
     public static void registerSink(DAI_AnimationSink sink) {
         if (sink != null && !SINKS.contains(sink)) SINKS.add(sink);

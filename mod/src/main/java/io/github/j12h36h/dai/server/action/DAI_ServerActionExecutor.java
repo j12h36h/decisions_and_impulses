@@ -12,6 +12,12 @@ import io.github.j12h36h.dai.server.runtime.DAI_AudioRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_PotionRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_EffectRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_ParticleRuntime;
+import io.github.j12h36h.dai.server.state.DAI_ServerStateRuntime;
+import io.github.j12h36h.dai.api.DAI_StateValue;
+import io.github.j12h36h.dai.content.DAI_ItemComponentRuntime;
+import io.github.j12h36h.dai.content.DAI_JsonBlockEntity;
+import io.github.j12h36h.dai.logics.action.DAI_ActionArguments;
+import io.github.j12h36h.dai.state.DAI_StateRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -67,6 +73,13 @@ public final class DAI_ServerActionExecutor {
             return executeTrusted(sender, payload);
         }
 
+        if (operation.startsWith("state_")) {
+            var definition = DAI_StateRegistry.get(payload.action());
+            if (definition != null && definition.serverOwned() && definition.clientWritable()) {
+                return executeTrusted(sender, payload);
+            }
+        }
+
         if (!DAI_ServerAccessPolicy.allowPrivilegedClient(sender)) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Rejected privileged DAI server action '{}' from non-admin player '{}'.",
@@ -106,10 +119,10 @@ public final class DAI_ServerActionExecutor {
                         giveItem(actor, payload.action(), count(payload.value()));
 
                 case "projectile_spawn", "server_projectile_spawn" ->
-                        DAI_ProjectileRuntime.spawn(actor, payload.action());
+                        DAI_ProjectileRuntime.spawn(actor, payload.action(), DAI_ActionArguments.fromJson(payload.argumentsJson()));
 
                 case "particle_emit", "server_particle_emit" ->
-                        DAI_ParticleRuntime.emit(actor, payload.action());
+                        DAI_ParticleRuntime.emit(actor, payload.action(), DAI_ActionArguments.fromJson(payload.argumentsJson()));
 
                 case "effect_apply", "server_effect_apply" ->
                         DAI_EffectRuntime.apply(actor, payload.action(), parseInt(payload.target(), 0), (int)Math.round(payload.value()));
@@ -127,6 +140,55 @@ public final class DAI_ServerActionExecutor {
                     DAI_WorldgenRuntime.markFirstJoinDispatched(payload.action());
                     yield true;
                 }
+
+                case "state_set" ->
+                        DAI_ServerStateRuntime.mutate(actor, payload.action(), "set", stateValue(payload.target(), payload.state(), payload.value()), actor);
+
+                case "state_add" ->
+                        DAI_ServerStateRuntime.mutate(actor, payload.action(), "add", DAI_StateValue.number(payload.value()), actor);
+
+                case "state_toggle" ->
+                        DAI_ServerStateRuntime.mutate(actor, payload.action(), "toggle", DAI_StateValue.bool(false), actor);
+
+                case "state_clear" ->
+                        DAI_ServerStateRuntime.mutate(actor, payload.action(), "clear", DAI_StateValue.missing(), actor);
+
+                case "item_component_set" ->
+                        setItemComponent(actor, payload.action(), payload.target(), payload.argumentsJson());
+
+                case "item_component_remove" ->
+                        DAI_ItemComponentRuntime.remove(DAI_ItemComponentRuntime.resolveStack(actor, payload.target()), payload.action());
+
+                case "item_component_copy" ->
+                        copyItemComponent(actor, payload.action(), payload.target(), payload.argumentsJson());
+
+                case "block_entity_set_boolean" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "set",
+                                DAI_StateValue.bool(parseBoolean(payload.state(), false)));
+
+                case "block_entity_set_number" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "set",
+                                DAI_StateValue.number(payload.value()));
+
+                case "block_entity_set_string" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "set",
+                                DAI_StateValue.string(DAI_ActionArguments.fromJson(payload.argumentsJson()).string("text", payload.state())));
+
+                case "block_entity_add_number" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "add",
+                                DAI_StateValue.number(payload.value()));
+
+                case "block_entity_toggle_boolean" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "toggle", DAI_StateValue.bool(false));
+
+                case "block_entity_clear" ->
+                        mutateBlockEntity(level, actor, payload.target(), payload.action(), "clear", DAI_StateValue.missing());
+
+                case "block_entity_slot_set" ->
+                        setBlockEntitySlot(level, actor, payload.target(), parseInt(payload.state(), 0), payload.action(), count(payload.value()));
+
+                case "block_entity_slot_clear" ->
+                        clearBlockEntitySlot(level, actor, payload.target(), parseInt(payload.state(), 0));
 
                 case "customization_event" ->
                         customizationEvent(actor, payload.action(), payload.target(), payload.state(), payload.value());
@@ -539,6 +601,46 @@ public final class DAI_ServerActionExecutor {
         return state.setValue(property, (Comparable) value.get());
     }
 
+
+    private static DAI_JsonBlockEntity blockEntity(ServerLevel level, ServerPlayer actor, String rawTarget) {
+        BlockPos pos = parseBlockPos(actor, rawTarget);
+        if (pos == null || !level.hasChunkAt(pos)) return null;
+        return level.getBlockEntity(pos) instanceof DAI_JsonBlockEntity blockEntity ? blockEntity : null;
+    }
+
+    private static boolean mutateBlockEntity(
+            ServerLevel level, ServerPlayer actor, String rawTarget, String key, String operation, DAI_StateValue value
+    ) {
+        DAI_JsonBlockEntity blockEntity = blockEntity(level, actor, rawTarget);
+        if (blockEntity == null || key == null || key.isBlank()) return false;
+        switch (operation) {
+            case "add" -> blockEntity.addNumber(key, value.numberValue());
+            case "toggle" -> blockEntity.toggleBoolean(key);
+            case "clear" -> blockEntity.setState(key, DAI_StateValue.missing());
+            default -> blockEntity.setState(key, value);
+        }
+        return true;
+    }
+
+    private static boolean setBlockEntitySlot(
+            ServerLevel level, ServerPlayer actor, String rawTarget, int slot, String rawItem, int count
+    ) {
+        DAI_JsonBlockEntity blockEntity = blockEntity(level, actor, rawTarget);
+        if (blockEntity == null || slot < 0 || slot >= blockEntity.getContainerSize()) return false;
+        Identifier id = Identifier.tryParse(normalize(rawItem));
+        Item item = id == null ? null : BuiltInRegistries.ITEM.getValue(id);
+        if (item == null) return false;
+        blockEntity.setItem(slot, new ItemStack(item, Math.max(1, count)));
+        return true;
+    }
+
+    private static boolean clearBlockEntitySlot(ServerLevel level, ServerPlayer actor, String rawTarget, int slot) {
+        DAI_JsonBlockEntity blockEntity = blockEntity(level, actor, rawTarget);
+        if (blockEntity == null || slot < 0 || slot >= blockEntity.getContainerSize()) return false;
+        blockEntity.setItem(slot, ItemStack.EMPTY);
+        return true;
+    }
+
     private static BlockPos parseBlockPos(ServerPlayer actor, String raw) {
         String target = raw == null ? "" : raw.trim();
         if (target.isBlank() || target.equalsIgnoreCase("self")) {
@@ -660,6 +762,35 @@ public final class DAI_ServerActionExecutor {
             }
         }
         return null;
+    }
+
+
+
+    private static boolean setItemComponent(ServerPlayer actor, String componentId, String target, String argumentsJson) {
+        DAI_ActionArguments arguments = DAI_ActionArguments.fromJson(argumentsJson);
+        var value = arguments.element("value");
+        if (value == null) return false;
+        return DAI_ItemComponentRuntime.set(
+                DAI_ItemComponentRuntime.resolveStack(actor, target), componentId, value, actor.level().registryAccess()
+        );
+    }
+
+    private static boolean copyItemComponent(ServerPlayer actor, String componentId, String target, String argumentsJson) {
+        DAI_ActionArguments arguments = DAI_ActionArguments.fromJson(argumentsJson);
+        String source = arguments.string("source", "mainhand");
+        return DAI_ItemComponentRuntime.copy(
+                DAI_ItemComponentRuntime.resolveStack(actor, source),
+                DAI_ItemComponentRuntime.resolveStack(actor, target),
+                componentId
+        );
+    }
+
+    private static DAI_StateValue stateValue(String type, String text, double number) {
+        return switch (normalize(type)) {
+            case "number" -> DAI_StateValue.number(number);
+            case "string" -> DAI_StateValue.string(text);
+            default -> DAI_StateValue.bool(parseBoolean(text, false));
+        };
     }
 
     private static int count(double raw) {

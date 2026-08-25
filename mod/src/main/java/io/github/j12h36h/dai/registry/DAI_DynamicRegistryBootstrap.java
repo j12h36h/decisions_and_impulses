@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.registry;
 import io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry;
 import io.github.j12h36h.dai.content.DAI_BlockSettings;
 import io.github.j12h36h.dai.content.DAI_JsonBlock;
+import io.github.j12h36h.dai.content.DAI_JsonBlockEntity;
 import io.github.j12h36h.dai.content.DAI_JsonMobEffect;
 import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
 import net.minecraft.world.effect.MobEffect;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -61,6 +63,7 @@ public final class DAI_DynamicRegistryBootstrap {
     private static final Map<String, Block> REGISTERED_BLOCKS = new LinkedHashMap<>();
     private static final Map<String, EntityType<? extends Mob>> REGISTERED_ENTITY_TYPES = new LinkedHashMap<>();
     private static final Map<String, SimpleParticleType> REGISTERED_PARTICLE_TYPES = new LinkedHashMap<>();
+    private static BlockEntityType<DAI_JsonBlockEntity> JSON_BLOCK_ENTITY_TYPE;
 
     private DAI_DynamicRegistryBootstrap() {}
 
@@ -144,6 +147,10 @@ public final class DAI_DynamicRegistryBootstrap {
         return REGISTERED_PARTICLE_TYPES.get(spec.key());
     }
 
+    public static BlockEntityType<DAI_JsonBlockEntity> jsonBlockEntityType() {
+        return JSON_BLOCK_ENTITY_TYPE;
+    }
+
     /** Returns true only when DAI itself successfully registered this id. */
     public static boolean registeredByDai(DAI_RegistrySpec spec) {
         return spec != null && REGISTERED_KEYS.contains(spec.key());
@@ -165,6 +172,35 @@ public final class DAI_DynamicRegistryBootstrap {
                 case PARTICLE -> registerParticle(event, spec, id);
                 case ITEM -> registerItem(event, spec, id);
             }
+        }
+        registerJsonBlockEntityType(event);
+    }
+
+
+    private static void registerJsonBlockEntityType(RegisterEvent event) {
+        if (!event.getRegistryKey().equals(Registries.BLOCK_ENTITY_TYPE) || JSON_BLOCK_ENTITY_TYPE != null) return;
+
+        java.util.ArrayList<Block> supported = new java.util.ArrayList<>();
+        for (DAI_RegistrySpec spec : bootSpecs.values()) {
+            if (spec == null || spec.nativeRegistry() != DAI_RegistrySpec.NativeRegistry.BLOCK || !spec.block().blockEntity()) continue;
+            Block block = REGISTERED_BLOCKS.get(spec.key());
+            if (block != null) supported.add(block);
+        }
+        if (supported.isEmpty()) return;
+
+        try {
+            BlockEntityType<DAI_JsonBlockEntity> type = new BlockEntityType<>(
+                    DAI_JsonBlockEntity::new,
+                    false,
+                    supported.toArray(Block[]::new)
+            );
+            Identifier id = Identifier.fromNamespaceAndPath(DAI_Core.MODID, "json_block_entity");
+            JSON_BLOCK_ENTITY_TYPE = type;
+            event.register(Registries.BLOCK_ENTITY_TYPE, id, () -> type);
+            DAI_Core.LOGGER.info("<DAI>: Registered generic JSON block entity type for {} DAI block(s).", supported.size());
+        } catch (RuntimeException exception) {
+            JSON_BLOCK_ENTITY_TYPE = null;
+            DAI_Core.LOGGER.error("<DAI>: Could not register generic JSON block entity type.", exception);
         }
     }
 

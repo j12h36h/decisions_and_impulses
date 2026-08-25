@@ -12,6 +12,8 @@ import io.github.j12h36h.dai.client.logics.controller.DAI_ApproachController;
 import io.github.j12h36h.dai.client.logics.controller.DAI_BreakController;
 import io.github.j12h36h.dai.client.logics.controller.DAI_CreativeFlightController;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
+import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
+import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.client.menus.system.DAI_TargetState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -195,7 +197,7 @@ public final class DAI_Debug {
         DAI_ActionDefinition queueHead = DAI_ActionQueue.peek();
 
         DAI_Core.LOGGER.info(
-                "<DAI:DEBUG> pos={} vel={} act={}/{} auto={} mode={} q={} dly={} head={} target={} ap={} br={} fly={} fp={} fd={}/{} stall={} assist={} hotbar={} input={},{},j{},s{} look={}/{} screen={}",
+                "<DAI:DEBUG> pos={} vel={} act={}/{} auto={} mode={} q={} dly={} head={} target={} ap={} br={} fly={} fp={} fd={}/{} stall={} assist={} hotbar={} input={},{},j{},s{} look={}/{} screen={} mouse={}/{} d={}/{} hover={} gui={}x{} overlays={}",
                 vec(position),
                 vec(velocity),
                 DAI_ActionStatus.get(),
@@ -221,7 +223,15 @@ public final class DAI_Debug {
                 DAI_InputState.movement().sneak() ? 1 : 0,
                 format(minecraft.player.getYRot()),
                 format(minecraft.player.getXRot()),
-                DAI_HumanTraceFormat.screenState(minecraft)
+                DAI_HumanTraceFormat.screenState(minecraft),
+                format(DAI_MouseState.x()),
+                format(DAI_MouseState.y()),
+                format(DAI_MouseState.deltaX()),
+                format(DAI_MouseState.deltaY()),
+                DAI_OverlayManager.hoveredIds(DAI_MouseState.x(), DAI_MouseState.y()),
+                DAI_OverlayManager.guiWidth(),
+                DAI_OverlayManager.guiHeight(),
+                DAI_OverlayManager.debugSnapshot()
         );
 
         if (!includeFailureDetail) return;
@@ -301,6 +311,19 @@ public final class DAI_Debug {
                 threadDelta
         );
 
+        DAI_Core.LOGGER.info(
+                "<DAI:DEBUG:UI> mouse={}/{} delta={}/{} hover={} gui={}x{} overlays={} recent={}",
+                format(DAI_MouseState.x()),
+                format(DAI_MouseState.y()),
+                format(DAI_MouseState.deltaX()),
+                format(DAI_MouseState.deltaY()),
+                DAI_OverlayManager.hoveredIds(DAI_MouseState.x(), DAI_MouseState.y()),
+                DAI_OverlayManager.guiWidth(),
+                DAI_OverlayManager.guiHeight(),
+                DAI_OverlayManager.debugSnapshot(),
+                DAI_DebugProbe.recent(12)
+        );
+
         appendSentinel(
                 "heartbeat hb=" + sequence
                         + " tick=" + minecraft.level.getGameTime()
@@ -309,6 +332,10 @@ public final class DAI_Debug {
                         + " " + timing
                         + " delta_direct=" + signedMib(directDelta) + "MiB"
                         + " delta_threads=" + threadDelta
+                        + " mouse=" + format(DAI_MouseState.x()) + "," + format(DAI_MouseState.y())
+                        + " gui=" + DAI_OverlayManager.guiWidth() + "x" + DAI_OverlayManager.guiHeight()
+                        + " overlays=" + DAI_OverlayManager.debugSnapshot()
+                        + " recent=" + DAI_DebugProbe.recent(8)
         );
 
         boolean warning =

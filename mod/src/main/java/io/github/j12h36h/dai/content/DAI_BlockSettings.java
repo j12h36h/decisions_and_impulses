@@ -38,7 +38,11 @@ public record DAI_BlockSettings(
         boolean climbable,
         String redstoneState,
         String useToggleState,
-        int scheduledTickDelay
+        int scheduledTickDelay,
+        boolean blockEntity,
+        int inventorySlots,
+        boolean blockEntitySync,
+        int blockEntityTickInterval
 ) {
 
     public static final DAI_BlockSettings DEFAULT = new DAI_BlockSettings(
@@ -46,7 +50,8 @@ public record DAI_BlockSettings(
             0.6F, 1.0F, 1.0F,
             false, false, false, false, false, false, false,
             "", "normal",
-            List.of(), List.of(), List.of(), 0, false, "", "", 0
+            List.of(), List.of(), List.of(), 0, false, "", "", 0,
+            false, 0, true, 0
     );
 
     /**
@@ -80,7 +85,11 @@ public record DAI_BlockSettings(
             boolean climbable,
             String redstoneState,
             String useToggleState,
-            int scheduledTickDelay
+            int scheduledTickDelay,
+            boolean blockEntity,
+            int inventorySlots,
+            boolean blockEntitySync,
+            int blockEntityTickInterval
     ) {}
 
     private static final MapCodec<PhysicalPart> PHYSICAL_CODEC =
@@ -112,7 +121,11 @@ public record DAI_BlockSettings(
                     Codec.BOOL.optionalFieldOf("climbable", false).forGetter(BehaviorPart::climbable),
                     Codec.STRING.optionalFieldOf("redstone_state", "").forGetter(BehaviorPart::redstoneState),
                     Codec.STRING.optionalFieldOf("use_toggle_state", "").forGetter(BehaviorPart::useToggleState),
-                    Codec.INT.optionalFieldOf("scheduled_tick_delay", 0).forGetter(BehaviorPart::scheduledTickDelay)
+                    Codec.INT.optionalFieldOf("scheduled_tick_delay", 0).forGetter(BehaviorPart::scheduledTickDelay),
+                    Codec.BOOL.optionalFieldOf("block_entity", false).forGetter(BehaviorPart::blockEntity),
+                    Codec.INT.optionalFieldOf("inventory_slots", 0).forGetter(BehaviorPart::inventorySlots),
+                    Codec.BOOL.optionalFieldOf("block_entity_sync", true).forGetter(BehaviorPart::blockEntitySync),
+                    Codec.INT.optionalFieldOf("block_entity_tick_interval", 0).forGetter(BehaviorPart::blockEntityTickInterval)
             ).apply(instance, BehaviorPart::new));
 
     public static final Codec<DAI_BlockSettings> CODEC =
@@ -133,7 +146,8 @@ public record DAI_BlockSettings(
     private BehaviorPart behaviorPart() {
         return new BehaviorPart(
                 mapColor, pushReaction, states, outlineShape, collisionShape,
-                redstoneSignal, climbable, redstoneState, useToggleState, scheduledTickDelay
+                redstoneSignal, climbable, redstoneState, useToggleState, scheduledTickDelay,
+                blockEntity, inventorySlots, blockEntitySync, blockEntityTickInterval
         );
     }
 
@@ -145,7 +159,8 @@ public record DAI_BlockSettings(
                 physical.randomTicks(), physical.ignitedByLava(), physical.emissiveRendering(),
                 behavior.mapColor(), behavior.pushReaction(), behavior.states(), behavior.outlineShape(),
                 behavior.collisionShape(), behavior.redstoneSignal(), behavior.climbable(), behavior.redstoneState(),
-                behavior.useToggleState(), behavior.scheduledTickDelay()
+                behavior.useToggleState(), behavior.scheduledTickDelay(), behavior.blockEntity(), behavior.inventorySlots(),
+                behavior.blockEntitySync(), behavior.blockEntityTickInterval()
         );
     }
 
@@ -167,6 +182,9 @@ public record DAI_BlockSettings(
         redstoneState = normalize(redstoneState, "");
         useToggleState = normalize(useToggleState, "");
         scheduledTickDelay = Math.max(0, Math.min(72000, scheduledTickDelay));
+        inventorySlots = Math.max(0, Math.min(54, inventorySlots));
+        blockEntityTickInterval = Math.max(0, Math.min(72000, blockEntityTickInterval));
+        if (inventorySlots > 0 || blockEntityTickInterval > 0) blockEntity = true;
     }
 
     public boolean hasOutlineShape() { return outlineShape.size() == 6; }

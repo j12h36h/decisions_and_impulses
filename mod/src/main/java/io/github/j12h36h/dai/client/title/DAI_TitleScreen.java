@@ -6,7 +6,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -26,15 +28,20 @@ public final class DAI_TitleScreen extends Screen {
     private static final int SAVE_ROW_HEIGHT = 42;
     private static final int SAVE_ROW_GAP = 6;
     private static final int SAVE_DELETE_WIDTH = 28;
+    private static final int DECORATION_SCREEN_MARGIN = 8;
+    private static final int DECORATION_BUTTON_GAP = 18;
+    private static final float MIN_DECORATION_SCALE = 0.58F;
 
     /** Prevent accidental click-through while replacing vanilla's title screen. */
     private static final long TRANSITION_CLICK_GUARD_NANOS = 650_000_000L;
 
     private final DAI_TitleScreenDefinition definition;
     private long acceptClicksAfterNanos;
+    private long animationStartNanos;
     private boolean wideSaveLayout;
     private List<DAI_ExperienceLauncher.ExperienceSave> browserSaves = List.of();
     private BrowserBounds browserBounds;
+    private ContentBounds titleButtonBounds;
 
     public DAI_TitleScreen(DAI_TitleScreenDefinition definition) {
         super(Component.literal("Decisions & Impulses"));
@@ -47,7 +54,9 @@ public final class DAI_TitleScreen extends Screen {
     protected void init() {
         super.init();
 
-        acceptClicksAfterNanos = System.nanoTime() + TRANSITION_CLICK_GUARD_NANOS;
+        animationStartNanos = System.nanoTime();
+        acceptClicksAfterNanos = animationStartNanos + TRANSITION_CLICK_GUARD_NANOS;
+        titleButtonBounds = null;
         DAI_TitleScreenDefinition.SaveBrowserDefinition saveBrowser = definition.saveBrowser();
         if (saveBrowser.enabled() && !saveBrowser.experience().isBlank()) {
             browserSaves = DAI_ExperienceLauncher.listSaves(saveBrowser.experience());
@@ -116,6 +125,12 @@ public final class DAI_TitleScreen extends Screen {
         );
 
         addRenderableWidget(widget);
+        trackTitleButtonBounds(x, y, button.width(), button.height());
+    }
+
+    private void trackTitleButtonBounds(int x, int y, int width, int height) {
+        ContentBounds bounds = new ContentBounds(x, y, x + width, y + height);
+        titleButtonBounds = titleButtonBounds == null ? bounds : titleButtonBounds.include(bounds);
     }
 
     private boolean acceptTitleClick(String id) {
@@ -287,6 +302,7 @@ public final class DAI_TitleScreen extends Screen {
 
         renderButtonPanel(graphics);
         renderSaveBrowserPanel(graphics);
+        renderDecorations(graphics);
 
         graphics.centeredText(
                 font,
@@ -317,6 +333,143 @@ public final class DAI_TitleScreen extends Screen {
         int panelBottom = Math.min(height - 7, height / 2 + 139);
         graphics.fill(panelX, panelY, panelX + column + 20, panelBottom, 0xB20B0907);
         graphics.outline(panelX, panelY, column + 20, panelBottom - panelY, 0xFF765A34);
+    }
+
+    private void renderDecorations(GuiGraphicsExtractor graphics) {
+        if (definition.decorations().isEmpty()) return;
+
+        double seconds = Math.max(0L, System.nanoTime() - animationStartNanos) / 1_000_000_000.0D;
+        long animationTick = (long) Math.floor(seconds * 20.0D);
+
+        for (DAI_TitleScreenDefinition.DecorationDefinition decoration : definition.decorations()) {
+            if (wideSaveLayout && decoration.hideWhenSaveBrowserWide()) continue;
+
+            Identifier texture = DAI_TitleIconTextures.resolve("texture", decoration.texture());
+            if (texture == null) continue;
+
+            DecorationPlacement placement = resolveDecorationPlacement(decoration, seconds);
+            if (placement == null) continue;
+
+            int frames = Math.max(1, decoration.frames());
+            int columns = Math.max(1, decoration.columns());
+            int frame = frames <= 1
+                    ? 0
+                    : (int) ((animationTick / decoration.frameTicks()) % frames);
+
+            if (!decoration.loop() && frames > 1) {
+                frame = Math.min(frames - 1, (int) (animationTick / decoration.frameTicks()));
+            }
+
+            int column = frame % columns;
+            int row = frame / columns;
+            int sheetRows = Math.max(1, (frames + columns - 1) / columns);
+            int sheetWidth = decoration.frameWidth() * columns;
+            int sheetHeight = decoration.frameHeight() * sheetRows;
+
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    texture,
+                    placement.x(),
+                    placement.y(),
+                    column * (float) decoration.frameWidth(),
+                    row * (float) decoration.frameHeight(),
+                    placement.width(),
+                    placement.height(),
+                    decoration.frameWidth(),
+                    decoration.frameHeight(),
+                    sheetWidth,
+                    sheetHeight,
+                    decoration.tint()
+            );
+        }
+    }
+
+    private DecorationPlacement resolveDecorationPlacement(
+            DAI_TitleScreenDefinition.DecorationDefinition decoration,
+            double seconds
+    ) {
+        int renderWidth = decoration.width();
+        int renderHeight = decoration.height();
+
+        DecorationPlacement placement = rawDecorationPlacement(decoration, renderWidth, renderHeight, seconds);
+        if (placement == null) return null;
+
+        if (titleButtonBounds != null && overlapsButtons(placement)) {
+            int maxWidth = maxDecorationWidthWithoutButtonOverlap(decoration);
+            if (maxWidth <= 0) {
+                return null;
+            }
+
+            float scale = Math.min(1.0F, maxWidth / (float) decoration.width());
+            if (scale < MIN_DECORATION_SCALE) {
+                return null;
+            }
+
+            renderWidth = Math.max(1, Math.round(decoration.width() * scale));
+            renderHeight = Math.max(1, Math.round(decoration.height() * scale));
+            placement = rawDecorationPlacement(decoration, renderWidth, renderHeight, seconds);
+            if (placement == null || overlapsButtons(placement)) {
+                return null;
+            }
+        }
+
+        return placement;
+    }
+
+    private DecorationPlacement rawDecorationPlacement(
+            DAI_TitleScreenDefinition.DecorationDefinition decoration,
+            int renderWidth,
+            int renderHeight,
+            double seconds
+    ) {
+        int x = resolveDecorationX(decoration.anchor(), decoration.x(), renderWidth);
+        int y = resolveDecorationY(decoration.anchor(), decoration.y(), renderHeight);
+
+        if (decoration.bobAmount() != 0.0F && decoration.bobSpeed() > 0.0F) {
+            double phase = seconds * decoration.bobSpeed() * Math.PI * 2.0D;
+            y += Math.round((float) (Math.sin(phase) * decoration.bobAmount()));
+        }
+
+        x = clamp(x, DECORATION_SCREEN_MARGIN, Math.max(DECORATION_SCREEN_MARGIN, width - renderWidth - DECORATION_SCREEN_MARGIN));
+        int minY = subtitleY() + font.lineHeight + 6;
+        y = clamp(y, minY, Math.max(minY, height - renderHeight - DECORATION_SCREEN_MARGIN));
+        return new DecorationPlacement(x, y, renderWidth, renderHeight);
+    }
+
+    private int resolveDecorationX(String anchor, int offset, int renderWidth) {
+        return switch (anchor) {
+            case "top_left", "left", "bottom_left" -> offset;
+            case "top_right", "right", "bottom_right" -> width - renderWidth - offset;
+            default -> width / 2 - renderWidth / 2 + offset;
+        };
+    }
+
+    private int resolveDecorationY(String anchor, int offset, int renderHeight) {
+        return switch (anchor) {
+            case "top_left", "top_right", "top" -> offset;
+            case "bottom_left", "bottom_right", "bottom" -> height - renderHeight - offset;
+            default -> height / 2 + offset;
+        };
+    }
+
+    private boolean overlapsButtons(DecorationPlacement placement) {
+        if (titleButtonBounds == null) return false;
+        return placement.x() < titleButtonBounds.right() + DECORATION_BUTTON_GAP
+                && placement.x() + placement.width() > titleButtonBounds.left() - DECORATION_BUTTON_GAP
+                && placement.y() < titleButtonBounds.bottom() + DECORATION_BUTTON_GAP
+                && placement.y() + placement.height() > titleButtonBounds.top() - DECORATION_BUTTON_GAP;
+    }
+
+    private int maxDecorationWidthWithoutButtonOverlap(DAI_TitleScreenDefinition.DecorationDefinition decoration) {
+        if (titleButtonBounds == null) return decoration.width();
+
+        return switch (decoration.anchor()) {
+            case "top_right", "right", "bottom_right" ->
+                    width - decoration.x() - titleButtonBounds.right() - DECORATION_BUTTON_GAP;
+            case "top_left", "left", "bottom_left" ->
+                    titleButtonBounds.left() - decoration.x() - DECORATION_BUTTON_GAP;
+            default -> 0;
+        };
     }
 
     private void renderSaveBrowserPanel(GuiGraphicsExtractor graphics) {
@@ -545,11 +698,39 @@ public final class DAI_TitleScreen extends Screen {
         );
     }
 
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     private record CompactLayout(
             int firstY,
             int buttonHeight,
             int gap
     ) {
+    }
+
+    private record DecorationPlacement(
+            int x,
+            int y,
+            int width,
+            int height
+    ) {
+    }
+
+    private record ContentBounds(
+            int left,
+            int top,
+            int right,
+            int bottom
+    ) {
+        private ContentBounds include(ContentBounds other) {
+            return new ContentBounds(
+                    Math.min(left, other.left),
+                    Math.min(top, other.top),
+                    Math.max(right, other.right),
+                    Math.max(bottom, other.bottom)
+            );
+        }
     }
 
     private record BrowserBounds(

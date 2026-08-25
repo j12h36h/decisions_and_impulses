@@ -10,6 +10,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionLoader;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.reactions.DAI_ReactionEventLoader;
 import io.github.j12h36h.dai.reactions.DAI_ReactionLoader;
+import io.github.j12h36h.dai.state.DAI_StateLoader;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -60,6 +61,11 @@ public final class DAI_ServerDataBootstrap {
         event.addListener(
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_animations"),
                 new DAI_AnimationLoader()
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_state"),
+                new DAI_StateLoader()
         );
 
         for (DAI_ContentKind kind : DAI_ContentKind.values()) {

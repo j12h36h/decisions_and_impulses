@@ -56,6 +56,12 @@ public final class DAI_VehicleRuntime {
         ));
     }
 
+    public static Input inputFor(ServerPlayer player) {
+        if (player == null) return new Input(0, 0, false, false, false, 0, 0);
+        return INPUTS.getOrDefault(player.getUUID(),
+                new Input(0, 0, false, false, false, player.getYRot(), player.getXRot()));
+    }
+
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {

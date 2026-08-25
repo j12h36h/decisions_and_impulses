@@ -47,6 +47,10 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import io.github.j12h36h.dai.server.runtime.DAI_RuntimeDispatch;
+import io.github.j12h36h.dai.server.runtime.DAI_ProjectileRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_ParticleRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_EffectRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_PotionRuntime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -894,6 +898,21 @@ public final class DAI_EntityRuntime {
             }
             case "command", "run_command", "server_command" -> {
                 if (!action.action().isBlank()) performServerCommand(mob, action.action());
+            }
+            case "projectile_spawn", "server_projectile_spawn" ->
+                    DAI_ProjectileRuntime.spawn(mob, action.action(), action.arguments());
+            case "particle_emit", "server_particle_emit" ->
+                    DAI_ParticleRuntime.emit(mob, action.action(), action.arguments());
+            case "effect_apply", "server_effect_apply" ->
+                    DAI_EffectRuntime.apply(mob, action.action(), action.ticks(), (int)Math.round(action.value()));
+            case "effect_remove", "server_effect_remove" ->
+                    DAI_EffectRuntime.remove(mob, action.action());
+            case "potion_apply", "server_potion_apply" ->
+                    DAI_PotionRuntime.apply(mob, action.action());
+            case "content_event", "emit_content_event" -> {
+                DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(action.action());
+                String event = action.arguments().string("event", action.target());
+                if (entry != null && !event.isBlank()) DAI_RuntimeDispatch.contentEvent(mob, entry, event);
             }
             case "wait", "idle", "noop" -> { }
             default -> DAI_Core.debug(

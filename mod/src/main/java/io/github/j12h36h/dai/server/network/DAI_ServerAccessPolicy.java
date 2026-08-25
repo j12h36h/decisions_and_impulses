@@ -24,7 +24,7 @@ public final class DAI_ServerAccessPolicy {
         return !server.isDedicatedServer() || hasAdministrativePermission(sender);
     }
 
-    private static boolean hasAdministrativePermission(ServerPlayer sender) {
+    public static boolean hasAdministrativePermission(ServerPlayer sender) {
         Object source = sender.createCommandSourceStack();
 
         for (String methodName : new String[]{"hasPermission", "hasPermissionLevel"}) {

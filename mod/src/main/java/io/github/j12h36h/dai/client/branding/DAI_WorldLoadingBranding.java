@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.branding;
 
 import net.minecraft.client.renderer.RenderPipelines;
+import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -46,9 +47,10 @@ public final class DAI_WorldLoadingBranding {
         }
 
         DAI_ExperienceDefinition experience = DAI_ClientBranding.preferredExperience();
-        if (experience == null) return false;
-        DAI_ExperienceDefinition.WorldLoading world = experience.branding().worldLoading();
-        if (!world.enabled() || !isWorldLoadingScreen(screen, world.includeTransitions())) return false;
+        DAI_ExperienceDefinition.WorldLoading world = experience == null ? null : experience.branding().worldLoading();
+        boolean experienceOwns = world != null && world.enabled() && isWorldLoadingScreen(screen, world.includeTransitions());
+        boolean daiFallback = DAI_ClientConfig.loadingScreens() && isWorldLoadingScreen(screen, true);
+        if (!experienceOwns && !daiFallback) return false;
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.getWindow() == null) return false;
@@ -72,6 +74,15 @@ public final class DAI_WorldLoadingBranding {
         int width = minecraft.getWindow().getGuiScaledWidth();
         int height = minecraft.getWindow().getGuiScaledHeight();
         if (width <= 0 || height <= 0) return false;
+
+        if (!experienceOwns) {
+            float p = progress(screen);
+            DAI_UniverseLoadingRenderer.render(graphics, width, height, p);
+            String stage = "LevelLoadingScreen".equals(screen.getClass().getSimpleName())
+                    ? "GENERATING WORLD" : "ENTERING WORLD";
+            graphics.centeredText(minecraft.font, Component.literal(stage), width / 2, height / 2 + 54, 0xFFFFA15C);
+            return true;
+        }
 
         Identifier background = parse(world.backgroundTexture());
         if (background != null) {
@@ -208,6 +219,17 @@ public final class DAI_WorldLoadingBranding {
                     Object value = field.get(object);
                     float converted = convertProgress(value);
                     if (converted >= 0.0F) return converted;
+                    if (value != null && (name.contains("progress") || name.contains("listener"))) {
+                        for (String methodName : new String[]{"getProgress", "getPercent", "progress"}) {
+                            try {
+                                Method method = value.getClass().getMethod(methodName);
+                                converted = convertProgress(method.invoke(value));
+                                if (converted >= 0.0F) return converted;
+                            } catch (ReflectiveOperationException ignoredNested) {
+                                // Try another progress accessor.
+                            }
+                        }
+                    }
                 } catch (Exception ignored) {
                     // Try another field.
                 }

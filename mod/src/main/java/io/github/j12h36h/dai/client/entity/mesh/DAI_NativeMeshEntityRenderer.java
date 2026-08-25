@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.client.entity.mesh;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -53,6 +54,7 @@ public final class DAI_NativeMeshEntityRenderer
     ) {
         super.extractRenderState(entity, state, partialTick);
         state.yRot = entity.getYRot();
+        state.animation = DAI_AnimationRuntime.sample(entity, partialTick);
     }
 
     @Override
@@ -72,6 +74,14 @@ public final class DAI_NativeMeshEntityRenderer
         // DAI mesh convention: +Z is model-forward and yaw 0 in Minecraft
         // points toward +Z, so only the entity yaw needs to be inverted.
         poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.yRot));
+        DAI_AnimationRuntime.Transform animation = renderState.animation == null
+                ? DAI_AnimationRuntime.Transform.IDENTITY
+                : renderState.animation;
+        poseStack.translate(animation.x(), animation.y(), animation.z());
+        poseStack.mulPose(Axis.XP.rotationDegrees((float) animation.pitch()));
+        poseStack.mulPose(Axis.YP.rotationDegrees((float) animation.yaw()));
+        poseStack.mulPose(Axis.ZP.rotationDegrees((float) animation.roll()));
+        poseStack.scale((float) animation.scaleX(), (float) animation.scaleY(), (float) animation.scaleZ());
 
         for (DAI_MeshModel.Section section : model.sections()) {
             if (section.triangles().isEmpty()) continue;

@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.client.logics.action;
 import io.github.j12h36h.dai.logics.action.*;
 
 import io.github.j12h36h.dai.client.logics.*;
+import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenLogic;
 import io.github.j12h36h.dai.client.customization.DAI_GameCustomizationLogic;
 import io.github.j12h36h.dai.client.logics.DAI_CommandLogic;
 import io.github.j12h36h.dai.client.logics.DAI_ServerActionLogic;
@@ -55,6 +56,16 @@ public final class DAI_ActionHandler {
     private static void registerMenuActions() {
 
         register(
+                "open_dai_creator",
+                DAI_MenuLogic::openCreator
+        );
+
+        register(
+                "open_automation_creator",
+                DAI_MenuLogic::openAutomationCreator
+        );
+
+        register(
                 "pause_menu",
                 DAI_MenuLogic::openPauseMenu
         );
@@ -62,6 +73,26 @@ public final class DAI_ActionHandler {
         register(
                 "update_menu",
                 DAI_MenuLogic::updateMenu
+        );
+
+        register(
+                "open_dai_menu",
+                DAI_MenuLogic::openDaiMenu
+        );
+
+        register(
+                "screen_open",
+                DAI_DataScreenLogic::open
+        );
+
+        register(
+                "open_data_screen",
+                DAI_DataScreenLogic::open
+        );
+
+        register(
+                "set_cursor_released",
+                DAI_MenuLogic::setCursorReleased
         );
 
         register(
@@ -89,6 +120,16 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "overlay_text",
+                DAI_OverlayLogic::text
+        );
+
+        register(
+                "overlay_button",
+                DAI_OverlayLogic::button
+        );
+
+        register(
                 "overlay_remove",
                 DAI_OverlayLogic::remove
         );
@@ -96,6 +137,46 @@ public final class DAI_ActionHandler {
         register(
                 "overlay_clear",
                 DAI_OverlayLogic::clear
+        );
+
+        register(
+                "overlay_set_position",
+                DAI_OverlayLogic::setPosition
+        );
+
+        register(
+                "overlay_move",
+                DAI_OverlayLogic::move
+        );
+
+        register(
+                "overlay_set_size",
+                DAI_OverlayLogic::setSize
+        );
+
+        register(
+                "overlay_set_z",
+                DAI_OverlayLogic::setZ
+        );
+
+        register(
+                "overlay_set_interactable",
+                DAI_OverlayLogic::setInteractable
+        );
+
+        register(
+                "overlay_lock_transform",
+                DAI_OverlayLogic::lockTransform
+        );
+
+        register(
+                "overlay_clamp_to_screen",
+                DAI_OverlayLogic::clampToScreen
+        );
+
+        register(
+                "overlay_repel_mouse",
+                DAI_OverlayLogic::repelMouse
         );
     }
 
@@ -304,6 +385,17 @@ public final class DAI_ActionHandler {
         register("effect_remove", DAI_ServerActionLogic::removeEffect);
         register("server_potion_apply", DAI_ServerActionLogic::applyPotion);
         register("potion_apply", DAI_ServerActionLogic::applyPotion);
+        register("item_component_set", DAI_ServerActionLogic::setItemComponent);
+        register("item_component_remove", DAI_ServerActionLogic::removeItemComponent);
+        register("item_component_copy", DAI_ServerActionLogic::copyItemComponent);
+        register("block_entity_set_boolean", DAI_ServerActionLogic::setBlockEntityBoolean);
+        register("block_entity_set_number", DAI_ServerActionLogic::setBlockEntityNumber);
+        register("block_entity_set_string", DAI_ServerActionLogic::setBlockEntityString);
+        register("block_entity_add_number", DAI_ServerActionLogic::addBlockEntityNumber);
+        register("block_entity_toggle_boolean", DAI_ServerActionLogic::toggleBlockEntityBoolean);
+        register("block_entity_clear", DAI_ServerActionLogic::clearBlockEntityState);
+        register("block_entity_slot_set", DAI_ServerActionLogic::setBlockEntitySlot);
+        register("block_entity_slot_clear", DAI_ServerActionLogic::clearBlockEntitySlot);
 
         register(
                 "server_mark_experience_started",

@@ -187,7 +187,19 @@ public final class DAI_HumanTrace {
         lastPosition = minecraft.player.position();
     }
 
-    static InputFrame input(Minecraft minecraft) {
+    /**
+     * Current vanilla crosshair/raytrace hit rendered as a stable diagnostic
+     * description. The learning runtime uses this to ground language in the
+     * object the player is actually pointing at.
+     */
+    public static String crosshairDescription(Minecraft minecraft) {
+        if (minecraft == null || minecraft.player == null || minecraft.level == null) {
+            return "null";
+        }
+        return DAI_HumanTraceFormat.describeHit(minecraft);
+    }
+
+    public static InputFrame input(Minecraft minecraft) {
         return new InputFrame(
                 minecraft.options.keyUp.isDown(),
                 minecraft.options.keyDown.isDown(),

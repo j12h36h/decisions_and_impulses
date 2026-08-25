@@ -2,7 +2,10 @@ package io.github.j12h36h.dai.server.network;
 
 import io.github.j12h36h.dai.network.DAI_ServerMutationPayload;
 import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
+import io.github.j12h36h.dai.network.DAI_StateSyncPayload;
 import io.github.j12h36h.dai.network.DAI_VehicleInputPayload;
+import io.github.j12h36h.dai.network.DAI_CreatorActionPayload;
+import io.github.j12h36h.dai.server.creator.DAI_CreatorServerRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_VehicleRuntime;
 import io.github.j12h36h.dai.server.action.DAI_ServerActionExecutor;
 
@@ -33,7 +36,7 @@ public final class DAI_ServerNetworkBootstrap {
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("2").optional();
+        PayloadRegistrar registrar = event.registrar("3").optional();
         registrar.playToServer(
                 DAI_ServerMutationPayload.TYPE,
                 DAI_ServerMutationPayload.STREAM_CODEC,
@@ -44,13 +47,36 @@ public final class DAI_ServerNetworkBootstrap {
                 DAI_ServerActionPayload.STREAM_CODEC,
                 DAI_ServerNetworkBootstrap::handleServerAction
         );
+        registrar.playToClient(
+                DAI_StateSyncPayload.TYPE,
+                DAI_StateSyncPayload.STREAM_CODEC
+        );
         registrar.playToServer(
                 DAI_VehicleInputPayload.TYPE,
                 DAI_VehicleInputPayload.STREAM_CODEC,
                 DAI_ServerNetworkBootstrap::handleVehicleInput
         );
+        registrar.playToServer(
+                DAI_CreatorActionPayload.TYPE,
+                DAI_CreatorActionPayload.STREAM_CODEC,
+                DAI_ServerNetworkBootstrap::handleCreatorAction
+        );
     }
 
+
+    private static void handleCreatorAction(
+            DAI_CreatorActionPayload payload,
+            IPayloadContext context
+    ) {
+        if (!(context.player() instanceof ServerPlayer sender)) return;
+        boolean automationCreator = "automation".equalsIgnoreCase(payload.kind());
+        if (!DAI_CreatorAccess.allows(sender, automationCreator)) {
+            DAI_Core.LOGGER.warn("<DAI>: Rejected {} Creator request from player '{}'.", automationCreator ? "Automation" : "DAI", sender.getUUID());
+            sender.sendSystemMessage(Component.literal("[DAI] Creator access is disabled for this player/server."));
+            return;
+        }
+        DAI_CreatorServerRuntime.handle(sender, payload);
+    }
 
     private static void handleVehicleInput(
             DAI_VehicleInputPayload payload,

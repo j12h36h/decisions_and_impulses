@@ -6,32 +6,25 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-/**
- * Optional client -> server request for DAI-owned authoritative operations.
- *
- * The payload intentionally mirrors the small generic action vocabulary used
- * by DAI_ActionDefinition so client automation can request a server capability
- * without importing or touching any logical-server implementation classes.
- */
+/** Client -> server request for DAI-owned authoritative operations. */
 public record DAI_ServerActionPayload(
         String operation,
         String action,
         String target,
         String state,
-        double value
+        double value,
+        String argumentsJson
 ) implements CustomPacketPayload {
 
     public static final Type<DAI_ServerActionPayload> TYPE =
-            new Type<>(Identifier.fromNamespaceAndPath(
-                    "decisions_and_impulses",
-                    "server_action"
-            ));
+            new Type<>(Identifier.fromNamespaceAndPath("decisions_and_impulses", "server_action"));
 
     public static final StreamCodec<ByteBuf, DAI_ServerActionPayload> STREAM_CODEC =
-            StreamCodec.ofMember(
-                    DAI_ServerActionPayload::encode,
-                    DAI_ServerActionPayload::new
-            );
+            StreamCodec.ofMember(DAI_ServerActionPayload::encode, DAI_ServerActionPayload::new);
+
+    public DAI_ServerActionPayload(String operation, String action, String target, String state, double value) {
+        this(operation, action, target, state, value, "{}");
+    }
 
     private DAI_ServerActionPayload(ByteBuf buffer) {
         this(
@@ -39,7 +32,8 @@ public record DAI_ServerActionPayload(
                 ByteBufCodecs.STRING_UTF8.decode(buffer),
                 ByteBufCodecs.STRING_UTF8.decode(buffer),
                 ByteBufCodecs.STRING_UTF8.decode(buffer),
-                ByteBufCodecs.DOUBLE.decode(buffer)
+                ByteBufCodecs.DOUBLE.decode(buffer),
+                ByteBufCodecs.STRING_UTF8.decode(buffer)
         );
     }
 
@@ -49,14 +43,11 @@ public record DAI_ServerActionPayload(
         ByteBufCodecs.STRING_UTF8.encode(buffer, safe(target));
         ByteBufCodecs.STRING_UTF8.encode(buffer, safe(state));
         ByteBufCodecs.DOUBLE.encode(buffer, value);
+        ByteBufCodecs.STRING_UTF8.encode(buffer, safe(argumentsJson).isBlank() ? "{}" : argumentsJson);
     }
 
-    private static String safe(String value) {
-        return value == null ? "" : value;
-    }
+    private static String safe(String value) { return value == null ? "" : value; }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+    public Type<? extends CustomPacketPayload> type() { return TYPE; }
 }

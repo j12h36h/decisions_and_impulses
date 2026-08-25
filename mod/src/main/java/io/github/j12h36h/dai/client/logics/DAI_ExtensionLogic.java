@@ -4,6 +4,10 @@ import io.github.j12h36h.dai.api.DAI_CapabilityStore;
 import io.github.j12h36h.dai.api.DAI_Reference;
 import io.github.j12h36h.dai.client.api.DAI_ReferenceStore;
 import io.github.j12h36h.dai.api.DAI_StateStore;
+import io.github.j12h36h.dai.state.DAI_StateDefinition;
+import io.github.j12h36h.dai.state.DAI_StateRegistry;
+import io.github.j12h36h.dai.client.network.DAI_ServerBridge;
+import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionResult;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionStatus;
@@ -27,20 +31,16 @@ public final class DAI_ExtensionLogic {
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.setBoolean(
-                action.action(),
-                action.state()
-        );
+        if (sendDeclaredState(action, "set", "boolean", Boolean.toString(action.state()), 0.0D)) return;
+        DAI_StateStore.setBoolean(action.action(), action.state());
     }
 
     public static void setStateNumber(
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.setNumber(
-                action.action(),
-                action.value()
-        );
+        if (sendDeclaredState(action, "set", "number", "", action.value())) return;
+        DAI_StateStore.setNumber(action.action(), action.value());
     }
 
     /**
@@ -53,38 +53,48 @@ public final class DAI_ExtensionLogic {
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.setString(
-                action.action(),
-                action.direction()
-        );
+        String text = action.arguments().string("text", action.direction());
+        if (sendDeclaredState(action, "set", "string", text, 0.0D)) return;
+        DAI_StateStore.setString(action.action(), text);
     }
 
     public static void addStateNumber(
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.addNumber(
-                action.action(),
-                action.value()
-        );
+        if (sendDeclaredState(action, "add", "number", "", action.value())) return;
+        DAI_StateStore.addNumber(action.action(), action.value());
     }
 
     public static void toggleStateBoolean(
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.toggleBoolean(
-                action.action()
-        );
+        if (sendDeclaredState(action, "toggle", "boolean", "", 0.0D)) return;
+        DAI_StateStore.toggleBoolean(action.action());
     }
 
     public static void clearState(
             DAI_ActionDefinition action
     ) {
 
-        DAI_StateStore.remove(
-                action.action()
-        );
+        if (sendDeclaredState(action, "clear", "", "", 0.0D)) return;
+        DAI_StateStore.remove(action.action());
+    }
+
+    private static boolean sendDeclaredState(DAI_ActionDefinition action, String operation, String type, String text, double number) {
+        if (action == null) return false;
+        DAI_StateDefinition definition = DAI_StateRegistry.get(action.action());
+        if (definition == null || !definition.serverOwned()) return false;
+        if (!definition.clientWritable()) {
+            DAI_ActionStatus.set(DAI_ActionResult.FAILURE);
+            return true;
+        }
+        boolean sent = DAI_ServerBridge.send(new DAI_ServerActionPayload(
+                "state_" + operation, action.action(), type, text, number, action.arguments().toString()
+        ));
+        DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
+        return true;
     }
 
     public static void addCapability(

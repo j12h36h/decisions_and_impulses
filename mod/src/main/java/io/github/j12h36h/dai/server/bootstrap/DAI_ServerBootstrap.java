@@ -12,7 +12,10 @@ import io.github.j12h36h.dai.server.runtime.DAI_FluidRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_InteractiveRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_PortalRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_BlockRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_PhysicsRuntime;
+import io.github.j12h36h.dai.server.creator.DAI_CreatorServerRuntime;
 import io.github.j12h36h.dai.server.network.DAI_ServerNetworkBootstrap;
+import io.github.j12h36h.dai.server.state.DAI_ServerStateRuntime;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
 import io.github.j12h36h.dai.server.worldgen.DAI_NaturalGenerationRuntime;
 import net.neoforged.bus.api.IEventBus;
@@ -44,6 +47,9 @@ public final class DAI_ServerBootstrap {
         DAI_FluidRuntime.initialize();
         DAI_InteractiveRuntime.initialize();
         DAI_PortalRuntime.initialize();
+        DAI_CreatorServerRuntime.initialize();
+        DAI_PhysicsRuntime.initialize();
+        DAI_ServerStateRuntime.initialize();
         DAI_ServerNetworkBootstrap.initialize(modBus);
         DAI_ServerDataBootstrap.initialize();
 

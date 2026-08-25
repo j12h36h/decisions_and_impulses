@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.logics.bootstrap;
 
 import io.github.j12h36h.dai.logics.core.DAI_Config;
+import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
+import io.github.j12h36h.dai.server.config.DAI_ServerConfig;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -23,6 +25,18 @@ public final class DAI_ConfigBootstrap {
                 DAI_Config.SPEC
         );
 
+        container.registerConfig(
+                ModConfig.Type.CLIENT,
+                DAI_ClientConfig.SPEC,
+                "decisions_and_impulses-client.toml"
+        );
+
+        container.registerConfig(
+                ModConfig.Type.SERVER,
+                DAI_ServerConfig.SPEC,
+                "decisions_and_impulses-server.toml"
+        );
+
         modBus.addListener(
                 DAI_ConfigBootstrap::onConfigLoading
         );
@@ -32,7 +46,7 @@ public final class DAI_ConfigBootstrap {
         );
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Registered common configuration."
+                "<DAI>: Registered common, client, and server configurations."
         );
     }
 

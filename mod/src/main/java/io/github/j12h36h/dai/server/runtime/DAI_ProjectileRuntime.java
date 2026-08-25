@@ -4,6 +4,7 @@ import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import io.github.j12h36h.dai.content.DAI_ProjectileSettings;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.action.DAI_ActionArguments;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -50,6 +51,14 @@ public final class DAI_ProjectileRuntime {
     }
 
     public static boolean spawn(ServerPlayer owner, String rawId) {
+        return spawn((LivingEntity) owner, rawId, DAI_ActionArguments.EMPTY);
+    }
+
+    public static boolean spawn(ServerPlayer owner, String rawId, DAI_ActionArguments arguments) {
+        return spawn((LivingEntity) owner, rawId, arguments);
+    }
+
+    public static boolean spawn(LivingEntity owner, String rawId, DAI_ActionArguments arguments) {
         if (owner == null || !(owner.level() instanceof ServerLevel level)) return false;
         DAI_ContentRegistry.Entry entry = DAI_ContentRegistry.get(rawId);
         if (entry == null || entry.kind() != DAI_ContentKind.PROJECTILE) return false;
@@ -61,12 +70,35 @@ public final class DAI_ProjectileRuntime {
             return false;
         }
 
+        DAI_ActionArguments args = arguments == null ? DAI_ActionArguments.EMPTY : arguments;
+        int count = Math.max(1, Math.min(64, args.integer("count", 1)));
+        double spread = Math.max(0.0D, Math.min(180.0D, args.number("spread", 0.0D)));
+        double speed = args.number("speed", entry.definition().stats().projectileSpeed());
+        if (!(speed > 0.0D)) speed = 1.5D;
+        Vec3 origin = resolveOrigin(owner, args);
+        Vec3 baseDirection = resolveDirection(owner, origin, args);
+        if (baseDirection.lengthSqr() < 0.000001D) baseDirection = owner.getLookAngle();
+        baseDirection = baseDirection.normalize();
+
+        boolean any = false;
+        for (int i = 0; i < count; i++) {
+            Vec3 direction = applySpread(baseDirection, spread, level.getRandom());
+            any |= spawnOne(level, owner, entry, carrier, origin, direction, speed, args.bool("inherit_velocity", false));
+        }
+        return any;
+    }
+
+    private static boolean spawnOne(
+            ServerLevel level, LivingEntity owner, DAI_ContentRegistry.Entry entry, String carrier,
+            Vec3 origin, Vec3 direction, double speed, boolean inheritVelocity
+    ) {
         String token = "dai_p_" + UUID.randomUUID().toString().replace("-", "");
-        String command = "summon " + carrier + " ~ ~1.45 ~ {Tags:[\"dai_projectile\",\"" + token + "\"]}";
+        String command = "summon " + carrier + " " + origin.x + " " + origin.y + " " + origin.z
+                + " {Tags:[\"dai_projectile\",\"" + token + "\"]}";
         if (!DAI_RuntimeDispatch.dispatch(owner, "command:" + command)) return false;
 
         Entity projectile = null;
-        AABB box = owner.getBoundingBox().inflate(5.0D);
+        AABB box = new AABB(origin, origin).inflate(5.0D);
         for (Entity candidate : level.getEntities(owner, box, entity -> entity.tags().toList().contains(token))) {
             projectile = candidate;
             break;
@@ -75,18 +107,58 @@ public final class DAI_ProjectileRuntime {
 
         projectile.removeTag(token);
         projectile.addTag("dai_projectile");
-        projectile.setYRot(owner.getYRot());
-        projectile.setXRot(owner.getXRot());
-        double speed = entry.definition().stats().projectileSpeed();
-        if (!(speed > 0.0D)) speed = 1.5D;
-        Vec3 look = owner.getLookAngle().normalize();
-        projectile.setDeltaMovement(look.scale(speed));
+        Vec3 velocity = direction.normalize().scale(speed);
+        if (inheritVelocity) velocity = velocity.add(owner.getDeltaMovement());
+        projectile.setDeltaMovement(velocity);
+        projectile.setYRot((float)(Math.toDegrees(Math.atan2(-velocity.x, velocity.z))));
+        double horizontal = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        projectile.setXRot((float)(-Math.toDegrees(Math.atan2(velocity.y, horizontal))));
 
         ACTIVE.put(projectile.getUUID(), new Active(
                 entry.id().toString(), owner.getUUID(), 0, 0, 0, new HashSet<>()
         ));
         DAI_RuntimeDispatch.contentEvent(projectile, entry, "spawn");
         return true;
+    }
+
+    private static Vec3 resolveOrigin(LivingEntity owner, DAI_ActionArguments args) {
+        String mode = args.normalized("origin", "eye");
+        Vec3 base = switch (mode) {
+            case "feet", "position", "player" -> owner.position();
+            case "center" -> owner.getBoundingBox().getCenter();
+            default -> owner.getEyePosition();
+        };
+        double[] offset = args.vector("offset", 0.0D, 0.0D, 0.0D);
+        return base.add(offset[0], offset[1], offset[2]);
+    }
+
+    private static Vec3 resolveDirection(LivingEntity owner, Vec3 origin, DAI_ActionArguments args) {
+        double[] explicit = args.vector("direction", Double.NaN, Double.NaN, Double.NaN);
+        if (Double.isFinite(explicit[0]) && Double.isFinite(explicit[1]) && Double.isFinite(explicit[2])) {
+            return new Vec3(explicit[0], explicit[1], explicit[2]);
+        }
+        double[] target = args.vector("target_position", Double.NaN, Double.NaN, Double.NaN);
+        if (Double.isFinite(target[0]) && Double.isFinite(target[1]) && Double.isFinite(target[2])) {
+            return new Vec3(target[0], target[1], target[2]).subtract(origin);
+        }
+        int entityId = args.integer("target_entity_id", -1);
+        if (entityId >= 0) {
+            Entity targetEntity = owner.level().getEntity(entityId);
+            if (targetEntity != null) return targetEntity.getBoundingBox().getCenter().subtract(origin);
+        }
+        return owner.getLookAngle();
+    }
+
+    private static Vec3 applySpread(Vec3 direction, double degrees, net.minecraft.util.RandomSource random) {
+        if (!(degrees > 0.0D)) return direction;
+        double scale = Math.tan(Math.toRadians(degrees));
+        Vec3 jitter = new Vec3(
+                (random.nextDouble() * 2.0D - 1.0D) * scale,
+                (random.nextDouble() * 2.0D - 1.0D) * scale,
+                (random.nextDouble() * 2.0D - 1.0D) * scale
+        );
+        Vec3 result = direction.add(jitter);
+        return result.lengthSqr() < 0.000001D ? direction : result.normalize();
     }
 
     @SubscribeEvent

@@ -1026,6 +1026,8 @@ data/decisions_and_impulses/logics/definitions/deprecated/resource/mine_nearest_
 data/decisions_and_impulses/logics/definitions/deprecated/resource/mine_nearest_logs.json
 data/decisions_and_impulses/logics/definitions/deprecated/resource/mine_nearest_redstone.json
 data/decisions_and_impulses/logics/definitions/deprecated/resource/mine_nearest_stone.json
+data/decisions_and_impulses/logics/definitions/creator/open_automation_creator.json
+data/decisions_and_impulses/logics/definitions/creator/open_dai_creator.json
 data/decisions_and_impulses/logics/definitions/showcase/showcase_activate_content_demo.json
 data/decisions_and_impulses/logics/definitions/showcase/showcase_animation_breath_marker.json
 data/decisions_and_impulses/logics/definitions/showcase/showcase_animation_demo.json
@@ -1388,16 +1390,13 @@ data/decisions_and_impulses/objectives/recognition/wood_trapdoors.json
 data/decisions_and_impulses/objectives/recognition/wooden_structure.json
 data/decisions_and_impulses/objectives/recognition/wool.json
 data/decisions_and_impulses/menus/systems/default.json
-data/decisions_and_impulses/menus/systems/vanilla.json
 data/decisions_and_impulses/menus/actions/automation/zzzz_stop.json
 data/decisions_and_impulses/menus/actions/automation.json
 data/decisions_and_impulses/menus/actions/charge.json
-data/decisions_and_impulses/menus/actions/content.json
 data/decisions_and_impulses/menus/actions/controls.json
 data/decisions_and_impulses/menus/actions/dash.json
 data/decisions_and_impulses/menus/actions/default.json
 data/decisions_and_impulses/menus/actions/direction.json
-data/decisions_and_impulses/menus/actions/engine.json
 data/decisions_and_impulses/menus/actions/gamemode.json
 data/decisions_and_impulses/menus/actions/hand.json
 data/decisions_and_impulses/menus/actions/item.json
@@ -1406,7 +1405,6 @@ data/decisions_and_impulses/menus/actions/look.json
 data/decisions_and_impulses/menus/actions/look_horizontal.json
 data/decisions_and_impulses/menus/actions/look_vertical.json
 data/decisions_and_impulses/menus/actions/move.json
-data/decisions_and_impulses/menus/actions/runtime.json
 data/decisions_and_impulses/menus/actions/stance.json
 data/decisions_and_impulses/menus/actions/strafe.json
 data/decisions_and_impulses/menus/actions/target.json

@@ -10,6 +10,10 @@ import io.github.j12h36h.dai.client.overlays.DAI_OverlayAnchor;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.client.overlays.DAI_SpriteSheetLayer;
 import io.github.j12h36h.dai.client.overlays.DAI_StaticSpriteLayer;
+import io.github.j12h36h.dai.client.overlays.DAI_TextOverlayLayer;
+import io.github.j12h36h.dai.client.overlays.DAI_ButtonOverlayLayer;
+import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
+import io.github.j12h36h.dai.client.logics.core.DAI_DebugProbe;
 import net.minecraft.resources.Identifier;
 
 public final class DAI_OverlayLogic {
@@ -50,6 +54,45 @@ public final class DAI_OverlayLogic {
                 )
         );
 
+        DAI_ActionStatus.set(DAI_ActionResult.SUCCESS);
+    }
+
+    public static void text(DAI_ActionDefinition action) {
+        if (action.action() == null || action.action().isBlank()) {
+            fail("overlay_text requires action='<overlay id>'.");
+            return;
+        }
+        if (action.target() == null || action.target().isBlank()) {
+            fail("overlay_text requires target='<text>'.");
+            return;
+        }
+        int width = action.value() <= 0.0D ? 240 : Math.max(1, (int) Math.round(action.value()));
+        int color = textColor(action.open());
+        DAI_OverlayManager.put(
+                new DAI_TextOverlayLayer(
+                        action.action(),
+                        DAI_OverlayAnchor.parse(action.direction()),
+                        Math.round(action.yaw()),
+                        Math.round(action.pitch()),
+                        width,
+                        action.slot(),
+                        action.ticks(),
+                        action.target(),
+                        color,
+                        DAI_OverlayManager.nextInsertionOrder()
+                )
+        );
+        DAI_DebugProbe.record("overlay", "text id=" + action.action() + " width=" + width);
+        DAI_ActionStatus.set(DAI_ActionResult.SUCCESS);
+    }
+
+    public static void button(DAI_ActionDefinition action) {
+        if (action.action() == null || action.action().isBlank()) { fail("overlay_button requires action='<overlay id>'."); return; }
+        if (action.target() == null || action.target().isBlank()) { fail("overlay_button requires target='<button text>'."); return; }
+        if (action.open() == null || action.open().isBlank()) { fail("overlay_button requires open='<click action id>'."); return; }
+        int width = action.value() <= 0.0D ? 150 : Math.max(40, (int) Math.round(action.value()));
+        DAI_OverlayManager.put(new DAI_ButtonOverlayLayer(action.action(), DAI_OverlayAnchor.parse(action.direction()), Math.round(action.yaw()), Math.round(action.pitch()), width, action.slot(), action.ticks(), action.target(), action.open(), DAI_OverlayManager.nextInsertionOrder()));
+        DAI_DebugProbe.record("overlay", "button id=" + action.action() + " width=" + width);
         DAI_ActionStatus.set(DAI_ActionResult.SUCCESS);
     }
 
@@ -118,6 +161,101 @@ public final class DAI_OverlayLogic {
         DAI_ActionStatus.set(DAI_ActionResult.SUCCESS);
     }
 
+    /**
+     * Generic transform actions intentionally reuse existing action fields so
+     * old packs and constructor call sites stay binary/source compatible:
+     * action = overlay id; yaw/pitch = x/y or dx/dy or width/height; value = z/speed; state = boolean.
+     */
+    public static void setPosition(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.setPosition(
+                        action.action(),
+                        Math.round(action.yaw()),
+                        Math.round(action.pitch())
+                ),
+                "set_position",
+                action.action()
+        );
+    }
+
+    public static void move(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.move(
+                        action.action(),
+                        Math.round(action.yaw()),
+                        Math.round(action.pitch())
+                ),
+                "move",
+                action.action()
+        );
+    }
+
+    public static void setSize(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.setSize(
+                        action.action(),
+                        Math.round(action.yaw()),
+                        Math.round(action.pitch())
+                ),
+                "set_size",
+                action.action()
+        );
+    }
+
+    public static void setZ(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.setZ(action.action(), (int) Math.round(action.value())),
+                "set_z",
+                action.action()
+        );
+    }
+
+    public static void setInteractable(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.setInteractable(action.action(), action.state()),
+                "set_interactable",
+                action.action()
+        );
+    }
+
+    public static void lockTransform(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.setTransformLocked(action.action(), action.state()),
+                "lock",
+                action.action()
+        );
+    }
+
+    public static void clampToScreen(DAI_ActionDefinition action) {
+        transformResult(
+                DAI_OverlayManager.clampToScreen(action.action()),
+                "clamp",
+                action.action()
+        );
+    }
+
+    public static void repelMouse(DAI_ActionDefinition action) {
+        double speed = action.value() <= 0.0D ? 2.0D : action.value();
+        transformResult(
+                DAI_OverlayManager.moveAwayFrom(
+                        action.action(),
+                        DAI_MouseState.x(),
+                        DAI_MouseState.y(),
+                        speed
+                ),
+                "repel_mouse",
+                action.action()
+        );
+    }
+
+    private static void transformResult(boolean success, String operation, String id) {
+        DAI_ActionStatus.set(success ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
+        DAI_DebugProbe.record(
+                "overlay",
+                operation + " id=" + (id == null ? "" : id) + " ok=" + success
+        );
+    }
+
     private static boolean validCommon(
             String id,
             Identifier texture,
@@ -143,6 +281,19 @@ public final class DAI_OverlayLogic {
             return false;
         }
         return true;
+    }
+
+    private static int textColor(String authored) {
+        String value = authored == null ? "" : authored.trim();
+        if (value.startsWith("#")) value = value.substring(1);
+        if (value.isBlank()) return 0xFFFFFFFF;
+        try {
+            if (value.length() == 6) return 0xFF000000 | Integer.parseUnsignedInt(value, 16);
+            if (value.length() == 8) return (int) Long.parseLong(value, 16);
+        } catch (NumberFormatException ignored) {
+            DAI_Core.LOGGER.warn("<DAI>: Invalid overlay_text color '{}'; using white.", authored);
+        }
+        return 0xFFFFFFFF;
     }
 
     private static void fail(String message) {

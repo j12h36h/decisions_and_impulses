@@ -32,6 +32,7 @@ public enum DAI_GameCustomizationKind {
     PORTAL("dai_portals"),
     INTERACTIVE("dai_interactives"),
     FLUID("dai_fluids"),
+    PHYSICS("dai_physics"),
     ENVIRONMENT("dai_environments");
 
     private final String folder;

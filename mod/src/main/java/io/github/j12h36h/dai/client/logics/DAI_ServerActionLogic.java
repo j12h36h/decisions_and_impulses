@@ -42,12 +42,35 @@ public final class DAI_ServerActionLogic {
     public static void applyEffect(DAI_ActionDefinition action) {
         if (action == null) { fail("Server effect action requires an action definition."); return; }
         boolean sent = DAI_ServerBridge.send(new DAI_ServerActionPayload(
-                "effect_apply", action.action(), Integer.toString(action.ticks()), Boolean.toString(action.state()), action.value()));
+                "effect_apply", action.action(), Integer.toString(action.ticks()), Boolean.toString(action.state()), action.value(), action.arguments().toString()));
         DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
     }
 
     public static void removeEffect(DAI_ActionDefinition action) { send(action, "effect_remove"); }
     public static void applyPotion(DAI_ActionDefinition action) { send(action, "potion_apply"); }
+    public static void setItemComponent(DAI_ActionDefinition action) { send(action, "item_component_set"); }
+    public static void removeItemComponent(DAI_ActionDefinition action) { send(action, "item_component_remove"); }
+    public static void copyItemComponent(DAI_ActionDefinition action) { send(action, "item_component_copy"); }
+    public static void setBlockEntityBoolean(DAI_ActionDefinition action) { send(action, "block_entity_set_boolean"); }
+    public static void setBlockEntityNumber(DAI_ActionDefinition action) { send(action, "block_entity_set_number"); }
+    public static void setBlockEntityString(DAI_ActionDefinition action) { send(action, "block_entity_set_string"); }
+    public static void addBlockEntityNumber(DAI_ActionDefinition action) { send(action, "block_entity_add_number"); }
+    public static void toggleBlockEntityBoolean(DAI_ActionDefinition action) { send(action, "block_entity_toggle_boolean"); }
+    public static void clearBlockEntityState(DAI_ActionDefinition action) { send(action, "block_entity_clear"); }
+
+    public static void setBlockEntitySlot(DAI_ActionDefinition action) {
+        if (action == null) { fail("Block entity slot action requires an action definition."); return; }
+        boolean sent = DAI_ServerBridge.send(new DAI_ServerActionPayload(
+                "block_entity_slot_set", action.action(), action.target(), Integer.toString(action.slot()), action.value(), action.arguments().toString()));
+        DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
+    }
+
+    public static void clearBlockEntitySlot(DAI_ActionDefinition action) {
+        if (action == null) { fail("Block entity slot action requires an action definition."); return; }
+        boolean sent = DAI_ServerBridge.send(new DAI_ServerActionPayload(
+                "block_entity_slot_clear", "", action.target(), Integer.toString(action.slot()), 0.0D, action.arguments().toString()));
+        DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
+    }
 
     public static void markExperienceStarted(DAI_ActionDefinition action) {
         send(action, "experience_startup_dispatched");
@@ -64,7 +87,8 @@ public final class DAI_ServerActionLogic {
                 action.action(),
                 action.target(),
                 Boolean.toString(action.state()),
-                action.value()
+                action.value(),
+                action.arguments().toString()
         ));
 
         DAI_ActionStatus.set(sent ? DAI_ActionResult.SUCCESS : DAI_ActionResult.FAILURE);
