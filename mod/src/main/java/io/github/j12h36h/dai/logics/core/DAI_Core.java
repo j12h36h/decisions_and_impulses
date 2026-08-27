@@ -16,7 +16,7 @@ public final class DAI_Core {
 
     /** Data/API feature level represented by this source tree. */
     public static final String FEATURE_LEVEL =
-            "1.9";
+            "3.3";
 
     public static final Logger LOGGER =
             LogUtils.getLogger();

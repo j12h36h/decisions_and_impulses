@@ -25,6 +25,22 @@ public abstract class Mixin_Mouse {
             int action,
             CallbackInfo callbackInfo
     ) {
+        Minecraft minecraft = Minecraft.getInstance();
+
+        /*
+         * NeoForge's early display can dispatch GLFW mouse events while the
+         * Minecraft client constructor is still running. During that narrow
+         * window the vanilla FramerateLimitTracker has not been created yet,
+         * but MouseHandler.onButton() unconditionally calls it after this
+         * injection returns. Cancel the event until vanilla input is ready so
+         * startup clicks cannot produce a non-fatal NullPointerException.
+         */
+        if (minecraft == null
+                || minecraft.getFramerateLimitTracker() == null) {
+            callbackInfo.cancel();
+            return;
+        }
+
         DAI_MouseState.onButton(rawButtonInfo.button(), action);
 
         if (action != GLFW.GLFW_PRESS
@@ -32,7 +48,6 @@ public abstract class Mixin_Mouse {
             return;
         }
 
-        Minecraft minecraft = Minecraft.getInstance();
         double mouseX = minecraft.mouseHandler.getScaledXPos(minecraft.getWindow());
         double mouseY = minecraft.mouseHandler.getScaledYPos(minecraft.getWindow());
 
