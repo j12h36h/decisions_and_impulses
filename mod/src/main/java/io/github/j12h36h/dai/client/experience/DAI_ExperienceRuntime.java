@@ -16,6 +16,7 @@ import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenDefinition;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenRepository;
 import net.minecraft.client.Minecraft;
+import io.github.j12h36h.dai.client.screens.data.DAI_DataScreen;
 import net.minecraft.resources.Identifier;
 
 /** Client/session ownership for a launched JSON experience. */
@@ -39,8 +40,17 @@ public final class DAI_ExperienceRuntime {
             boolean firstJoin,
             java.nio.file.Path sourcePack
     ) {
+        prepare(definition, firstJoin, sourcePack, "");
+    }
+
+    public static void prepare(
+            DAI_ExperienceDefinition definition,
+            boolean firstJoin,
+            java.nio.file.Path sourcePack,
+            String worldgenOverride
+    ) {
         if (definition == null) return;
-        DAI_ExperienceLaunchState.prepare(definition, firstJoin, sourcePack);
+        DAI_ExperienceLaunchState.prepare(definition, firstJoin, sourcePack, worldgenOverride);
         active = null;
         clientReady = false;
         activationWaitTicks = 0;
@@ -118,9 +128,10 @@ public final class DAI_ExperienceRuntime {
 
         // Experience lifecycle actions are gameplay, not UI. UI auto-enable
         // must never suppress first-join/on-join logic.
-        if (value.firstJoin() && !active.worldgen().isBlank()) {
+        String activeWorldgen = value.worldgenOverride().isBlank() ? active.worldgen() : value.worldgenOverride();
+        if (value.firstJoin() && !activeWorldgen.isBlank()) {
             DAI_WorldgenRepository.reload();
-            DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(active.worldgen());
+            DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(activeWorldgen);
             if (worldgen != null) {
                 for (String actionId : worldgen.bootstrapActions()) {
                     DAI_ActionQueue.enqueueAll(DAI_ActionResolver.resolve(actionId));
@@ -265,6 +276,10 @@ public final class DAI_ExperienceRuntime {
     }
 
     private static boolean isExperienceUiVisible(DAI_ExperienceDefinition.Ui ui) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft != null && minecraft.gui.screen() instanceof DAI_DataScreen) {
+            return true;
+        }
         if (ui != null && !ui.graveAnchorOverlay().isBlank()) {
             return DAI_OverlayManager.contains(ui.graveAnchorOverlay());
         }

@@ -52,6 +52,9 @@ public final class DAI_TitleActionDispatcher {
                     parent,
                     definition.experience()
             );
+            case "open_experience_creator" -> minecraft.gui.setScreen(
+                    new DAI_BoxheadExperienceCreateScreen(parent, definition.experience())
+            );
             case "continue_experience" -> DAI_ExperienceLauncher.continueLast(
                     parent,
                     definition.experience()

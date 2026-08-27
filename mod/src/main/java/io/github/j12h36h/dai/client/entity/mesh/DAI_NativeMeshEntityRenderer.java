@@ -54,6 +54,8 @@ public final class DAI_NativeMeshEntityRenderer
     ) {
         super.extractRenderState(entity, state, partialTick);
         state.yRot = entity.getYRot();
+        state.xRot = entity.getXRot();
+        state.projectile = entity.tags().toList().contains("dai_projectile");
         state.animation = DAI_AnimationRuntime.sample(entity, partialTick);
     }
 
@@ -74,6 +76,12 @@ public final class DAI_NativeMeshEntityRenderer
         // DAI mesh convention: +Z is model-forward and yaw 0 in Minecraft
         // points toward +Z, so only the entity yaw needs to be inverted.
         poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.yRot));
+        // Native entities used as DAI projectile carriers also inherit pitch so
+        // elongated bullet meshes point exactly along their velocity vector.
+        // Ordinary mobs remain upright even when their look pitch changes.
+        if (renderState.projectile) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(renderState.xRot));
+        }
         DAI_AnimationRuntime.Transform animation = renderState.animation == null
                 ? DAI_AnimationRuntime.Transform.IDENTITY
                 : renderState.animation;

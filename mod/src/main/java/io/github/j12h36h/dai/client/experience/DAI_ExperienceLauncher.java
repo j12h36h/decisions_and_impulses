@@ -86,6 +86,37 @@ public final class DAI_ExperienceLauncher {
         );
     }
 
+
+    /**
+     * Boxhead/custom-experience creator entry point. Minecraft still owns the
+     * actual CreateWorldScreen; this only supplies the user-facing name and a
+     * selected DAI worldgen definition for the pending first-start handoff.
+     */
+    public static void launchNewConfigured(
+            Screen parent,
+            String experienceId,
+            String worldName,
+            String worldgenId
+    ) {
+        DAI_ExperienceRepository.reload();
+        DAI_WorldgenRepository.reload();
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        if (experience == null || !experience.createIfMissing()) {
+            DAI_Core.LOGGER.warn("<DAI>: Cannot create configured experience '{}'.", experienceId);
+            return;
+        }
+        DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(worldgenId);
+        if (worldgen == null) {
+            DAI_Core.LOGGER.warn("<DAI>: Configured experience '{}' requested missing worldgen '{}'.", experienceId, worldgenId);
+            return;
+        }
+        Path sourcePack = findExperienceSourcePack(experience);
+        DAI_ExperienceRuntime.prepare(experience, true, sourcePack, worldgen.id());
+        if (openFresh(parent, experience, worldgen, worldName)) return;
+        clearFreshLaunch();
+        DAI_Core.LOGGER.error("<DAI>: Could not open configured fresh-world flow for '{}'.", experience.id());
+    }
+
     /**
      * Continues the most recently modified save belonging to this experience.
      * If no prior run exists, gracefully starts the first fresh run instead.
@@ -309,7 +340,7 @@ public final class DAI_ExperienceLauncher {
         if (pending.ticksOnScreen < 2) return;
 
         if (!pending.configured) {
-            pending.presetResolved = configureFreshScreen(screen, pending.experience, pending.worldgen);
+            pending.presetResolved = configureFreshScreen(screen, pending.experience, pending.worldgen, pending.worldName);
             pending.configured = true;
         }
 
@@ -372,6 +403,15 @@ public final class DAI_ExperienceLauncher {
             DAI_ExperienceDefinition experience,
             DAI_WorldgenDefinition worldgen
     ) {
+        return openFresh(parent, experience, worldgen, experience == null ? "" : experience.saveName());
+    }
+
+    private static boolean openFresh(
+            Screen parent,
+            DAI_ExperienceDefinition experience,
+            DAI_WorldgenDefinition worldgen,
+            String requestedWorldName
+    ) {
         Minecraft minecraft = Minecraft.getInstance();
         try {
             Class<?> screenClass = Class.forName("net.minecraft.client.gui.screens.worldselection.CreateWorldScreen");
@@ -387,7 +427,7 @@ public final class DAI_ExperienceLauncher {
                 if (args == null) continue;
                 if (!method.canAccess(null) && !method.trySetAccessible()) continue;
                 try {
-                    pendingFresh = new PendingFresh(parent, experience, worldgen);
+                    pendingFresh = new PendingFresh(parent, experience, worldgen, requestedWorldName);
                     Object result = method.invoke(null, args);
                     if (result instanceof Screen returned) minecraft.gui.setScreen(returned);
                     return true;
@@ -410,7 +450,8 @@ public final class DAI_ExperienceLauncher {
     private static boolean configureFreshScreen(
             Screen screen,
             DAI_ExperienceDefinition experience,
-            DAI_WorldgenDefinition worldgen
+            DAI_WorldgenDefinition worldgen,
+            String requestedWorldName
     ) {
         if (screen == null || experience == null) return false;
 
@@ -420,7 +461,7 @@ public final class DAI_ExperienceLauncher {
             return worldgen == null || worldgen.worldPreset().isBlank();
         }
 
-        invokeCompatibleSetter(state, "setName", experience.saveName());
+        invokeCompatibleSetter(state, "setName", requestedWorldName == null || requestedWorldName.isBlank() ? experience.saveName() : requestedWorldName.trim());
 
         if (worldgen != null && worldgen.seed() != null) {
             // Minecraft's current UI state accepts the seed as its editable
@@ -852,6 +893,7 @@ public final class DAI_ExperienceLauncher {
         private final Screen parent;
         private final DAI_ExperienceDefinition experience;
         private final DAI_WorldgenDefinition worldgen;
+        private final String worldName;
         private int ticksOnScreen;
         private boolean screenSeen;
         private boolean configured;
@@ -861,11 +903,13 @@ public final class DAI_ExperienceLauncher {
         private PendingFresh(
                 Screen parent,
                 DAI_ExperienceDefinition experience,
-                DAI_WorldgenDefinition worldgen
+                DAI_WorldgenDefinition worldgen,
+                String worldName
         ) {
             this.parent = parent;
             this.experience = experience;
             this.worldgen = worldgen;
+            this.worldName = worldName == null ? "" : worldName.trim();
         }
     }
 }

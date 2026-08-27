@@ -104,17 +104,20 @@ public final class DAI_WorldgenRuntime {
             DAI_ExperienceLaunchState.Pending pending
     ) {
         DAI_ExperienceDefinition experience = pending.definition();
-        if (experience.worldgen().isBlank()) {
+        String selectedWorldgen = pending.worldgenOverride().isBlank()
+                ? experience.worldgen()
+                : pending.worldgenOverride();
+        if (selectedWorldgen.isBlank()) {
             DAI_ExperienceLaunchState.markWorldReady();
             return;
         }
 
         DAI_WorldgenRepository.reload();
-        DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(experience.worldgen());
+        DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(selectedWorldgen);
         if (worldgen == null) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Experience '{}' requested missing DAI worldgen definition '{}'.",
-                    experience.id(), experience.worldgen()
+                    experience.id(), selectedWorldgen
             );
             DAI_ExperienceLaunchState.markWorldReady();
             return;

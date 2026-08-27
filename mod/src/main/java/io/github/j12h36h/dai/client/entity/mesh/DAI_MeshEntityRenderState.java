@@ -6,5 +6,7 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 /** Render-state values needed by DAI's generic native mesh renderer. */
 public final class DAI_MeshEntityRenderState extends EntityRenderState {
     public float yRot;
+    public float xRot;
+    public boolean projectile;
     public DAI_AnimationRuntime.Transform animation = DAI_AnimationRuntime.Transform.IDENTITY;
 }

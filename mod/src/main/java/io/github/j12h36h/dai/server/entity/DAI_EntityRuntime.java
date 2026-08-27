@@ -127,7 +127,15 @@ public final class DAI_EntityRuntime {
         if (event.getEntity() instanceof Mob victim) {
             DAI_EntitySettings settings = settings(victim);
             if (settings != null) {
-                runGameplayEvent(victim, settings, "death");
+                Entity directKiller = event.getSource().getEntity();
+                net.minecraft.server.level.ServerPlayer playerKiller = directKiller instanceof net.minecraft.server.level.ServerPlayer player
+                        ? player : null;
+                if (playerKiller != null) playerKiller.addTag("dai_entity_killer_context");
+                try {
+                    runGameplayEvent(victim, settings, "death");
+                } finally {
+                    if (playerKiller != null) playerKiller.removeTag("dai_entity_killer_context");
+                }
                 String loot = settings.gameplay().loot();
                 if (!loot.isBlank()) DAI_RuntimeDispatch.dispatch(victim, "command:loot spawn ~ ~ ~ loot " + loot);
             }

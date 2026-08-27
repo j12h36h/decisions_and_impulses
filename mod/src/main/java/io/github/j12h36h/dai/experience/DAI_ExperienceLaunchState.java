@@ -21,9 +21,18 @@ public final class DAI_ExperienceLaunchState {
             boolean firstJoin,
             Path sourcePack
     ) {
+        prepare(definition, firstJoin, sourcePack, "");
+    }
+
+    public static void prepare(
+            DAI_ExperienceDefinition definition,
+            boolean firstJoin,
+            Path sourcePack,
+            String worldgenOverride
+    ) {
         pending = definition == null
                 ? null
-                : new Pending(definition, firstJoin, sourcePack);
+                : new Pending(definition, firstJoin, sourcePack, worldgenOverride == null ? "" : worldgenOverride.trim().toLowerCase());
         packReloadFuture = CompletableFuture.completedFuture(null);
         packReloadFailed = false;
         worldReady = definition != null && !firstJoin;
@@ -87,6 +96,7 @@ public final class DAI_ExperienceLaunchState {
     public record Pending(
             DAI_ExperienceDefinition definition,
             boolean firstJoin,
-            Path sourcePack
+            Path sourcePack,
+            String worldgenOverride
     ) {}
 }

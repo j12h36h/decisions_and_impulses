@@ -32,10 +32,18 @@ import java.util.UUID;
  */
 public final class DAI_ProjectileRuntime {
 
-    private record Active(String contentId, UUID owner, int age, int ricochets, int pierces, Set<UUID> hit) {
-        Active ageOne() { return new Active(contentId, owner, age + 1, ricochets, pierces, hit); }
-        Active ricochet() { return new Active(contentId, owner, age, ricochets + 1, pierces, hit); }
-        Active pierce() { return new Active(contentId, owner, age, ricochets, pierces + 1, hit); }
+    private record Active(
+            String contentId, UUID owner, int age, int ricochets, int pierces,
+            Vec3 velocity, Set<UUID> hit
+    ) {
+        Active ageOne() { return new Active(contentId, owner, age + 1, ricochets, pierces, velocity, hit); }
+        Active withVelocity(Vec3 nextVelocity) {
+            return new Active(contentId, owner, age, ricochets, pierces, nextVelocity, hit);
+        }
+        Active ricochet(Vec3 nextVelocity) {
+            return new Active(contentId, owner, age, ricochets + 1, pierces, nextVelocity, hit);
+        }
+        Active pierce() { return new Active(contentId, owner, age, ricochets, pierces + 1, velocity, hit); }
     }
 
     private static final Map<UUID, Active> ACTIVE = new HashMap<>();
@@ -79,6 +87,8 @@ public final class DAI_ProjectileRuntime {
         Vec3 baseDirection = resolveDirection(owner, origin, args);
         if (baseDirection.lengthSqr() < 0.000001D) baseDirection = owner.getLookAngle();
         baseDirection = baseDirection.normalize();
+        double forwardOffset = Math.max(0.0D, Math.min(4.0D, args.number("forward_offset", 0.0D)));
+        if (forwardOffset > 0.0D) origin = origin.add(baseDirection.scale(forwardOffset));
 
         boolean any = false;
         for (int i = 0; i < count; i++) {
@@ -109,13 +119,16 @@ public final class DAI_ProjectileRuntime {
         projectile.addTag("dai_projectile");
         Vec3 velocity = direction.normalize().scale(speed);
         if (inheritVelocity) velocity = velocity.add(owner.getDeltaMovement());
-        projectile.setDeltaMovement(velocity);
-        projectile.setYRot((float)(Math.toDegrees(Math.atan2(-velocity.x, velocity.z))));
-        double horizontal = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        projectile.setXRot((float)(-Math.toDegrees(Math.atan2(velocity.y, horizontal))));
+
+        // Native JSON carriers are Mob-backed. Their vanilla travel tick can
+        // consume/reset horizontal delta movement, so projectile physics must
+        // own position independently instead of relying on Mob travel.
+        projectile.setNoGravity(true);
+        projectile.setDeltaMovement(Vec3.ZERO);
+        orient(projectile, velocity);
 
         ACTIVE.put(projectile.getUUID(), new Active(
-                entry.id().toString(), owner.getUUID(), 0, 0, 0, new HashSet<>()
+                entry.id().toString(), owner.getUUID(), 0, 0, 0, velocity, new HashSet<>()
         ));
         DAI_RuntimeDispatch.contentEvent(projectile, entry, "spawn");
         return true;
@@ -197,7 +210,7 @@ public final class DAI_ProjectileRuntime {
         }
 
         Entity owner = level.getEntity(active.owner());
-        Vec3 velocity = projectile.getDeltaMovement();
+        Vec3 velocity = active.velocity();
 
         if (settings.returnToOwner() && nextActive.age() >= settings.returnAfterTicks() && owner != null) {
             Vec3 desired = owner.getEyePosition().subtract(projectile.position());
@@ -219,7 +232,7 @@ public final class DAI_ProjectileRuntime {
 
         Collision collision = trace(level, projectile, owner, settings, active.hit(), velocity);
         if (collision.entity != null) {
-            Active changed = hitEntity(level, projectile, owner, collision.entity, entry, nextActive, settings);
+            Active changed = hitEntity(level, projectile, owner, collision.entity, entry, nextActive, settings, velocity);
             if (changed == null) return;
             nextActive = changed;
             ACTIVE.put(projectile.getUUID(), changed);
@@ -228,7 +241,7 @@ public final class DAI_ProjectileRuntime {
             DAI_RuntimeDispatch.contentEvent(projectile, entry, "hit_block");
             if (nextActive.ricochets() < settings.ricochets()) {
                 velocity = velocity.scale(-0.82D);
-                nextActive = nextActive.ricochet();
+                nextActive = nextActive.ricochet(velocity);
                 ACTIVE.put(projectile.getUUID(), nextActive);
                 DAI_RuntimeDispatch.contentEvent(projectile, entry, "ricochet");
             } else {
@@ -237,13 +250,22 @@ public final class DAI_ProjectileRuntime {
             }
         }
 
-        projectile.setDeltaMovement(velocity);
+        // DAI owns projectile translation. This keeps custom/native carriers
+        // ballistic even when their underlying LivingEntity travel code would
+        // otherwise zero or redirect delta movement.
+        Vec3 nextPosition = projectile.position().add(velocity);
+        projectile.setPos(nextPosition.x, nextPosition.y, nextPosition.z);
+        projectile.setDeltaMovement(Vec3.ZERO);
+        orient(projectile, velocity);
+        nextActive = nextActive.withVelocity(velocity);
+        ACTIVE.put(projectile.getUUID(), nextActive);
         DAI_RuntimeDispatch.contentEvent(projectile, entry, "tick");
     }
 
     private static Active hitEntity(
             ServerLevel level, Entity projectile, Entity owner, LivingEntity target,
-            DAI_ContentRegistry.Entry entry, Active active, DAI_ProjectileSettings settings
+            DAI_ContentRegistry.Entry entry, Active active, DAI_ProjectileSettings settings,
+            Vec3 velocity
     ) {
         active.hit().add(target.getUUID());
         if (settings.damage() > 0.0D) {
@@ -254,7 +276,7 @@ public final class DAI_ProjectileRuntime {
             }
         }
         if (settings.knockback() > 0.0D) {
-            Vec3 push = projectile.getDeltaMovement();
+            Vec3 push = velocity;
             if (push.lengthSqr() > 0.0001D) {
                 push = push.normalize().scale(settings.knockback());
                 target.push(push.x, Math.max(0.05D, push.y), push.z);
@@ -283,7 +305,7 @@ public final class DAI_ProjectileRuntime {
         LivingEntity best = null;
         double bestDistance = Double.MAX_VALUE;
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
-            if (!validTarget(entity, owner, settings, alreadyHit)) continue;
+            if (!validTarget(entity, projectile, owner, settings, alreadyHit)) continue;
             double distance = entity.distanceToSqr(projectile);
             if (distance < bestDistance) { bestDistance = distance; best = entity; }
         }
@@ -307,18 +329,27 @@ public final class DAI_ProjectileRuntime {
             if (settings.collideEntities()) {
                 AABB box = new AABB(sample, sample).inflate(settings.hitRadius());
                 for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, box)) {
-                    if (validTarget(entity, owner, settings, alreadyHit)) return new Collision(false, entity);
+                    if (validTarget(entity, projectile, owner, settings, alreadyHit)) return new Collision(false, entity);
                 }
             }
         }
         return new Collision(false, null);
     }
 
-    private static boolean validTarget(LivingEntity entity, Entity owner, DAI_ProjectileSettings settings, Set<UUID> alreadyHit) {
+    private static boolean validTarget(LivingEntity entity, Entity projectile, Entity owner, DAI_ProjectileSettings settings, Set<UUID> alreadyHit) {
         if (!entity.isAlive() || alreadyHit.contains(entity.getUUID())) return false;
+        if (projectile != null && entity.getUUID().equals(projectile.getUUID())) return false;
+        if (entity.tags().toList().contains("dai_projectile")) return false;
         if (owner != null && entity.getUUID().equals(owner.getUUID()) && !settings.hitOwner()) return false;
         if (!settings.hitAllies() && owner != null && owner.getTeam() != null && owner.getTeam() == entity.getTeam()) return false;
         return true;
+    }
+
+    private static void orient(Entity projectile, Vec3 velocity) {
+        if (velocity == null || velocity.lengthSqr() < 0.000001D) return;
+        projectile.setYRot((float)(Math.toDegrees(Math.atan2(-velocity.x, velocity.z))));
+        double horizontal = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        projectile.setXRot((float)(-Math.toDegrees(Math.atan2(velocity.y, horizontal))));
     }
 
     private static Vec3 steer(Vec3 current, Vec3 desired, double strength) {
