@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
+import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -56,6 +57,24 @@ public final class DAI_NativeMeshEntityRenderer
         state.yRot = entity.getYRot();
         state.xRot = entity.getXRot();
         state.projectile = entity.tags().toList().contains("dai_projectile");
+        // A native entity carrying passengers is a rendered vehicle chassis.
+        // Preserve its server-authored X rotation so motorcycle wheelies, jumps
+        // and crash tumbles are visible instead of being flattened upright.
+        state.mountedVehicle = entity.isVehicle();
+        state.pitchAroundPivot = false;
+        state.pitchPivotX = 0.0D;
+        state.pitchPivotY = 0.0D;
+        state.pitchPivotZ = 0.0D;
+
+        DAI_ContentRegistry.Entry content = DAI_ContentRegistry.get(entityId);
+        if (content != null && content.definition().entity().riding().followVehiclePitch()) {
+            double[] pivot = content.definition().entity().riding().pitchPivotVector();
+            state.pitchAroundPivot = true;
+            state.pitchPivotX = pivot[0];
+            state.pitchPivotY = pivot[1];
+            state.pitchPivotZ = pivot[2];
+        }
+
         state.animation = DAI_AnimationRuntime.sample(entity, partialTick);
     }
 
@@ -76,11 +95,20 @@ public final class DAI_NativeMeshEntityRenderer
         // DAI mesh convention: +Z is model-forward and yaw 0 in Minecraft
         // points toward +Z, so only the entity yaw needs to be inverted.
         poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.yRot));
-        // Native entities used as DAI projectile carriers also inherit pitch so
-        // elongated bullet meshes point exactly along their velocity vector.
-        // Ordinary mobs remain upright even when their look pitch changes.
+        // Projectile carriers and mounted native vehicle chassis inherit pitch.
+        // Vehicles can optionally author a local pitch pivot (for example the
+        // rear tire contact point on a motorcycle) so a wheelie lifts the front
+        // end without visually driving the rear tire below the terrain.
         if (renderState.projectile) {
             poseStack.mulPose(Axis.XP.rotationDegrees(renderState.xRot));
+        } else if (renderState.mountedVehicle) {
+            if (renderState.pitchAroundPivot) {
+                poseStack.translate(renderState.pitchPivotX, renderState.pitchPivotY, renderState.pitchPivotZ);
+                poseStack.mulPose(Axis.XP.rotationDegrees(renderState.xRot));
+                poseStack.translate(-renderState.pitchPivotX, -renderState.pitchPivotY, -renderState.pitchPivotZ);
+            } else {
+                poseStack.mulPose(Axis.XP.rotationDegrees(renderState.xRot));
+            }
         }
         DAI_AnimationRuntime.Transform animation = renderState.animation == null
                 ? DAI_AnimationRuntime.Transform.IDENTITY

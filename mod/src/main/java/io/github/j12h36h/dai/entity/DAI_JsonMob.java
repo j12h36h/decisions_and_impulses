@@ -7,7 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 
 /** Generic physical mob used by native JSON-defined DAI entities. */
 public final class DAI_JsonMob extends PathfinderMob {
@@ -32,16 +31,36 @@ public final class DAI_JsonMob extends PathfinderMob {
             return;
         }
 
+        double localX = seat[0];
+        double localY = seat[1];
+        double localZ = seat[2];
+
+        // Vehicle seats can opt into chassis pitch. This is required for bikes:
+        // the rider must travel with the seat during wheelies, jumps and crashes
+        // instead of remaining at a fixed world-Y above an independently pitched mesh.
+        if (riding.followVehiclePitch()) {
+            double[] pivot = riding.pitchPivotVector();
+            double radiansX = Math.toRadians(getXRot());
+            double cosX = Math.cos(radiansX);
+            double sinX = Math.sin(radiansX);
+
+            double relativeY = localY - pivot[1];
+            double relativeZ = localZ - pivot[2];
+            double rotatedY = relativeY * cosX - relativeZ * sinX;
+            double rotatedZ = relativeY * sinX + relativeZ * cosX;
+
+            localY = pivot[1] + rotatedY;
+            localZ = pivot[2] + rotatedZ;
+        }
+
         // Seat coordinates are authored in local entity space. Rotate X/Z by
         // vehicle yaw so multi-seat layouts stay attached to the chassis.
-        double radians = Math.toRadians(-getYRot());
-        double cos = Math.cos(radians);
-        double sin = Math.sin(radians);
-        double localX = seat[0];
-        double localZ = seat[2];
-        double x = getX() + localX * cos - localZ * sin;
-        double z = getZ() + localX * sin + localZ * cos;
-        double y = getY() + seat[1];
+        double radiansY = Math.toRadians(-getYRot());
+        double cosY = Math.cos(radiansY);
+        double sinY = Math.sin(radiansY);
+        double x = getX() + localX * cosY - localZ * sinY;
+        double z = getZ() + localX * sinY + localZ * cosY;
+        double y = getY() + localY;
         moveFunction.accept(passenger, x, y, z);
     }
 
