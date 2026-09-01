@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.client.entity.DAI_EntityClientBootstrap;
 import io.github.j12h36h.dai.client.network.DAI_ClientNetworkBootstrap;
 import io.github.j12h36h.dai.client.particle.DAI_ParticleClientBootstrap;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
+import io.github.j12h36h.dai.client.combat.indicator.DAI_DamageIndicatorRenderRuntime;
 import io.github.j12h36h.dai.client.physics.DAI_ClientPhysicsRuntime;
 import io.github.j12h36h.dai.client.physics.DAI_PhysicsRenderRuntime;
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
@@ -91,6 +92,7 @@ public final class DAI_ClientBootstrap {
         DAI_EntityClientBootstrap.initialize(modBus);
         DAI_ParticleClientBootstrap.initialize(modBus);
         DAI_PhysicsRenderRuntime.initialize(modBus);
+        DAI_DamageIndicatorRenderRuntime.initialize(modBus);
 
         modBus.addListener(
                 DAI_ClientBootstrap::registerKeyMappings

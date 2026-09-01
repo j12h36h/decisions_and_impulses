@@ -1,0 +1,159 @@
+{
+  "schema": "dai_damage_indicator_skin_v1",
+  "enabled": true,
+  "priority": 0,
+  "categories": {
+    "default": {
+      "font": "minecraft:default",
+      "color": "#FFFF4D64",
+      "shadow": true,
+      "see_through": true,
+      "base_scale": 1.8,
+      "spawn": {
+        "duration": 5,
+        "y_from": 0.0,
+        "y_to": 0.12,
+        "scale_from": 0.55,
+        "scale_to": 1.0,
+        "alpha_from": 0.25,
+        "alpha_to": 1.0,
+        "easing": "back_out"
+      },
+      "hold": {
+        "duration": 22,
+        "y_from": 0.12,
+        "y_to": 0.5,
+        "scale_from": 1.0,
+        "scale_to": 1.0,
+        "alpha_from": 1.0,
+        "alpha_to": 1.0,
+        "easing": "ease_out"
+      },
+      "exit": {
+        "duration": 8,
+        "y_from": 0.5,
+        "y_to": 0.8,
+        "scale_from": 1.0,
+        "scale_to": 0.8,
+        "alpha_from": 1.0,
+        "alpha_to": 0.0,
+        "easing": "ease_in"
+      }
+    },
+    "light": {
+      "font": "minecraft:default",
+      "color": "#FFFF4D64",
+      "shadow": true,
+      "see_through": true,
+      "base_scale": 1.65,
+      "spawn": {
+        "duration": 5,
+        "y_from": 0.0,
+        "y_to": 0.12,
+        "scale_from": 0.55,
+        "scale_to": 1.0,
+        "alpha_from": 0.25,
+        "alpha_to": 1.0,
+        "easing": "back_out"
+      },
+      "hold": {
+        "duration": 22,
+        "y_from": 0.12,
+        "y_to": 0.5,
+        "scale_from": 1.0,
+        "scale_to": 1.0,
+        "alpha_from": 1.0,
+        "alpha_to": 1.0,
+        "easing": "ease_out"
+      },
+      "exit": {
+        "duration": 8,
+        "y_from": 0.5,
+        "y_to": 0.8,
+        "scale_from": 1.0,
+        "scale_to": 0.8,
+        "alpha_from": 1.0,
+        "alpha_to": 0.0,
+        "easing": "ease_in"
+      }
+    },
+    "medium": {
+      "font": "minecraft:default",
+      "color": "#FFFF9F43",
+      "shadow": true,
+      "see_through": true,
+      "base_scale": 1.95,
+      "spawn": {
+        "duration": 5,
+        "y_from": 0.0,
+        "y_to": 0.12,
+        "scale_from": 0.55,
+        "scale_to": 1.0,
+        "alpha_from": 0.25,
+        "alpha_to": 1.0,
+        "easing": "back_out"
+      },
+      "hold": {
+        "duration": 22,
+        "y_from": 0.12,
+        "y_to": 0.5,
+        "scale_from": 1.0,
+        "scale_to": 1.0,
+        "alpha_from": 1.0,
+        "alpha_to": 1.0,
+        "easing": "ease_out"
+      },
+      "exit": {
+        "duration": 8,
+        "y_from": 0.5,
+        "y_to": 0.8,
+        "scale_from": 1.0,
+        "scale_to": 0.8,
+        "alpha_from": 1.0,
+        "alpha_to": 0.0,
+        "easing": "ease_in"
+      }
+    },
+    "heavy": {
+      "font": "minecraft:default",
+      "color": "#FFFFD166",
+      "shadow": true,
+      "see_through": true,
+      "base_scale": 2.35,
+      "spawn": {
+        "duration": 6,
+        "y_from": 0.0,
+        "y_to": 0.16,
+        "scale_from": 0.25,
+        "scale_to": 1.0,
+        "rotation_from": -4.0,
+        "rotation_to": 0.0,
+        "alpha_from": 0.2,
+        "alpha_to": 1.0,
+        "easing": "back_out"
+      },
+      "hold": {
+        "duration": 20,
+        "y_from": 0.16,
+        "y_to": 0.5,
+        "scale_from": 1.0,
+        "scale_to": 1.0,
+        "alpha_from": 1.0,
+        "alpha_to": 1.0,
+        "easing": "ease_out"
+      },
+      "exit": {
+        "duration": 9,
+        "y_from": 0.5,
+        "y_to": 0.9,
+        "scale_from": 1.0,
+        "scale_to": 0.72,
+        "rotation_from": 0.0,
+        "rotation_to": 4.0,
+        "alpha_from": 1.0,
+        "alpha_to": 0.0,
+        "easing": "ease_in"
+      }
+    }
+  }
+}
