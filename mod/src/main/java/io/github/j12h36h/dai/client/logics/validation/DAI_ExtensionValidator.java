@@ -11,10 +11,12 @@ import io.github.j12h36h.dai.entity.DAI_EntityTemplateRegistry;
 import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
 import io.github.j12h36h.dai.customization.DAI_GameCustomizationRegistry;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
+import io.github.j12h36h.dai.logics.action.DAI_ActionReference;
 import io.github.j12h36h.dai.registry.DAI_RegistrySpec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
+import java.util.Locale;
 import java.util.Map;
 
 /** Validation for reloadable DAI extension registries. */
@@ -125,7 +127,7 @@ public final class DAI_ExtensionValidator {
                 var gameplay = definition.entity().gameplay();
                 validateCustomizationReference(source + ".entity.gameplay.faction", DAI_GameCustomizationKind.FACTION, gameplay.faction());
                 validateCustomizationReference(source + ".entity.gameplay.dialogue", DAI_GameCustomizationKind.DIALOGUE, gameplay.dialogue());
-                validateCustomizationReference(source + ".entity.gameplay.loot", DAI_GameCustomizationKind.LOOT, gameplay.loot());
+                validateLootReference(source + ".entity.gameplay.loot", gameplay.loot());
 
                 for (String equipment : gameplay.equipment()) {
                     if (equipment == null || equipment.isBlank()) continue;
@@ -147,7 +149,10 @@ public final class DAI_ExtensionValidator {
                 }
 
                 for (Map.Entry<String, String> event : gameplay.events().entrySet()) {
-                    validateActionReference(source + ".entity.gameplay.events." + event.getKey(), event.getValue());
+                    validateActionOrFunctionReference(
+                            source + ".entity.gameplay.events." + event.getKey(),
+                            event.getValue()
+                    );
                 }
 
                 for (String affect : definition.entity().portal().affects()) {
@@ -225,6 +230,62 @@ public final class DAI_ExtensionValidator {
                 );
             }
         }
+    }
+
+
+    private static void validateLootReference(String source, String value) {
+        if (value == null || value.isBlank()) return;
+        if (Identifier.tryParse(value.trim()) == null) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Loot reference must be a valid resource identifier, got '" + value + "'."
+            );
+        }
+    }
+
+    /**
+     * Entity lifecycle events may point at either a DAI action or an ordinary
+     * server datapack function. This mirrors the server-side runtime dispatcher
+     * and keeps behavior_sequence strict while allowing death/spawn/etc. hooks
+     * to delegate to mcfunctions.
+     */
+    private static void validateActionOrFunctionReference(String source, String value) {
+        if (value == null || value.isBlank()) return;
+
+        String trimmed = value.trim();
+        String lower = trimmed.toLowerCase(Locale.ROOT);
+
+        if (lower.startsWith("command:")) return;
+
+        if (lower.startsWith("function:")) {
+            String function = trimmed.substring("function:".length()).trim();
+            if (Identifier.tryParse(function) == null) {
+                DAI_ValidationReport.error(source, "Invalid function reference '" + value + "'.");
+            }
+            return;
+        }
+
+        if (lower.startsWith("action:")) {
+            validateActionReference(source, trimmed.substring("action:".length()).trim());
+            return;
+        }
+
+        Identifier id = DAI_ActionReference.parse(trimmed);
+        if (id != null) {
+            if (!DAI_ActionLibrary.contains(id)) {
+                DAI_ValidationReport.info(
+                        source,
+                        "reference '" + value
+                                + "' is not a DAI action; it will be resolved server-side as a function id."
+                );
+            }
+            return;
+        }
+
+        // Runtime dispatch also accepts raw server command strings.
+        if (trimmed.indexOf(' ') >= 0) return;
+
+        DAI_ValidationReport.error(source, "Invalid action/function reference '" + value + "'.");
     }
 
     private static void validateCustomizationReference(

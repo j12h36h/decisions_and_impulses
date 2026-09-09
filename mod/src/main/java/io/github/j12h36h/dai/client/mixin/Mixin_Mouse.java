@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import net.minecraft.client.Minecraft;
@@ -66,7 +67,7 @@ public abstract class Mixin_Mouse {
             CallbackInfo callbackInfo
     ) {
 
-        if (!DAI_InputState.isOverrideEnabled()) {
+        if (!DAI_InputState.isOverrideEnabled() && !DAI_ErasCinematicRuntime.ownsInput()) {
             return;
         }
 

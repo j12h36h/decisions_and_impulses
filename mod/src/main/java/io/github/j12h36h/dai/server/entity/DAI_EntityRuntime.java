@@ -27,6 +27,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.server.level.ServerPlayer;
@@ -328,11 +329,17 @@ public final class DAI_EntityRuntime {
 
         List<DAI_ActionDefinition> actions = resolveBehavior(reference);
         if (actions.isEmpty()) {
-            DAI_Core.debug(
-                    "<DAI>: Entity gameplay event '{}' could not resolve action reference '{}'.",
-                    eventName,
-                    reference
-            );
+            // Lifecycle hooks are allowed to delegate directly to ordinary
+            // server datapack functions/commands when no DAI action exists.
+            // behavior_sequence remains DAI-action-only because it requires
+            // actor-safe sequencing and condition evaluation.
+            if (!DAI_RuntimeDispatch.dispatch(mob, reference)) {
+                DAI_Core.debug(
+                        "<DAI>: Entity gameplay event '{}' could not resolve runtime reference '{}'.",
+                        eventName,
+                        reference
+                );
+            }
             return;
         }
 
@@ -841,7 +848,7 @@ public final class DAI_EntityRuntime {
 
     private static void executeActorAction(Mob mob, DAI_ActionDefinition action) {
         String type = action.type().trim().toLowerCase();
-        Player player = nearestPlayer(mob, 48.0D);
+        Player player = nearestPlayer(mob, behaviorPlayerSearchRadius(mob));
         var target = mob.getTarget();
         double speed = action.value() > 0.0D ? Math.min(4.0D, action.value()) : 1.0D;
 
@@ -877,7 +884,10 @@ public final class DAI_EntityRuntime {
                     }
                 }
             }
-            case "clear_target" -> mob.setTarget(null);
+            case "clear_target" -> {
+                mob.setTarget(null);
+                mob.getNavigation().stop();
+            }
             case "flee_player", "avoid_player" -> {
                 if (player != null) {
                     double dx = mob.getX() - player.getX();
@@ -928,6 +938,16 @@ public final class DAI_EntityRuntime {
                     action.type()
             );
         }
+    }
+
+    private static double behaviorPlayerSearchRadius(Mob mob) {
+        if (mob == null) return 48.0D;
+        if (!mob.getAttributes().hasAttribute(Attributes.FOLLOW_RANGE)) return 48.0D;
+
+        double configured = mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+        if (!Double.isFinite(configured) || configured <= 0.0D) return 48.0D;
+
+        return Math.max(1.0D, Math.min(128.0D, configured));
     }
 
     private static Player nearestPlayer(Mob mob, double radius) {

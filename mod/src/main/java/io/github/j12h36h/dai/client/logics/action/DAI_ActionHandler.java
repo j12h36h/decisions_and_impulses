@@ -377,6 +377,16 @@ public final class DAI_ActionHandler {
                 DAI_ServerActionLogic::spawnProjectile
         );
 
+        register(
+                "skill_cast",
+                DAI_ServerActionLogic::castSkill
+        );
+
+        register(
+                "server_skill_cast",
+                DAI_ServerActionLogic::castSkill
+        );
+
         register("server_particle_emit", DAI_ServerActionLogic::emitParticle);
         register("particle_emit", DAI_ServerActionLogic::emitParticle);
         register("server_effect_apply", DAI_ServerActionLogic::applyEffect);
@@ -704,6 +714,31 @@ public final class DAI_ActionHandler {
         register(
                 "wait_for_animation",
                 DAI_AnimationLogic::waitFor
+        );
+
+        register(
+                "cinematic_play",
+                DAI_CinematicLogic::play
+        );
+
+        register(
+                "cinematic_stop",
+                DAI_CinematicLogic::stop
+        );
+
+        register(
+                "cinematic_pause",
+                DAI_CinematicLogic::pause
+        );
+
+        register(
+                "cinematic_resume",
+                DAI_CinematicLogic::resume
+        );
+
+        register(
+                "wait_for_cinematic",
+                DAI_CinematicLogic::waitFor
         );
 
         register(

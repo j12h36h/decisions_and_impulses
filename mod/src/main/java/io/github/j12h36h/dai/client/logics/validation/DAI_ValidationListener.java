@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.logics.validation;
 
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.client.title.DAI_TitleScreenRepository;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -46,6 +47,7 @@ public final class DAI_ValidationListener
         // Existing live objects must not retain stale copies of definitions.
         DAI_ContentRuntime.rebindReloadedDefinitions();
         DAI_AnimationRuntime.rebindReloadedDefinitions();
+        DAI_ErasCinematicRuntime.rebindReloadedDefinitions();
 
         // Title/experience discovery happens before a world normally exists,
         // so its repository is not a ResourceManager listener. Refresh its

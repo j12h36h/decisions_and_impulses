@@ -8,6 +8,7 @@ import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
 import io.github.j12h36h.dai.server.network.DAI_ServerAccessPolicy;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_ProjectileRuntime;
+import io.github.j12h36h.dai.server.runtime.DAI_SkillRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_AudioRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_PotionRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_EffectRuntime;
@@ -69,7 +70,9 @@ public final class DAI_ServerActionExecutor {
          * function that ultimately runs is sourced from the trusted datapack,
          * never from arbitrary client text.
          */
-        if (operation.equals("customization_event")) {
+        if (operation.equals("customization_event")
+                || operation.equals("skill_cast")
+                || operation.equals("server_skill_cast")) {
             return executeTrusted(sender, payload);
         }
 
@@ -120,6 +123,9 @@ public final class DAI_ServerActionExecutor {
 
                 case "projectile_spawn", "server_projectile_spawn" ->
                         DAI_ProjectileRuntime.spawn(actor, payload.action(), DAI_ActionArguments.fromJson(payload.argumentsJson()));
+
+                case "skill_cast", "server_skill_cast" ->
+                        DAI_SkillRuntime.cast(actor, payload.action());
 
                 case "particle_emit", "server_particle_emit" ->
                         DAI_ParticleRuntime.emit(actor, payload.action(), DAI_ActionArguments.fromJson(payload.argumentsJson()));

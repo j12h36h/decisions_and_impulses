@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.logics.input;
 
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import net.minecraft.client.Options;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Input;
@@ -30,6 +31,12 @@ public final class DAI_KeyboardInput extends KeyboardInput {
 
         // Build the normal vanilla input state first.
         super.tick();
+
+        if (DAI_ErasCinematicRuntime.ownsInput()) {
+            this.keyPresses = new Input(false, false, false, false, false, false, false);
+            this.moveVector = Vec2.ZERO;
+            return;
+        }
 
         if (!DAI_InputState.isOverrideEnabled()) {
 

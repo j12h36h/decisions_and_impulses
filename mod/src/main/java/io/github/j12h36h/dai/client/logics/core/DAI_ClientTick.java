@@ -11,6 +11,7 @@ import io.github.j12h36h.dai.client.logics.input.DAI_KeybindStateTracker;
 import io.github.j12h36h.dai.client.logics.input.DAI_RawKeyStateTracker;
 import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
 import io.github.j12h36h.dai.client.customization.DAI_GameCustomizationLogic;
@@ -70,6 +71,7 @@ public final class DAI_ClientTick {
 
             DAI_ClientRuntime.resetSession();
             DAI_OverlayManager.clear();
+            DAI_ErasCinematicRuntime.clear();
             DAI_GameCustomizationLogic.clearState();
             DAI_MusashiDirectionalCombat.reset();
             DAI_KeybindStateTracker.reset();
@@ -118,6 +120,7 @@ public final class DAI_ClientTick {
         }
 
         DAI_AnimationRuntime.tick();
+        DAI_ErasCinematicRuntime.tick();
         DAI_ContentRuntime.tick();
         DAI_GameCustomizationLogic.tick();
         DAI_MusashiDirectionalCombat.tick();
@@ -201,6 +204,7 @@ public final class DAI_ClientTick {
                 false;
 
         DAI_OverlayManager.clear();
+        DAI_ErasCinematicRuntime.clear();
         DAI_GameCustomizationLogic.clearState();
         DAI_MusashiDirectionalCombat.reset();
         DAI_KeybindStateTracker.reset();

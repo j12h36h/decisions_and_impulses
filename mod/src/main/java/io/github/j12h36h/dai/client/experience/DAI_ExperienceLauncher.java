@@ -463,6 +463,18 @@ public final class DAI_ExperienceLauncher {
 
         invokeCompatibleSetter(state, "setName", requestedWorldName == null || requestedWorldName.isBlank() ? experience.saveName() : requestedWorldName.trim());
 
+        // Hardcore is a world-creation property, not something a datapack can
+        // correctly retrofit after level.dat exists. Select Minecraft's own
+        // HARDCORE creation mode before DAI invokes Create.
+        if (worldgen != null && worldgen.hardcore()) {
+            if (!invokeEnumSetter(state, "setGameMode", "HARDCORE")) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Worldgen '{}' requested Hardcore, but Minecraft's Create World state did not expose a compatible HARDCORE game mode.",
+                        worldgen.id()
+                );
+            }
+        }
+
         if (worldgen != null && worldgen.seed() != null) {
             // Minecraft's current UI state accepts the seed as its editable
             // string form; the compatibility setter also handles numeric maps.
@@ -542,6 +554,49 @@ public final class DAI_ExperienceLauncher {
             } catch (Throwable exception) {
                 DAI_Core.LOGGER.warn("<DAI>: Minecraft rejected automatic experience world creation.", exception);
                 return false;
+            }
+        }
+        return false;
+    }
+
+    private static boolean invokeEnumSetter(Object target, String preferredName, String enumName) {
+        if (target == null || preferredName == null || enumName == null) return false;
+        String preferred = preferredName.toLowerCase(Locale.ROOT);
+
+        for (Method method : target.getClass().getMethods()) {
+            if (method.getParameterCount() != 1) continue;
+            if (!method.getName().toLowerCase(Locale.ROOT).equals(preferred)) continue;
+            Class<?> parameter = method.getParameterTypes()[0];
+            if (!parameter.isEnum()) continue;
+            Object[] constants = parameter.getEnumConstants();
+            if (constants == null) continue;
+            for (Object constant : constants) {
+                if (!(constant instanceof Enum<?> value) || !value.name().equalsIgnoreCase(enumName)) continue;
+                try {
+                    method.invoke(target, constant);
+                    return true;
+                } catch (Throwable exception) {
+                    DAI_Core.debug("<DAI>: Enum setter '{}' rejected value '{}'.", method, enumName);
+                }
+            }
+        }
+
+        for (Method method : target.getClass().getDeclaredMethods()) {
+            if (method.getParameterCount() != 1) continue;
+            if (!method.getName().toLowerCase(Locale.ROOT).equals(preferred)) continue;
+            Class<?> parameter = method.getParameterTypes()[0];
+            if (!parameter.isEnum()) continue;
+            Object[] constants = parameter.getEnumConstants();
+            if (constants == null) continue;
+            for (Object constant : constants) {
+                if (!(constant instanceof Enum<?> value) || !value.name().equalsIgnoreCase(enumName)) continue;
+                try {
+                    if (!method.canAccess(target) && !method.trySetAccessible()) continue;
+                    method.invoke(target, constant);
+                    return true;
+                } catch (Throwable exception) {
+                    DAI_Core.debug("<DAI>: Declared enum setter '{}' rejected value '{}'.", method, enumName);
+                }
             }
         }
         return false;

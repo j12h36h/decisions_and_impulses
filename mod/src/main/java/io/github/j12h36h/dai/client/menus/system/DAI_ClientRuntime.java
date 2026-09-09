@@ -102,7 +102,11 @@ public final class DAI_ClientRuntime {
             Minecraft minecraft
     ) {
 
-        resetSession();
+        // Client runtime initialization can also occur after a player death /
+        // respawn while the same Minecraft world remains active. Preserve the
+        // current DAI experience across that in-world reinitialization so the
+        // grave key cannot fall back to the generic DAI menu mid-run.
+        resetSession(false);
 
         /*
          * Begin managed look input from the player's current rotation
@@ -159,14 +163,19 @@ public final class DAI_ClientRuntime {
      * inputs, and condition history cannot leak between sessions.
      */
     public static void resetSession() {
+        resetSession(true);
+    }
 
-        /*
-         * An experience is scoped to a Minecraft gameplay session. Pending
-         * launch handoff state is stored separately, so clearing the previous
-         * active experience here is safe even while a new experience is being
-         * opened from the title screen.
-         */
-        DAI_ExperienceRuntime.clearActive();
+    /**
+     * Clears transient runtime state. The active experience is only cleared on
+     * a real world/session boundary; temporary player recreation (death /
+     * respawn) keeps experience-owned grave-key UI routing intact.
+     */
+    private static void resetSession(boolean clearExperience) {
+
+        if (clearExperience) {
+            DAI_ExperienceRuntime.clearActive();
+        }
 
         /*
          * A Minecraft world/session boundary is also an automation ownership

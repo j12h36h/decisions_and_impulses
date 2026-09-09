@@ -9,13 +9,25 @@ public record DAI_ReactionContext(
         DAI_ReactionPhase phase,
         Entity entity,
         BlockPos blockPos,
-        String itemId
+        String itemId,
+        String itemModel
 ) {
     public DAI_ReactionContext(String event, DAI_ReactionPhase phase, Entity entity) {
-        this(event, phase, entity, null, "");
+        this(event, phase, entity, null, "", "");
+    }
+
+    public DAI_ReactionContext(
+            String event,
+            DAI_ReactionPhase phase,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId
+    ) {
+        this(event, phase, entity, blockPos, itemId, "");
     }
 
     public DAI_ReactionContext {
         itemId = itemId == null ? "" : itemId.trim().toLowerCase();
+        itemModel = itemModel == null ? "" : itemModel.trim().toLowerCase();
     }
 }

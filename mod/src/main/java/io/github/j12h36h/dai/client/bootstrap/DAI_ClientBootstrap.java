@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.client.bootstrap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.j12h36h.dai.client.entity.DAI_EntityClientBootstrap;
+import io.github.j12h36h.dai.animations.eras.DAI_ErasCinematicLoader;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.network.DAI_ClientNetworkBootstrap;
 import io.github.j12h36h.dai.client.particle.DAI_ParticleClientBootstrap;
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
@@ -32,6 +34,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
@@ -102,6 +106,10 @@ public final class DAI_ClientBootstrap {
                 DAI_ClientBootstrap::registerGuiLayers
         );
 
+        modBus.addListener(
+                DAI_ClientBootstrap::registerCinematicReloadListeners
+        );
+
         modBus.addListener(DAI_ClientNetworkBootstrap::register);
 
         DAI_Core.LOGGER.info(
@@ -120,6 +128,20 @@ public final class DAI_ClientBootstrap {
                         "custom_overlays"
                 ),
                 DAI_OverlayManager::extractHud
+        );
+
+        event.registerAboveAll(
+                DAI_ErasCinematicRuntime.GUI_LAYER,
+                DAI_ErasCinematicRuntime::extractHud
+        );
+    }
+
+    private static void registerCinematicReloadListeners(
+            AddClientReloadListenersEvent event
+    ) {
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "eras_cinematics"),
+                new DAI_ErasCinematicLoader(DAI_ErasCinematicLoader.Source.CLIENT_RESOURCES)
         );
     }
 
@@ -183,6 +205,21 @@ public final class DAI_ClientBootstrap {
         NeoForge.EVENT_BUS.addListener(
                 ViewportEvent.ComputeCameraAngles.class,
                 DAI_ClientPhysicsRuntime::onCameraAngles
+        );
+
+        NeoForge.EVENT_BUS.addListener(
+                ViewportEvent.ComputeCameraAngles.class,
+                DAI_ErasCinematicRuntime::onCameraAngles
+        );
+
+        NeoForge.EVENT_BUS.addListener(
+                ViewportEvent.ComputeFov.class,
+                DAI_ErasCinematicRuntime::onFov
+        );
+
+        NeoForge.EVENT_BUS.addListener(
+                RenderGuiLayerEvent.Pre.class,
+                DAI_ErasCinematicRuntime::onRenderGuiLayer
         );
 
         DAI_Core.debug(

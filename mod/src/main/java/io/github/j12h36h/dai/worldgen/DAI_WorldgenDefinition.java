@@ -17,6 +17,7 @@ import java.util.List;
 public record DAI_WorldgenDefinition(
         String id,
         boolean enabled,
+        boolean hardcore,
         String worldPreset,
         DAI_WorldTypeDefinition worldType,
         Long seed,
@@ -25,6 +26,22 @@ public record DAI_WorldgenDefinition(
         List<String> generationCommands,
         List<String> bootstrapActions
 ) {
+    /** Source-compatible constructor for callers authored before the Hardcore flag. */
+    public DAI_WorldgenDefinition(
+            String id,
+            boolean enabled,
+            String worldPreset,
+            DAI_WorldTypeDefinition worldType,
+            Long seed,
+            Spawn spawn,
+            List<StructurePlacement> initialStructures,
+            List<String> generationCommands,
+            List<String> bootstrapActions
+    ) {
+        this(id, enabled, false, worldPreset, worldType, seed, spawn,
+                initialStructures, generationCommands, bootstrapActions);
+    }
+
     public DAI_WorldgenDefinition {
         id = normalize(id);
         worldPreset = normalize(worldPreset);
@@ -92,6 +109,7 @@ public record DAI_WorldgenDefinition(
         return new DAI_WorldgenDefinition(
                 id,
                 bool(root, "enabled", true),
+                bool(root, "hardcore", false),
                 resolvedPreset,
                 worldType,
                 seed,

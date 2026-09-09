@@ -184,6 +184,17 @@ public final class DAI_ConditionsReaction {
         );
 
         DAI_ConditionRegistry.register(
+                "reaction_item_model",
+                (context, condition) -> {
+                    DAI_ReactionContext reaction = DAI_ReactionRuntime.current();
+                    if (reaction == null || reaction.itemModel().isBlank()) {
+                        return DAI_ConditionValue.missing();
+                    }
+                    return DAI_ConditionValue.string(reaction.itemModel());
+                }
+        );
+
+        DAI_ConditionRegistry.register(
                 "reaction_entity_living",
                 (context, condition) -> {
 

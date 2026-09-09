@@ -9,6 +9,7 @@ import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
@@ -56,7 +57,10 @@ public abstract class Mixin_MultiPlayerGameMode {
         dai$attackReactionSession =
                 DAI_ReactionDispatcher.begin(
                         DAI_ReactionEventRegistry.PLAYER_ATTACK_ENTITY,
-                        target
+                        target,
+                        null,
+                        dai$itemId(player, InteractionHand.MAIN_HAND),
+                        dai$itemModel(player, InteractionHand.MAIN_HAND)
                 );
 
         if (dai$attackReactionSession == null) {
@@ -129,7 +133,8 @@ public abstract class Mixin_MultiPlayerGameMode {
                 DAI_ReactionEventRegistry.PLAYER_START_BREAK_BLOCK,
                 null,
                 pos,
-                dai$itemId(player, InteractionHand.MAIN_HAND)
+                dai$itemId(player, InteractionHand.MAIN_HAND),
+                dai$itemModel(player, InteractionHand.MAIN_HAND)
         );
         if (dai$shouldSuppress(dai$breakBlockReactionSession)) {
             dai$breakBlockReactionSession.flush();
@@ -166,7 +171,8 @@ public abstract class Mixin_MultiPlayerGameMode {
                 DAI_ReactionEventRegistry.PLAYER_USE_BLOCK,
                 null,
                 hit.getBlockPos(),
-                dai$itemId(player, hand)
+                dai$itemId(player, hand),
+                dai$itemModel(player, hand)
         );
         if (dai$shouldSuppress(dai$useBlockReactionSession)) {
             dai$useBlockReactionSession.flush();
@@ -203,7 +209,8 @@ public abstract class Mixin_MultiPlayerGameMode {
                 DAI_ReactionEventRegistry.PLAYER_USE_ITEM,
                 null,
                 null,
-                dai$itemId(player, hand)
+                dai$itemId(player, hand),
+                dai$itemModel(player, hand)
         );
         if (dai$shouldSuppress(dai$useItemReactionSession)) {
             dai$useItemReactionSession.flush();
@@ -241,7 +248,8 @@ public abstract class Mixin_MultiPlayerGameMode {
                 DAI_ReactionEventRegistry.PLAYER_INTERACT_ENTITY,
                 target,
                 null,
-                dai$itemId(player, hand)
+                dai$itemId(player, hand),
+                dai$itemModel(player, hand)
         );
         if (dai$shouldSuppress(dai$interactEntityReactionSession)) {
             dai$interactEntityReactionSession.flush();
@@ -272,6 +280,15 @@ public abstract class Mixin_MultiPlayerGameMode {
         if (stack == null || stack.isEmpty()) return "";
         var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return id == null ? "" : id.toString();
+    }
+
+    @Unique
+    private String dai$itemModel(Player player, InteractionHand hand) {
+        if (player == null || hand == null) return "";
+        var stack = player.getItemInHand(hand);
+        if (stack == null || stack.isEmpty()) return "";
+        var model = stack.get(DataComponents.ITEM_MODEL);
+        return model == null ? "" : model.toString();
     }
 
     @Unique

@@ -19,6 +19,7 @@ public final class DAI_ReactionDispatchSession {
     private final Entity entity;
     private final BlockPos blockPos;
     private final String itemId;
+    private final String itemModel;
 
     private final List<DAI_ActionDefinition> queuedActions =
             new ArrayList<>();
@@ -33,7 +34,7 @@ public final class DAI_ReactionDispatchSession {
             DAI_ReactionEventDefinition eventDefinition,
             Entity entity
     ) {
-        this(eventDefinition, entity, null, "");
+        this(eventDefinition, entity, null, "", "");
     }
 
     DAI_ReactionDispatchSession(
@@ -42,11 +43,22 @@ public final class DAI_ReactionDispatchSession {
             BlockPos blockPos,
             String itemId
     ) {
+        this(eventDefinition, entity, blockPos, itemId, "");
+    }
+
+    DAI_ReactionDispatchSession(
+            DAI_ReactionEventDefinition eventDefinition,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId,
+            String itemModel
+    ) {
 
         this.eventDefinition = eventDefinition;
         this.entity = entity;
         this.blockPos = blockPos == null ? null : blockPos.immutable();
         this.itemId = itemId == null ? "" : itemId.trim().toLowerCase();
+        this.itemModel = itemModel == null ? "" : itemModel.trim().toLowerCase();
     }
 
     public DAI_ReactionOutcome fire(
@@ -95,7 +107,8 @@ public final class DAI_ReactionDispatchSession {
                         phase,
                         entity,
                         blockPos,
-                        itemId
+                        itemId,
+                        itemModel
                 );
 
         for (DAI_ReactionEntry entry : reactions) {

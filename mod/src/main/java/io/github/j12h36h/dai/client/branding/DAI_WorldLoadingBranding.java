@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -11,6 +12,7 @@ import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -130,25 +132,30 @@ public final class DAI_WorldLoadingBranding {
         if (world.showStatusText()) {
             String title = world.title().isBlank() ? defaultTitle(screen, experience) : world.title();
             String subtitle = world.subtitle();
+            int textWidth = Math.max(48, width - 32);
             if (!title.isBlank()) {
-                graphics.centeredText(
+                textY = drawCenteredWrappedText(
+                        graphics,
                         minecraft.font,
-                        Component.literal(title),
+                        title,
                         centerX,
                         textY,
-                        world.foreground()
-                );
-                textY += minecraft.font.lineHeight + 5;
+                        world.foreground(),
+                        textWidth,
+                        2
+                ) + 5;
             }
             if (!subtitle.isBlank()) {
-                graphics.centeredText(
+                textY = drawCenteredWrappedText(
+                        graphics,
                         minecraft.font,
-                        Component.literal(subtitle),
+                        subtitle,
                         centerX,
                         textY,
-                        withAlpha(world.foreground(), 0xCC)
-                );
-                textY += minecraft.font.lineHeight + 7;
+                        withAlpha(world.foreground(), 0xCC),
+                        textWidth,
+                        3
+                ) + 7;
             }
         }
 
@@ -179,6 +186,31 @@ public final class DAI_WorldLoadingBranding {
         }
 
         return true;
+    }
+
+
+    private static int drawCenteredWrappedText(
+            GuiGraphicsExtractor graphics,
+            Font font,
+            String text,
+            int centerX,
+            int y,
+            int color,
+            int maxWidth,
+            int maxLines
+    ) {
+        List<net.minecraft.util.FormattedCharSequence> lines =
+                font.split(Component.literal(text), Math.max(1, maxWidth));
+        int count = Math.min(Math.max(1, maxLines), lines.size());
+        int lineStep = font.lineHeight + 1;
+
+        for (int i = 0; i < count; i++) {
+            var line = lines.get(i);
+            int x = centerX - font.width(line) / 2;
+            graphics.text(font, line, x, y + i * lineStep, color);
+        }
+
+        return y + count * lineStep;
     }
 
     private static boolean isWorldLoadingScreen(Screen screen, boolean includeTransitions) {

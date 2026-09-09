@@ -20,6 +20,7 @@ public enum DAI_GameCustomizationKind {
     LOOT("dai_loot"),
     CURRENCY("dai_currencies"),
     SHOP("dai_shops"),
+    SKILL("dai_skills"),
     DIALOGUE("dai_dialogues"),
     QUEST("dai_quests"),
     FACTION("dai_factions"),

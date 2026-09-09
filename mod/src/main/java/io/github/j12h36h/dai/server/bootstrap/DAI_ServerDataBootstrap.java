@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.server.bootstrap;
 
 import io.github.j12h36h.dai.attributes.DAI_AttributeLoader;
 import io.github.j12h36h.dai.animations.DAI_AnimationLoader;
+import io.github.j12h36h.dai.animations.eras.DAI_ErasCinematicLoader;
 import io.github.j12h36h.dai.content.DAI_ContentKind;
 import io.github.j12h36h.dai.content.DAI_ContentLoader;
 import io.github.j12h36h.dai.customization.DAI_GameCustomizationKind;
@@ -61,6 +62,11 @@ public final class DAI_ServerDataBootstrap {
         event.addListener(
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_animations"),
                 new DAI_AnimationLoader()
+        );
+
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "dai_cinematics"),
+                new DAI_ErasCinematicLoader(DAI_ErasCinematicLoader.Source.SERVER_DATA)
         );
 
         event.addListener(

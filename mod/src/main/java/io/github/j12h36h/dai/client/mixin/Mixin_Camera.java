@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.physics.DAI_ClientPhysicsRuntime;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -26,6 +27,13 @@ public abstract class Mixin_Camera {
     @Inject(method = "update", at = @At("TAIL"))
     private void dai$gravityCamera(DeltaTracker deltaTracker, CallbackInfo callback) {
         Minecraft minecraft = Minecraft.getInstance();
+
+        Vec3 cinematicPosition = DAI_ErasCinematicRuntime.cameraPosition(1.0F);
+        if (cinematicPosition != null) {
+            setPosition(cinematicPosition);
+            return;
+        }
+
         if (!minecraft.options.getCameraType().isFirstPerson() || !DAI_ClientPhysicsRuntime.active()) return;
         Entity entity = minecraft.getCameraEntity();
         if (entity == null) return;

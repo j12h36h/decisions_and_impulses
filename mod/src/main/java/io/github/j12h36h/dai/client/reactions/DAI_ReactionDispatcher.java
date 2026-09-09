@@ -16,7 +16,7 @@ public final class DAI_ReactionDispatcher {
             String event,
             Entity entity
     ) {
-        return begin(event, entity, null, "");
+        return begin(event, entity, null, "", "");
     }
 
     public static DAI_ReactionDispatchSession begin(
@@ -24,6 +24,16 @@ public final class DAI_ReactionDispatcher {
             Entity entity,
             BlockPos blockPos,
             String itemId
+    ) {
+        return begin(event, entity, blockPos, itemId, "");
+    }
+
+    public static DAI_ReactionDispatchSession begin(
+            String event,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId,
+            String itemModel
     ) {
 
         DAI_ReactionEventDefinition eventDefinition =
@@ -45,7 +55,8 @@ public final class DAI_ReactionDispatcher {
                 eventDefinition,
                 entity,
                 blockPos,
-                itemId
+                itemId,
+                itemModel
         );
     }
 

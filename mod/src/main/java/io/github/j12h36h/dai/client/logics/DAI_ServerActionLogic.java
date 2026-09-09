@@ -36,6 +36,10 @@ public final class DAI_ServerActionLogic {
         send(action, "projectile_spawn");
     }
 
+    public static void castSkill(DAI_ActionDefinition action) {
+        send(action, "skill_cast");
+    }
+
 
     public static void emitParticle(DAI_ActionDefinition action) { send(action, "particle_emit"); }
 

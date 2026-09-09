@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
+import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
 import io.github.j12h36h.dai.client.logics.input.DAI_VehicleInputBridge;
 import io.github.j12h36h.dai.client.reactions.DAI_ReactionDispatchSession;
@@ -10,6 +11,7 @@ import io.github.j12h36h.dai.reactions.DAI_ReactionOutcome;
 import io.github.j12h36h.dai.reactions.DAI_ReactionPhase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.BlockHitResult;
@@ -38,6 +40,13 @@ public abstract class Mixin_Minecraft {
 
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void dai$beforeStartAttack(CallbackInfoReturnable<Boolean> callback) {
+        if (DAI_ErasCinematicRuntime.ownsInput()) {
+            dai$attackInputSuppressed = true;
+            callback.setReturnValue(false);
+            callback.cancel();
+            return;
+        }
+
         if (DAI_VehicleInputBridge.ownsMouseControls()) {
             dai$attackInputSuppressed = true;
             callback.setReturnValue(false);
@@ -62,11 +71,14 @@ public abstract class Mixin_Minecraft {
         }
 
         String itemId = "";
+        String itemModel = "";
         if (minecraft.player != null) {
             var stack = minecraft.player.getMainHandItem();
             if (stack != null && !stack.isEmpty()) {
                 var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
                 if (id != null) itemId = id.toString();
+                var model = stack.get(DataComponents.ITEM_MODEL);
+                if (model != null) itemModel = model.toString();
             }
         }
 
@@ -74,7 +86,8 @@ public abstract class Mixin_Minecraft {
                 DAI_ReactionEventRegistry.PLAYER_ATTACK_INPUT,
                 entity,
                 blockPos,
-                itemId
+                itemId,
+                itemModel
         );
         if (dai$attackInputReactionSession == null) return;
 
@@ -101,7 +114,8 @@ public abstract class Mixin_Minecraft {
             dai$attackInputSuppressed = false;
             return;
         }
-        if (DAI_VehicleInputBridge.ownsMouseControls()
+        if (DAI_ErasCinematicRuntime.ownsInput()
+                || DAI_VehicleInputBridge.ownsMouseControls()
                 || dai$attackInputSuppressed
                 || DAI_MusashiDirectionalCombat.interceptVanillaAttack()) {
             callback.cancel();
@@ -110,7 +124,8 @@ public abstract class Mixin_Minecraft {
 
     @Inject(method = "startUseItem", at = @At("HEAD"), cancellable = true)
     private void dai$startUseItem(CallbackInfo callback) {
-        if (DAI_VehicleInputBridge.ownsMouseControls()
+        if (DAI_ErasCinematicRuntime.ownsInput()
+                || DAI_VehicleInputBridge.ownsMouseControls()
                 || DAI_MusashiDirectionalCombat.interceptVanillaUse()) {
             callback.cancel();
         }

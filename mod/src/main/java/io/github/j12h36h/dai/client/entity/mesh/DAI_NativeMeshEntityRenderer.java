@@ -57,6 +57,21 @@ public final class DAI_NativeMeshEntityRenderer
         state.yRot = entity.getYRot();
         state.xRot = entity.getXRot();
         state.projectile = entity.tags().toList().contains("dai_projectile");
+
+        // Projectiles can be advanced by commands/teleports instead of normal
+        // velocity integration. Use actual last-tick travel to orient their
+        // mesh, falling back to authored Rotation before any movement occurs.
+        if (state.projectile) {
+            double dx = entity.getX() - entity.xo;
+            double dy = entity.getY() - entity.yo;
+            double dz = entity.getZ() - entity.zo;
+            double horizontal = Math.sqrt(dx * dx + dz * dz);
+            double travelSq = dx * dx + dy * dy + dz * dz;
+            if (travelSq > 1.0E-8D) {
+                state.yRot = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                state.xRot = (float) Math.toDegrees(Math.atan2(-dy, horizontal));
+            }
+        }
         // A native entity carrying passengers is a rendered vehicle chassis.
         // Preserve its server-authored X rotation so motorcycle wheelies, jumps
         // and crash tumbles are visible instead of being flattened upright.

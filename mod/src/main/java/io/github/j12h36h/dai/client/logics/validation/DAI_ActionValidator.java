@@ -12,6 +12,7 @@ import io.github.j12h36h.dai.reactions.DAI_ReactionPhase;
 import io.github.j12h36h.dai.attributes.DAI_AttributeRegistry;
 import io.github.j12h36h.dai.attributes.DAI_NativeAttributeSupport;
 import io.github.j12h36h.dai.animations.DAI_AnimationRegistry;
+import io.github.j12h36h.dai.animations.eras.DAI_ErasCinematicRegistry;
 import io.github.j12h36h.dai.content.DAI_ContentRegistry;
 import io.github.j12h36h.dai.entity.DAI_EntityBehaviorVocabulary;
 import net.minecraft.resources.Identifier;
@@ -306,6 +307,11 @@ public final class DAI_ActionValidator {
                         "animation_pause",
                         "animation_resume",
                         "wait_for_animation",
+                        "cinematic_play",
+                        "cinematic_stop",
+                        "cinematic_pause",
+                        "cinematic_resume",
+                        "wait_for_cinematic",
                         "content_activate",
                         "content_deactivate",
                         "content_event",
@@ -314,6 +320,8 @@ public final class DAI_ActionValidator {
                         "open_data_screen",
                         "projectile_spawn",
                         "server_projectile_spawn",
+                        "skill_cast",
+                        "server_skill_cast",
                         "particle_emit",
                         "server_particle_emit",
                         "effect_apply",
@@ -459,10 +467,25 @@ public final class DAI_ActionValidator {
                 "animation_pause",
                 "animation_resume",
                 "wait_for_animation"
-        ).contains(type) && !DAI_AnimationRegistry.contains(action.action())) {
+        ).contains(type)
+                && !DAI_AnimationRegistry.contains(action.action())
+                && !DAI_ErasCinematicRegistry.contains(action.action())) {
             DAI_ValidationReport.error(
                     source,
-                    "Unknown animation '" + action.action() + "'."
+                    "Unknown animation or ERAS cinematic '" + action.action() + "'."
+            );
+        }
+
+        if (Set.of(
+                "cinematic_play",
+                "cinematic_stop",
+                "cinematic_pause",
+                "cinematic_resume",
+                "wait_for_cinematic"
+        ).contains(type) && !DAI_ErasCinematicRegistry.contains(action.action())) {
+            DAI_ValidationReport.error(
+                    source,
+                    "Unknown ERAS cinematic '" + action.action() + "'."
             );
         }
 
