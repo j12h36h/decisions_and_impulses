@@ -37,14 +37,20 @@ import io.github.j12h36h.dai.client.logics.controller.DAI_UseController;
 import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.client.menus.DAI_ScreenManager;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
+import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import io.github.j12h36h.dai.client.registry.DAI_RegistryClientNotice;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 
 /** Main DAI client tick dispatcher with feature-module gating. */
 public final class DAI_ClientTick {
 
+    private static final Identifier COMIC_LIFE_MARKER =
+            Identifier.fromNamespaceAndPath("comiclife", "open");
+
     private static boolean sessionActive;
+    private static boolean comicLifeDispatched;
 
     private DAI_ClientTick() {}
 
@@ -74,11 +80,19 @@ public final class DAI_ClientTick {
         if (enabled("overlays")) DAI_OverlayManager.tick();
         DAI_RegistryClientNotice.tick();
 
-        /* ComicLife is also data-gated internally: enabling the engine module
-         * alone does not allocate an archive until a ComicLife-capable DAI pack
-         * is actually present. */
-        if (enabled("comic_life")) ComicLifeRuntime.tick();
-        else ComicLifeRuntime.shutdown();
+        /* Do not even resolve/load ComicLifeRuntime unless a ComicLife-capable
+         * pack has contributed its marker action. This keeps the module's
+         * archive/compiler/milestone statics unallocated on projects that do
+         * not use ComicLife. */
+        boolean comicLifeRequested = enabled("comic_life")
+                && DAI_ActionLibrary.contains(COMIC_LIFE_MARKER);
+        if (comicLifeRequested) {
+            comicLifeDispatched = true;
+            ComicLifeRuntime.tick();
+        } else if (comicLifeDispatched) {
+            ComicLifeRuntime.shutdown();
+            comicLifeDispatched = false;
+        }
 
         if (DAI_RegistryPreflight.restartRequired()) return;
 
@@ -156,7 +170,10 @@ public final class DAI_ClientTick {
         DAI_RawKeyStateTracker.reset();
         DAI_MouseState.reset();
         DAI_LearningRuntime.resetSession();
-        ComicLifeRuntime.shutdown();
+        if (comicLifeDispatched) {
+            ComicLifeRuntime.shutdown();
+            comicLifeDispatched = false;
+        }
     }
 
     private static boolean enabled(String module) {
