@@ -1,0 +1,43 @@
+{
+  "display_name": "Animation",
+  "folder": "dai_animations",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Create reusable keyframed animation data.",
+  "priority": 84,
+  "fields": [
+    {
+      "path": "duration",
+      "label": "Duration",
+      "type": "number",
+      "default": "20",
+      "level": 0
+    },
+    {
+      "path": "loop",
+      "label": "Loop",
+      "type": "boolean",
+      "default": "false",
+      "level": 0
+    },
+    {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    }
+  ],
+  "template": {
+    "duration": 20,
+    "loop": false,
+    "keyframes": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.62
+  }
+}

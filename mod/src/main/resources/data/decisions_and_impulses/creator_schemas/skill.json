@@ -1,0 +1,44 @@
+{
+  "display_name": "Skill",
+  "folder": "dai_skills",
+  "rail": "standalone",
+  "category": "GAMEPLAY",
+  "description": "Data-defined skill module.",
+  "priority": 36,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Skill Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "Skill Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "enabled": true,
+  "background": {
+    "type": "gradient",
+    "top": "#101820",
+    "bottom": "#243447"
+  },
+  "camera": {
+    "duration_ticks": 600,
+    "loop": true,
+    "interpolation": "smooth",
+    "keyframes": [
+      { "tick": 0,   "position": [0.0, 1.5, 10.0], "look_at": [0.0, 1.0, 0.0], "fov": 58.0 },
+      { "tick": 300, "position": [2.0, 2.0, 8.0],  "look_at": [0.0, 1.2, 0.0], "fov": 54.0 },
+      { "tick": 600, "position": [0.0, 1.5, 10.0], "look_at": [0.0, 1.0, 0.0], "fov": 58.0 }
+    ],
+    "motion": {
+      "drift": 0.05,
+      "drift_speed": 0.12,
+      "shake": 0.0
+    }
+  },
+  "elements": [
+    {
+      "type": "texture",
+      "texture": "example:textures/gui/background_layer.png",
+      "position": [0.0, 1.0, 0.0],
+      "width": 12.0,
+      "height": 7.0,
+      "texture_width": 1024,
+      "texture_height": 512
+    },
+    {
+      "type": "item",
+      "item": "minecraft:diamond",
+      "position": [1.8, 0.7, 2.0],
+      "width": 1.0,
+      "height": 1.0
+    },
+    {
+      "type": "text",
+      "text": "{screen.title}",
+      "position": [0.0, 2.4, 1.0],
+      "width": 2.5,
+      "height": 0.5,
+      "color": "#FFFFFFFF"
+    }
+  ],
+  "overlay": {
+    "type": "gradient",
+    "top": "#00000000",
+    "bottom": "#55000000"
+  }
+}

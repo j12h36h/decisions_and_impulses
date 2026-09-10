@@ -1,0 +1,8 @@
+{
+  "display_name": "Native Skin",
+  "schema": "decisions_and_impulses:screen_override",
+  "priority": 40,
+  "patch": {
+    "mode": "skin"
+  }
+}

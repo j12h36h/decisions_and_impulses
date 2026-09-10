@@ -1,7 +1,9 @@
 package io.github.j12h36h.dai.client.logics.core;
 
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
-
+import io.github.j12h36h.dai.client.story.DAI_StoryRuntime;
+import io.github.j12h36h.dai.story.DAI_StoryProfileRegistry;
 import io.github.j12h36h.dai.client.logics.DAI_AutomationLogic;
 import io.github.j12h36h.dai.client.learning.DAI_LearningRuntime;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
@@ -13,7 +15,7 @@ import io.github.j12h36h.dai.client.logics.input.DAI_MouseState;
 import io.github.j12h36h.dai.client.animations.DAI_AnimationRuntime;
 import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.content.DAI_ContentRuntime;
-import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
+import io.github.j12h36h.dai.client.input.DAI_InputProfileRuntime;
 import io.github.j12h36h.dai.client.customization.DAI_GameCustomizationLogic;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionGovernor;
@@ -40,176 +42,134 @@ import io.github.j12h36h.dai.registry.DAI_RegistryPreflight;
 import io.github.j12h36h.dai.client.registry.DAI_RegistryClientNotice;
 import net.minecraft.client.Minecraft;
 
+/** Main DAI client tick dispatcher with feature-module gating. */
 public final class DAI_ClientTick {
 
     private static boolean sessionActive;
+    private static boolean storyRuntimeDispatched;
 
-    private DAI_ClientTick() {
-        // Utility class.
-    }
+    private DAI_ClientTick() {}
 
     public static void tick() {
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean playerAvailable = minecraft.player != null && minecraft.level != null;
 
-        Minecraft minecraft =
-                Minecraft.getInstance();
-
-        boolean playerAvailable =
-                minecraft.player != null
-                        && minecraft.level != null;
-
-        /*
-         * Detect the end of a gameplay session.
-         *
-         * This covers disconnecting, returning to the title screen,
-         * closing a world, and the temporary player removal that can
-         * occur during session transitions.
-         */
-        if (
-                sessionActive
-                        && !playerAvailable
-        ) {
-
-            DAI_ClientRuntime.resetSession();
-            DAI_OverlayManager.clear();
-            DAI_ErasCinematicRuntime.clear();
-            DAI_GameCustomizationLogic.clearState();
-            DAI_MusashiDirectionalCombat.reset();
-            DAI_KeybindStateTracker.reset();
-            DAI_RawKeyStateTracker.reset();
-            DAI_MouseState.reset();
-            DAI_LearningRuntime.resetSession();
-
-            sessionActive =
-                    false;
-
-            DAI_Core.debug(
-                    "<DAI>: Client gameplay session ended."
-            );
-
+        if (sessionActive && !playerAvailable) {
+            resetSessionState();
+            sessionActive = false;
+            DAI_Core.debug("<DAI>: Client gameplay session ended.");
             return;
         }
 
         if (!playerAvailable) {
-
-            /*
-             * Runtime initialization may still be pending while the
-             * client waits for its player and level to become ready.
-             */
             DAI_ClientRuntime.tick();
-
             return;
         }
 
-        sessionActive =
-                true;
+        sessionActive = true;
 
+        /* Core UI/screen/registry coordination remains intentionally small and
+         * always available. Feature work below is skipped by module. */
         DAI_ClientRuntime.tick();
-        DAI_ExperienceRuntime.tick();
+        if (enabled("experience")) DAI_ExperienceRuntime.tick();
         DAI_ScreenManager.tick();
-        DAI_OverlayManager.tick();
+        if (enabled("overlays")) DAI_OverlayManager.tick();
         DAI_RegistryClientNotice.tick();
 
-        /*
-         * Native ids discovered from this world cannot be created after the
-         * registry phase. Fail closed for the remainder of this process so a
-         * pending definition cannot leak an unknown id into inventories,
-         * networking, or world data before the requested restart.
-         */
-        if (DAI_RegistryPreflight.restartRequired()) {
-            return;
+        /* Story runtime is lazy: generic Java stays dormant until a datapack
+         * actually registers at least one story profile. */
+        boolean storyRequested = enabled("story_archives") && !DAI_StoryProfileRegistry.isEmpty();
+        if (storyRequested) {
+            storyRuntimeDispatched = true;
+            DAI_StoryRuntime.tick();
+        } else if (storyRuntimeDispatched) {
+            DAI_StoryRuntime.shutdown();
+            storyRuntimeDispatched = false;
         }
 
-        DAI_AnimationRuntime.tick();
-        DAI_ErasCinematicRuntime.tick();
-        DAI_ContentRuntime.tick();
-        DAI_GameCustomizationLogic.tick();
-        DAI_MusashiDirectionalCombat.tick();
+        if (DAI_RegistryPreflight.restartRequired()) return;
+
+        if (enabled("animations")) DAI_AnimationRuntime.tick();
+        if (enabled("cinematics")) DAI_ErasCinematicRuntime.tick();
+        if (enabled("content")) DAI_ContentRuntime.tick();
+        if (enabled("customization")) DAI_GameCustomizationLogic.tick();
+        if (enabled("input_profiles")) DAI_InputProfileRuntime.tick();
+
+        /* Input state used by core authored actions stays available; only
+         * optional reaction/vehicle bridges are removed from the tick path. */
         DAI_MouseState.tick();
         DAI_KeybindStateTracker.tick();
         DAI_RawKeyStateTracker.tick();
-        DAI_InputReactionBridge.tick();
-        DAI_VehicleInputBridge.tick();
+        if (enabled("reactions")) DAI_InputReactionBridge.tick();
+        if (enabled("vehicles")) DAI_VehicleInputBridge.tick();
 
-        /* Persistent JSON learning: observe manual play before autonomous dispatch. */
-        DAI_LearningRuntime.tick();
+        if (enabled("learning")) DAI_LearningRuntime.tick();
 
-        /*
-         * Persistent navigation advances before queue dispatch so controller
-         * completion/failure results are available to wait actions during
-         * this same tick.
-         *
-         * Path runs before exploration so an exploration-owned path can
-         * complete or fail first and exploration can react immediately.
-         */
-        DAI_PathController.tick();
-        DAI_ExploreController.tick();
-        DAI_ScaffoldController.tick();
-        DAI_CreativeFlightController.tick();
-        DAI_CreativeBuildController.tick();
+        if (enabled("navigation")) {
+            DAI_PathController.tick();
+            DAI_ExploreController.tick();
+        }
+
+        if (enabled("world_editing")) DAI_ScaffoldController.tick();
+
+        if (enabled("creative")) {
+            DAI_CreativeFlightController.tick();
+            if (enabled("world_editing")) DAI_CreativeBuildController.tick();
+        }
 
         DAI_ConditionMemory.tick();
         DAI_ActionGovernor.tick();
 
-        /*
-         * Recover an active automation lifecycle only when every normal and
-         * asynchronous owner has been idle for a sustained period.
-         */
-        DAI_AutomationLogic.tickWatchdog();
+        if (enabled("automation")) DAI_AutomationLogic.tickWatchdog();
 
-        /*
-         * Active block breaking temporarily owns action execution.
-         *
-         * Otherwise dispatch one queued action before ticking the transient
-         * request-style controllers below. This lets a request created by the
-         * queue be consumed during this same client tick instead of lingering
-         * pending until the next tick while control flow has already moved on.
-         */
-        if (!DAI_BreakController.isActive()) {
-            DAI_ActionQueue.tick();
+        if (!DAI_BreakController.isActive()) DAI_ActionQueue.tick();
+
+        if (enabled("navigation")) DAI_MoveController.tick();
+        if (enabled("combat")) DAI_CombatController.tick();
+        if (enabled("interaction")) {
+            DAI_UseController.tick();
+            DAI_InteractionController.tick();
+        }
+        if (enabled("inventory")) DAI_ItemController.tick();
+        if (enabled("world_editing")) {
+            DAI_BreakController.tick();
+            DAI_BuildController.tick();
         }
 
-        DAI_MoveController.tick();
-        DAI_CombatController.tick();
-        DAI_UseController.tick();
-        DAI_ItemController.tick();
-        DAI_InteractionController.tick();
-        DAI_BreakController.tick();
-        DAI_BuildController.tick();
-
-        /*
-         * Approach may request a new camera orientation while it advances.
-         * Tick it before DAI_LookController so that request is applied during
-         * this same client tick.
-         */
-        DAI_ApproachController.tick();
-
-        if (!DAI_BreakController.isActive()) {
-            DAI_LookController.tick();
+        if (enabled("navigation")) {
+            DAI_ApproachController.tick();
+            if (!DAI_BreakController.isActive()) DAI_LookController.tick();
         }
 
         DAI_RuntimeTelemetry.tick();
         DAI_Debug.tick();
 
-        /*
-         * Keep synthetic modifier state alive through vanilla's following
-         * input-processing window, then retire it deterministically.
-         */
-        DAI_CreativeInputState.tick();
+        if (enabled("creative")) DAI_CreativeInputState.tick();
         DAI_MouseState.finishTick();
     }
 
     public static void reset() {
+        sessionActive = false;
+        resetSessionState();
+    }
 
-        sessionActive =
-                false;
-
+    private static void resetSessionState() {
+        DAI_ClientRuntime.resetSession();
         DAI_OverlayManager.clear();
         DAI_ErasCinematicRuntime.clear();
         DAI_GameCustomizationLogic.clearState();
-        DAI_MusashiDirectionalCombat.reset();
+        DAI_InputProfileRuntime.reset();
         DAI_KeybindStateTracker.reset();
         DAI_RawKeyStateTracker.reset();
         DAI_MouseState.reset();
         DAI_LearningRuntime.resetSession();
+        if (storyRuntimeDispatched) {
+            DAI_StoryRuntime.shutdown();
+            storyRuntimeDispatched = false;
+        }
+    }
+
+    private static boolean enabled(String module) {
+        return DAI_Config.featureModuleEnabled(module);
     }
 }

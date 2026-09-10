@@ -74,19 +74,12 @@ public final class DAI_CreatorServerRuntime {
             case "open" -> {
                 session.open = true;
                 String requestedKind = safeKind(payload.kind());
-                if ("automation".equals(requestedKind)) {
-                    if (!"automation".equals(session.kind) || session.draft == null) {
-                        session.kind = "automation";
-                        session.id = safeId(payload.id());
-                        session.draft = createDraft("automation", session.id, player.position());
-                    }
-                    session.hologram = false;
-                } else if (session.draft == null || "automation".equals(session.kind)) {
+                if (session.draft == null || !requestedKind.equals(session.kind)) {
                     session.kind = requestedKind;
                     session.id = safeId(payload.id());
                     session.draft = createDraft(session.kind, session.id, player.position());
-                    session.hologram = true;
                 }
+                session.hologram = true;
                 message(player, "Creator Mode online. Drafts export to world/dai/creator/export.");
             }
             case "close" -> {
@@ -155,25 +148,16 @@ public final class DAI_CreatorServerRuntime {
             case "mode" -> {
                 ensureDraft(session, player);
                 String mode = norm(payload.value());
-                switch (mode) {
-                    case "edit" -> {
-                        cleanupSimulation(player, session);
-                        session.test = false;
-                        session.hologram = true;
-                    }
-                    case "simulate", "live" -> {
-                        cleanupSimulation(player, session);
-                        session.hologram = true;
-                        session.test = true;
-                        spawnSimulation(player, session);
-                    }
-                    default -> {
-                        cleanupSimulation(player, session);
-                        session.test = false;
-                        session.hologram = true;
-                    }
-                }
+                session.previewAdapter = norm(payload.key());
+                cleanupSimulation(player, session);
+                session.hologram = true;
+                session.test = mode.equals("simulate") || mode.equals("live");
+                if (session.test) spawnSimulation(player, session);
                 message(player, "Creator mode: " + (mode.isBlank() ? "preview" : mode) + ".");
+            }
+            case "preview_config" -> {
+                session.previewAdapter = norm(payload.key());
+                session.previewAction = payload.value() == null ? "" : payload.value().trim();
             }
             case "test" -> {
                 ensureDraft(session, player);
@@ -206,7 +190,7 @@ public final class DAI_CreatorServerRuntime {
     /** Live unsaved physics previews are visible to every affected entity. */
     public static boolean hasPhysicsTests() {
         for (Session session : SESSIONS.values()) {
-            if (session.open && session.test && "physics".equals(session.kind) && session.draft != null) return true;
+            if (session.open && session.test && "physics".equals(session.previewAdapter) && session.draft != null) return true;
         }
         return false;
     }
@@ -216,7 +200,7 @@ public final class DAI_CreatorServerRuntime {
         DAI_PhysicsProfile best = null;
         double priority = -Double.MAX_VALUE;
         for (Session session : SESSIONS.values()) {
-            if (!session.open || !session.test || !"physics".equals(session.kind) || session.draft == null) continue;
+            if (!session.open || !session.test || !"physics".equals(session.previewAdapter) || session.draft == null) continue;
             DAI_GameCustomizationDefinition def = customizationDefinition(session.draft);
             if (def == null || !DAI_PhysicsProfile.dimensionMatches(def, entity)
                     || !DAI_PhysicsProfile.requirementsPass(def, entity)
@@ -235,7 +219,7 @@ public final class DAI_CreatorServerRuntime {
     public static DAI_GameCustomizationDefinition definitionOrRegistryPhysics(String id) {
         if (id == null || id.isBlank()) return null;
         for (Session session : SESSIONS.values()) {
-            if (session.draft != null && "physics".equals(session.kind) && session.id.equals(id)) {
+            if (session.draft != null && "physics".equals(session.previewAdapter) && session.id.equals(id)) {
                 DAI_GameCustomizationDefinition def = customizationDefinition(session.draft);
                 if (def != null) return def;
             }
@@ -249,7 +233,7 @@ public final class DAI_CreatorServerRuntime {
         if (SESSIONS.isEmpty()) return;
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             Session session = SESSIONS.get(player.getUUID());
-            if (session == null || !session.open || !session.hologram || session.draft == null || "automation".equals(session.kind)) continue;
+            if (session == null || !session.open || !session.hologram || session.draft == null) continue;
             if ((player.tickCount & 3) == 0) renderHologram(player, session);
         }
     }
@@ -308,11 +292,6 @@ public final class DAI_CreatorServerRuntime {
 
     private static void save(ServerPlayer player, Session session) {
         ensureDraft(session, player);
-        if ("automation".equals(session.kind)
-                && DAI_ActionDefinition.CODEC.parse(JsonOps.INSTANCE, session.draft).result().isEmpty()) {
-            message(player, "Automation save blocked: JSON does not match the DAI action codec.");
-            return;
-        }
         Path path = exportPath(player.level().getServer(), session.kind, session.id);
         try {
             Files.createDirectories(path.getParent());
@@ -321,7 +300,7 @@ public final class DAI_CreatorServerRuntime {
                     .resolve("dai").resolve("creator").resolve("export").resolve("DAI_CREATOR_README.txt");
             if (!Files.exists(readme)) {
                 Files.writeString(readme,
-                        "DAI Creator export. Copy the data/ folder into a datapack. Registry-static additions may require a full restart. Automation Creator exports live under logics/definitions/creator.\n",
+                        "DAI Creator export. Copy the data/ folder into a datapack. Creator schemas decide each document folder; registry-static additions may require a full restart.\n",
                         StandardCharsets.UTF_8);
             }
             message(player, "Saved " + session.id + " -> " + path.toAbsolutePath());
@@ -377,32 +356,6 @@ public final class DAI_CreatorServerRuntime {
         }
         holo(player, center.x, center.y, center.z);
 
-        // Physics drafts get an in-world gravity vector, making ceiling/wall
-        // gravity immediately readable before simulation is enabled.
-        if ("physics".equals(session.kind)) {
-            Vec3 gravity = new Vec3(
-                    number(session.draft, "gravity_x", 0.0D),
-                    number(session.draft, "gravity_y", -1.0D),
-                    number(session.draft, "gravity_z", 0.0D)
-            );
-            if (gravity.lengthSqr() > 1.0E-8D) {
-                Vec3 direction = gravity.normalize();
-                double length = Math.min(3.5D, Math.max(1.25D, Math.min(w, Math.min(h, d)) * 0.55D));
-                for (int i = 1; i <= 7; i++) {
-                    Vec3 point = center.add(direction.scale(length * i / 7.0D));
-                    holo(player, point.x, point.y, point.z);
-                }
-                Vec3 tip = center.add(direction.scale(length));
-                Vec3 side = Math.abs(direction.y) < 0.9D
-                        ? direction.cross(new Vec3(0, 1, 0)).normalize()
-                        : direction.cross(new Vec3(1, 0, 0)).normalize();
-                Vec3 wingBase = tip.subtract(direction.scale(0.38D));
-                Vec3 wingA = wingBase.add(side.scale(0.24D));
-                Vec3 wingB = wingBase.subtract(side.scale(0.24D));
-                holo(player, wingA.x, wingA.y, wingA.z);
-                holo(player, wingB.x, wingB.y, wingB.z);
-            }
-        }
     }
 
     private static void holo(ServerPlayer player, double x, double y, double z) {
@@ -417,32 +370,11 @@ public final class DAI_CreatorServerRuntime {
 
     private static void spawnSimulation(ServerPlayer player, Session session) {
         cleanupSimulation(player, session);
-        if ("physics".equals(session.kind)) return;
-
-        DAI_GameCustomizationDefinition generic = customizationDefinition(session.draft);
-        if (generic != null && !generic.event("test").isBlank()) {
-            DAI_RuntimeDispatch.dispatch(player, generic.event("test"));
-        }
-
-        Vec3 c = center(session.draft, player.position());
-        String carrier = string(session.draft, "carrier");
-        String entityId = carrier;
-        if (entityId.isBlank() && ("entity".equals(session.kind) || "vehicle".equals(session.kind))) entityId = session.id;
-        if (("entity".equals(session.kind) || "vehicle".equals(session.kind) || "projectile".equals(session.kind)) && !entityId.isBlank()) {
-            String tag = simulationTag(player);
-            String command = "command:summon " + entityId + " " + format(c.x) + " " + format(c.y) + " " + format(c.z)
-                    + " {Tags:[\"" + tag + "\"],NoGravity:1b,Invulnerable:1b,Glowing:1b,Silent:1b}";
-            DAI_RuntimeDispatch.dispatch(player, command);
-            return;
-        }
-        if ("particle".equals(session.kind)) {
-            String particle = carrier.isBlank() ? session.id : carrier;
-            DAI_RuntimeDispatch.dispatch(player, "command:particle " + particle + " " + format(c.x) + " " + format(c.y) + " " + format(c.z) + " 0 0 0 0 24 force @s");
-            return;
-        }
-        if ("sound".equals(session.kind) || "music".equals(session.kind)) {
-            String sound = carrier.isBlank() ? session.id : carrier;
-            DAI_RuntimeDispatch.dispatch(player, "command:playsound " + sound + " master @s ~ ~ ~ 1 1");
+        /* Preview behavior is schema-driven. A creator schema may provide a
+         * DAI action/command reference through preview.action. Physics remains
+         * an engine adapter because its live test is consumed by PhysicsRuntime. */
+        if (!session.previewAction.isBlank()) {
+            DAI_RuntimeDispatch.dispatch(player, session.previewAction);
         }
     }
 
@@ -456,89 +388,15 @@ public final class DAI_CreatorServerRuntime {
     }
 
     private static JsonObject createDraft(String kindRaw, String id, Vec3 pos) {
-        String kind = safeKind(kindRaw);
-        JsonObject root = new JsonObject();
-        root.addProperty("display_name", "Creator Draft");
-        root.addProperty("description", "Generated by the in-game DAI Creator");
-
-        if ("automation".equals(kind)) {
-            root = new JsonObject();
-            root.addProperty("type", "sequence");
-            root.add("sequence", new com.google.gson.JsonArray());
-            return root;
-        }
-
-        if (DAI_GameCustomizationKind.parse(kind) != null) {
-            root.addProperty("target", format(pos.x) + " " + format(pos.y) + " " + format(pos.z));
-            root.add("properties", new JsonObject());
-            root.add("numbers", new JsonObject());
-            root.add("flags", new JsonObject());
-            root.add("events", new JsonObject());
-            setNumber(root, "x", pos.x); setNumber(root, "y", pos.y); setNumber(root, "z", pos.z);
-            setNumber(root, "width", 4); setNumber(root, "height", 4); setNumber(root, "depth", 4);
-            setFlag(root, "enabled", true);
-        }
-
-        if ("physics".equals(kind)) {
-            setProperty(root, "shape", "box");
-            setProperty(root, "affects", "all");
-            setNumber(root, "gravity_x", 0); setNumber(root, "gravity_y", -1); setNumber(root, "gravity_z", 0);
-            setNumber(root, "gravity_strength", 0.08); setNumber(root, "transition_ticks", 12);
-            setNumber(root, "movement_acceleration", 0.035); setNumber(root, "movement_scale", 1.0);
-            setNumber(root, "jump_velocity", 0.42); setNumber(root, "terminal_speed", 3.92);
-            setNumber(root, "linear_drag", 0.0); setNumber(root, "surface_drag", 0.08);
-            setNumber(root, "restitution", 0.0); setNumber(root, "max_speed", 0.0);
-            setFlag(root, "align_camera", true); setFlag(root, "align_entity", true);
-            setFlag(root, "project_movement", true); setFlag(root, "reset_fall_distance", true);
-        } else if ("portal".equals(kind) || "interactive".equals(kind)) {
-            setProperty(root, "shape", "box");
-            setProperty(root, "affects", "all");
-        } else if ("vehicle".equals(kind)) {
-            setNumber(root, "acceleration", 0.045); setNumber(root, "max_speed", 0.8);
-            setNumber(root, "turn_rate", 6); setNumber(root, "braking", 0.14); setNumber(root, "drag", 0.06);
-            setFlag(root, "camera_steering", true); setFlag(root, "gravity", true);
-        } else if ("block".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "block");
-            root.add("block", new JsonObject());
-            root.add("events", new JsonObject());
-        } else if ("entity".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "entity");
-            root.add("entity", new JsonObject());
-            root.add("events", new JsonObject());
-        } else if ("item".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "item");
-            root.add("components", new JsonObject());
-            root.add("events", new JsonObject());
-        } else if ("particle".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "particle");
-            root.add("particle", new JsonObject());
-            root.add("events", new JsonObject());
-        } else if ("effect".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "effect");
-            root.add("effect", new JsonObject());
-            root.add("events", new JsonObject());
-        } else if ("potion".equals(kind)) {
-            root.addProperty("registry_backed", true);
-            root.addProperty("native_registry", "potion");
-            root.add("potion", new JsonObject());
-        } else if ("projectile".equals(kind)) {
-            root.add("stats", new JsonObject());
-            root.add("projectile", new JsonObject());
-            root.add("events", new JsonObject());
-        } else {
-            root.add("events", new JsonObject());
-        }
-        return root;
+        /* The actual document template comes from creator_schemas JSON and is
+         * synchronized by the client via raw_json. Server-side Creator state
+         * intentionally has no module-specific defaults. */
+        return new JsonObject();
     }
 
     private static void ensureDraft(Session session, ServerPlayer player) {
         if (session.draft != null) return;
-        session.kind = "physics";
+        session.kind = "creator_documents";
         session.id = "creator:untitled";
         session.draft = createDraft(session.kind, session.id, player.position());
     }
@@ -565,7 +423,7 @@ public final class DAI_CreatorServerRuntime {
     }
 
     private static void normalizeIdentity(Session session) {
-        if (session.kind == null || session.kind.isBlank()) session.kind = "physics";
+        if (session.kind == null || session.kind.isBlank()) session.kind = "creator_documents";
         if (session.id == null || session.id.isBlank()) session.id = "creator:untitled";
     }
 
@@ -595,11 +453,14 @@ public final class DAI_CreatorServerRuntime {
 
     private static String folder(String kindRaw) {
         String kind = safeKind(kindRaw);
-        if ("automation".equals(kind)) return "logics/definitions/creator";
         DAI_GameCustomizationKind customization = DAI_GameCustomizationKind.parse(kind);
         if (customization != null) return customization.folder();
         DAI_ContentKind content = contentKind(kind);
-        return content == null ? "dai_" + kind : content.folder();
+        if (content != null) return content.folder();
+        /* DAI 3.9 Creator schemas send their output folder directly. Keeping
+         * the path generic allows future datapack-defined modules to export
+         * without another Java switch case. */
+        return safeFolder(kind);
     }
 
     private static DAI_ContentKind contentKind(String raw) {
@@ -609,9 +470,22 @@ public final class DAI_CreatorServerRuntime {
     }
 
     private static String safeKind(String raw) {
-        String value = norm(raw);
+        String value = norm(raw).replace('\\', '/');
+        if (value.startsWith("/") || value.contains("..")) return "creator_documents";
+        value = value.replaceAll("[^a-z0-9_./-]", "");
+        return value.isBlank() ? "creator_documents" : value;
+    }
+
+    private static String safeFolder(String raw) {
+        String value = safeKind(raw);
+        return value.isBlank() ? "creator_documents" : value;
+    }
+
+    private static String runtimeKind(String raw) {
+        String value = safeKind(raw);
         if (value.startsWith("dai_")) value = value.substring(4);
-        return value.isBlank() ? "physics" : value;
+        int slash = value.lastIndexOf('/');
+        return slash >= 0 ? value.substring(slash + 1) : value;
     }
 
     private static String safeId(String raw) {
@@ -673,8 +547,10 @@ public final class DAI_CreatorServerRuntime {
         boolean open;
         boolean hologram = true;
         boolean test;
-        String kind = "physics";
+        String kind = "creator_documents";
         String id = "creator:untitled";
+        String previewAdapter = "";
+        String previewAction = "";
         JsonObject draft;
         final Deque<JsonObject> undo = new ArrayDeque<>();
         final Deque<JsonObject> redo = new ArrayDeque<>();

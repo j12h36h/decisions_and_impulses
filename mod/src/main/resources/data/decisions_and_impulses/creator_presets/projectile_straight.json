@@ -1,0 +1,10 @@
+{
+  "display_name": "Straight Shot",
+  "schema": "decisions_and_impulses:projectile",
+  "priority": 50,
+  "patch": {
+    "stats": {
+      "gravity": 0
+    }
+  }
+}

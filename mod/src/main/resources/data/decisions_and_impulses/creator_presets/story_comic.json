@@ -1,0 +1,14 @@
+{
+  "display_name": "Comic Viewer",
+  "schema": "decisions_and_impulses:story_profile",
+  "priority": 40,
+  "patch": {
+    "compiler": {
+      "panels_per_page": 2
+    },
+    "viewer": {
+      "layout": "comic",
+      "scene_renderer": "dai:scene"
+    }
+  }
+}

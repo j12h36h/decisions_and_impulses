@@ -21,6 +21,7 @@ public record DAI_TitleScreenDefinition(
         String title,
         String subtitle,
         String theme,
+        String backgroundScene,
         int backgroundTop,
         int backgroundBottom,
         int titleColor,
@@ -35,6 +36,7 @@ public record DAI_TitleScreenDefinition(
         title = safe(title, "DECISIONS & IMPULSES");
         subtitle = safe(subtitle, "The interface between humanity and automation.");
         theme = safe(theme, "gradient").trim().toLowerCase(Locale.ROOT);
+        backgroundScene = safe(backgroundScene, "").trim();
         saveBrowser = saveBrowser == null ? SaveBrowserDefinition.DISABLED : saveBrowser;
         buttons = buttons == null ? List.of() : List.copyOf(buttons);
         decorations = decorations == null ? List.of() : List.copyOf(decorations);
@@ -84,6 +86,7 @@ public record DAI_TitleScreenDefinition(
                 string(root, "title", "DECISIONS & IMPULSES"),
                 string(root, "subtitle", "The interface between humanity and automation."),
                 string(root, "theme", "gradient"),
+                string(background, "scene", string(root, "background_scene", "")),
                 color(background, "top", 0xFF071018),
                 color(background, "bottom", 0xFF101E29),
                 color(root, "title_color", 0xFFFFFFFF),
@@ -102,6 +105,7 @@ public record DAI_TitleScreenDefinition(
                 "DECISIONS & IMPULSES",
                 "The interface between humanity and automation.",
                 "gradient",
+                "",
                 0xFF071018,
                 0xFF101E29,
                 0xFFFFFFFF,

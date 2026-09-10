@@ -22,6 +22,23 @@ import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenDefinition;
 import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenLoader;
 import io.github.j12h36h.dai.client.screens.data.DAI_DataScreenRegistry;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
+import io.github.j12h36h.dai.presentation.scene.DAI_SceneDefinition;
+import io.github.j12h36h.dai.presentation.scene.DAI_SceneLoader;
+import io.github.j12h36h.dai.presentation.scene.DAI_SceneRegistry;
+import io.github.j12h36h.dai.presentation.screen.DAI_ScreenOverrideDefinition;
+import io.github.j12h36h.dai.presentation.screen.DAI_ScreenOverrideLoader;
+import io.github.j12h36h.dai.presentation.screen.DAI_ScreenOverrideRegistry;
+import io.github.j12h36h.dai.story.DAI_StoryProfileDefinition;
+import io.github.j12h36h.dai.story.DAI_StoryProfileLoader;
+import io.github.j12h36h.dai.input.DAI_InputProfileDefinition;
+import io.github.j12h36h.dai.input.DAI_InputProfileRegistry;
+import io.github.j12h36h.dai.creator.DAI_CreatorPresetDefinition;
+import io.github.j12h36h.dai.creator.DAI_CreatorPresetLoader;
+import io.github.j12h36h.dai.creator.DAI_CreatorPresetRegistry;
+import io.github.j12h36h.dai.creator.DAI_CreatorSchemaDefinition;
+import io.github.j12h36h.dai.creator.DAI_CreatorSchemaLoader;
+import io.github.j12h36h.dai.creator.DAI_CreatorSchemaRegistry;
 import io.github.j12h36h.dai.client.logics.creation.DAI_RecipeParser;
 import io.github.j12h36h.dai.client.objectives.recognition.DAI_RecogLoader;
 import io.github.j12h36h.dai.client.objectives.recognition.DAI_RecogGroupLoader;
@@ -123,6 +140,17 @@ public final class DAI_ClientDataBootstrap {
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_data_screens"),
                 new DAI_DataScreenLoader()
         );
+
+        if (DAI_Config.featureModuleEnabled("creator")) {
+            event.addListener(
+                    Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_creator_schemas"),
+                    new DAI_CreatorSchemaLoader()
+            );
+            event.addListener(
+                    Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_creator_presets"),
+                    new DAI_CreatorPresetLoader()
+            );
+        }
     }
 
     public static synchronized void reloadLocalData() {
@@ -147,7 +175,18 @@ public final class DAI_ClientDataBootstrap {
         loadLearningAgents(builtIn);
         loadStates(builtIn);
         loadKeybinds(builtIn);
-        loadDataScreens(builtIn);
+        if (DAI_Config.featureModuleEnabled("data_screens")) loadDataScreens(builtIn); else DAI_DataScreenRegistry.clear();
+        if (DAI_Config.featureModuleEnabled("scene_environments")) loadScenes(builtIn); else DAI_SceneRegistry.replaceData(Map.of());
+        if (DAI_Config.featureModuleEnabled("screen_overrides")) loadScreenOverrides(builtIn); else DAI_ScreenOverrideRegistry.replace(Map.of());
+        if (DAI_Config.featureModuleEnabled("story_archives")) loadStoryProfiles(builtIn); else DAI_StoryProfileLoader.applyDefinitions(Map.of());
+        if (DAI_Config.featureModuleEnabled("input_profiles")) loadInputProfiles(builtIn); else DAI_InputProfileRegistry.replaceData(Map.of());
+        if (DAI_Config.featureModuleEnabled("creator")) {
+            loadCreatorSchemas(builtIn);
+            loadCreatorPresets(builtIn);
+        } else {
+            DAI_CreatorSchemaRegistry.replaceData(Map.of());
+            DAI_CreatorPresetRegistry.replaceData(Map.of());
+        }
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Client-local data bootstrap complete: {} action(s), {} recognition(s), {} group(s), {} processing recipe(s), {} game-customization definition(s).",
@@ -255,6 +294,48 @@ public final class DAI_ClientDataBootstrap {
         mergeExternal(definitions, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
         DAI_DataScreenRegistry.clear();
         definitions.forEach(DAI_DataScreenRegistry::register);
+    }
+
+    private static void loadScenes(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_SceneDefinition> definitions =
+                decodeFolder(builtIn, DAI_SceneLoader.FOLDER, DAI_SceneDefinition.CODEC);
+        mergeExternal(definitions, DAI_SceneLoader.FOLDER, DAI_SceneDefinition.CODEC);
+        DAI_SceneRegistry.replaceData(definitions);
+    }
+
+    private static void loadScreenOverrides(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_ScreenOverrideDefinition> definitions =
+                decodeFolder(builtIn, DAI_ScreenOverrideLoader.FOLDER, DAI_ScreenOverrideDefinition.CODEC);
+        mergeExternal(definitions, DAI_ScreenOverrideLoader.FOLDER, DAI_ScreenOverrideDefinition.CODEC);
+        DAI_ScreenOverrideRegistry.replace(definitions);
+    }
+
+    private static void loadStoryProfiles(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_StoryProfileDefinition> definitions =
+                decodeFolder(builtIn, DAI_StoryProfileLoader.FOLDER, DAI_StoryProfileDefinition.CODEC);
+        mergeExternal(definitions, DAI_StoryProfileLoader.FOLDER, DAI_StoryProfileDefinition.CODEC);
+        DAI_StoryProfileLoader.applyDefinitions(definitions);
+    }
+
+    private static void loadInputProfiles(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_InputProfileDefinition> definitions =
+                decodeFolder(builtIn, DAI_InputProfileDefinition.FOLDER, DAI_InputProfileDefinition.CODEC);
+        mergeExternal(definitions, DAI_InputProfileDefinition.FOLDER, DAI_InputProfileDefinition.CODEC);
+        DAI_InputProfileRegistry.replaceData(definitions);
+    }
+
+    private static void loadCreatorSchemas(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_CreatorSchemaDefinition> definitions =
+                decodeFolder(builtIn, DAI_CreatorSchemaDefinition.FOLDER, DAI_CreatorSchemaDefinition.CODEC);
+        mergeExternal(definitions, DAI_CreatorSchemaDefinition.FOLDER, DAI_CreatorSchemaDefinition.CODEC);
+        DAI_CreatorSchemaRegistry.replaceData(definitions);
+    }
+
+    private static void loadCreatorPresets(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_CreatorPresetDefinition> definitions =
+                decodeFolder(builtIn, DAI_CreatorPresetDefinition.FOLDER, DAI_CreatorPresetDefinition.CODEC);
+        mergeExternal(definitions, DAI_CreatorPresetDefinition.FOLDER, DAI_CreatorPresetDefinition.CODEC);
+        DAI_CreatorPresetRegistry.replaceData(definitions);
     }
 
     private static <T> void mergeExternal(

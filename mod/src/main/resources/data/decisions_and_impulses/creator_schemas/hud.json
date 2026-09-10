@@ -1,0 +1,44 @@
+{
+  "display_name": "HUD",
+  "folder": "dai_hud",
+  "rail": "standalone",
+  "category": "MEDIA",
+  "description": "Data-defined hud module.",
+  "priority": 43,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "HUD Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "HUD Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

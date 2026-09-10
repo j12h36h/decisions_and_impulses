@@ -1,0 +1,12 @@
+{
+  "display_name": "Arcade Handling",
+  "schema": "decisions_and_impulses:vehicle",
+  "priority": 50,
+  "patch": {
+    "numbers": {
+      "acceleration": 0.06,
+      "turn_rate": 7,
+      "drag": 0.04
+    }
+  }
+}

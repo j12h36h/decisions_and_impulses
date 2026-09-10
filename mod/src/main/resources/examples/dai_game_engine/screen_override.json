@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "priority": 100,
+  "target": {
+    "class": "net.minecraft.client.gui.screens.*",
+    "simple_class": "*Screen"
+  },
+  "mode": "skin",
+  "background_scene": "example:screen_background",
+  "foreground_scene": "example:screen_foreground"
+}

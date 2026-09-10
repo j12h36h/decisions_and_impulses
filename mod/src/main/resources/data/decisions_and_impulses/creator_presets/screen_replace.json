@@ -1,0 +1,8 @@
+{
+  "display_name": "Full Replace",
+  "schema": "decisions_and_impulses:screen_override",
+  "priority": 50,
+  "patch": {
+    "mode": "replace"
+  }
+}

@@ -1,17 +1,16 @@
-DAI Musashi directional combat integration
-===========================================
+DEPRECATED EXAMPLE NAME
+=======================
 
-Client bridge:
-  io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat
+This historical filename is retained only so source-tree overlay patches can
+replace older documentation without requiring a delete operation.
 
-Controls while holding musashi_story:katana / nodachi / wakizashi / naginata:
-  Hold LMB  = draw blade and capture camera-origin.
-  Move view = choose one of 8 screen-space slash directions.
-  Release   = execute chosen slash.
-  Release without >=5 degrees of directional motion = forward stab.
-  Hold RMB  = half-draw diagonal guard.
+DAI Engine no longer contains project-specific directional-combat rules.
+Physical input gestures, action bindings, directional thresholds, and
+first-person poses are defined by data/resource JSON in:
 
-Vanilla startAttack / continueAttack / startUseItem are suppressed only while
-one of those Musashi blades is in the main hand. The physical key mappings are
-not suppressed, allowing the companion resource pack's keybind_down item-model
-conditions to continue rendering draw and guard poses.
+  data/<namespace>/input_profiles/*.json
+  assets/<namespace>/input_profiles/*.json
+
+See input_profile.json in this directory for the generic format. The runtime
+contains no project item ids, action ids, pose values, or directional-combat
+policy.

@@ -10,6 +10,7 @@ public final class DAI_StyledButton extends Button.Plain {
 
     private DAI_ButtonStyle style;
     private boolean selectedStyle;
+    private float textScale = 1.0F;
 
     public DAI_StyledButton(
             int x,
@@ -50,6 +51,19 @@ public final class DAI_StyledButton extends Button.Plain {
     ) {
         this.selectedStyle =
                 selectedStyle;
+    }
+
+    /**
+     * Scales only this button's label while leaving its hitbox and border at
+     * normal GUI coordinates. Creator uses this at compact GUI scales so
+     * readable labels do not have to be aggressively truncated.
+     */
+    public void setTextScale(float textScale) {
+        if (!Float.isFinite(textScale)) {
+            this.textScale = 1.0F;
+            return;
+        }
+        this.textScale = Math.max(0.55F, Math.min(1.0F, textScale));
     }
 
     @Override
@@ -128,18 +142,31 @@ public final class DAI_StyledButton extends Button.Plain {
                                 / 2
                 );
 
+        int textColor = style.text().isBlank()
+                ? getFGColor()
+                : color(style.text(), getFGColor());
+
+        if (textScale >= 0.999F) {
+            graphics.centeredText(
+                    Minecraft.getInstance().font,
+                    getMessage(),
+                    getX() + getWidth() / 2,
+                    textY,
+                    textColor
+            );
+            return;
+        }
+
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(textScale, textScale);
         graphics.centeredText(
                 Minecraft.getInstance().font,
                 getMessage(),
-                getX() + getWidth() / 2,
-                textY,
-                style.text().isBlank()
-                        ? getFGColor()
-                        : color(
-                        style.text(),
-                        getFGColor()
-                )
+                Math.round((getX() + getWidth() / 2.0F) / textScale),
+                Math.round(textY / textScale),
+                textColor
         );
+        graphics.pose().popMatrix();
     }
 
     private static int color(

@@ -1,0 +1,90 @@
+{
+  "display_name": "Story / Archive Profile",
+  "short_name": "Story",
+  "folder": "story_profiles",
+  "rail": "experience",
+  "category": "STORY",
+  "description": "Define sessions, captured events, significance, compilation, narration and viewers.",
+  "priority": 98,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "poll_interval_ticks",
+      "label": "Poll Interval",
+      "type": "number",
+      "default": "5",
+      "level": 1
+    },
+    {
+      "path": "session.start.when",
+      "label": "Start Condition",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "session.end.when",
+      "label": "End Condition",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "compiler.max_events",
+      "label": "Max Events",
+      "type": "number",
+      "default": "18",
+      "level": 1
+    },
+    {
+      "path": "compiler.panels_per_page",
+      "label": "Panels / Page",
+      "type": "number",
+      "default": "2",
+      "level": 1
+    },
+    {
+      "path": "viewer.layout",
+      "label": "Viewer Layout",
+      "type": "text",
+      "default": "book",
+      "level": 1
+    },
+    {
+      "path": "viewer.scene_renderer",
+      "label": "Panel Renderer",
+      "type": "text",
+      "default": "dai:scene",
+      "level": 2
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "poll_interval_ticks": 5,
+    "session": {
+      "start": {},
+      "end": {}
+    },
+    "events": [],
+    "compiler": {
+      "max_events": 18,
+      "panels_per_page": 2
+    },
+    "viewer": {
+      "layout": "book"
+    }
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.58
+  }
+}

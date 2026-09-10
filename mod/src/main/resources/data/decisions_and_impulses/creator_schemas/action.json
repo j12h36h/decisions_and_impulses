@@ -1,0 +1,50 @@
+{
+  "display_name": "Logic / Action",
+  "short_name": "Logic",
+  "folder": "logics/definitions",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Author reusable DAI actions/sequences without changing engine code.",
+  "priority": 92,
+  "fields": [
+    {
+      "path": "type",
+      "label": "Action Type",
+      "type": "text",
+      "default": "sequence",
+      "level": 0
+    },
+    {
+      "path": "barrier",
+      "label": "Barrier",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    },
+    {
+      "path": "condition",
+      "label": "Condition",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "arguments.note",
+      "label": "Argument / Note",
+      "type": "text",
+      "default": "",
+      "level": 2
+    }
+  ],
+  "template": {
+    "type": "sequence",
+    "sequence": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.45
+  }
+}

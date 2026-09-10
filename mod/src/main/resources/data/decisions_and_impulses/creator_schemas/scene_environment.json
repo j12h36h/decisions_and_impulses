@@ -1,0 +1,136 @@
+{
+  "display_name": "Scene Environment",
+  "short_name": "Scene",
+  "folder": "scene_environments",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Animated screen/story environment with data-defined camera and layered scene elements.",
+  "priority": 110,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "background.type",
+      "label": "Background Type",
+      "type": "text",
+      "default": "gradient",
+      "level": 0
+    },
+    {
+      "path": "background.top",
+      "label": "Top Color",
+      "type": "color",
+      "default": "#17101f",
+      "level": 0
+    },
+    {
+      "path": "background.bottom",
+      "label": "Bottom Color",
+      "type": "color",
+      "default": "#05070d",
+      "level": 0
+    },
+    {
+      "path": "camera.duration_ticks",
+      "label": "Camera Duration",
+      "type": "number",
+      "default": "1200",
+      "level": 1
+    },
+    {
+      "path": "camera.loop",
+      "label": "Loop Camera",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    },
+    {
+      "path": "camera.fov",
+      "label": "FOV",
+      "type": "number",
+      "default": "60",
+      "level": 1
+    },
+    {
+      "path": "camera.motion.drift",
+      "label": "Drift",
+      "type": "number",
+      "default": "0.02",
+      "level": 1
+    },
+    {
+      "path": "camera.motion.shake",
+      "label": "Shake",
+      "type": "number",
+      "default": "0.0",
+      "level": 2
+    },
+    {
+      "path": "camera.interpolation",
+      "label": "Interpolation",
+      "type": "text",
+      "default": "smooth",
+      "level": 2
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "background": {
+      "type": "gradient",
+      "top": "#17101f",
+      "bottom": "#05070d"
+    },
+    "camera": {
+      "duration_ticks": 1200,
+      "loop": true,
+      "fov": 60,
+      "interpolation": "smooth",
+      "motion": {
+        "drift": 0.02,
+        "shake": 0.0
+      },
+      "keyframes": [
+        {
+          "tick": 0,
+          "position": [
+            0,
+            1,
+            10
+          ],
+          "look_at": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "tick": 1200,
+          "position": [
+            2,
+            1,
+            10
+          ],
+          "look_at": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "elements": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "scene",
+    "source": "draft"
+  },
+  "layout": {
+    "preview_ratio": 0.68
+  }
+}

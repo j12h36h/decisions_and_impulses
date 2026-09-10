@@ -1,0 +1,42 @@
+{
+  "display_name": "Quest",
+  "folder": "dai_quests",
+  "rail": "experience",
+  "category": "STORY",
+  "description": "Create quest state, objectives and action hooks.",
+  "priority": 78,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Quest",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "repeatable",
+      "label": "Repeatable",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    }
+  ],
+  "template": {
+    "display_name": "Quest",
+    "description": "",
+    "repeatable": false,
+    "objectives": [],
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

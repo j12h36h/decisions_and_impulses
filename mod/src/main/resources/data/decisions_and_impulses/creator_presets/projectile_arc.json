@@ -1,0 +1,10 @@
+{
+  "display_name": "Arc Shot",
+  "schema": "decisions_and_impulses:projectile",
+  "priority": 40,
+  "patch": {
+    "stats": {
+      "gravity": 0.05
+    }
+  }
+}

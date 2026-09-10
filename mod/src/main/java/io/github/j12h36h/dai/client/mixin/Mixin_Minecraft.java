@@ -1,6 +1,6 @@
 package io.github.j12h36h.dai.client.mixin;
 
-import io.github.j12h36h.dai.client.combat.DAI_MusashiDirectionalCombat;
+import io.github.j12h36h.dai.client.input.DAI_InputProfileRuntime;
 import io.github.j12h36h.dai.client.animations.eras.DAI_ErasCinematicRuntime;
 import io.github.j12h36h.dai.client.logics.DAI_CreativeInputState;
 import io.github.j12h36h.dai.client.logics.input.DAI_VehicleInputBridge;
@@ -54,7 +54,7 @@ public abstract class Mixin_Minecraft {
             return;
         }
 
-        if (DAI_MusashiDirectionalCombat.interceptVanillaAttack()) {
+        if (DAI_InputProfileRuntime.interceptVanillaAttack()) {
             callback.setReturnValue(false);
             callback.cancel();
             return;
@@ -117,7 +117,7 @@ public abstract class Mixin_Minecraft {
         if (DAI_ErasCinematicRuntime.ownsInput()
                 || DAI_VehicleInputBridge.ownsMouseControls()
                 || dai$attackInputSuppressed
-                || DAI_MusashiDirectionalCombat.interceptVanillaAttack()) {
+                || DAI_InputProfileRuntime.interceptVanillaAttack()) {
             callback.cancel();
         }
     }
@@ -126,7 +126,7 @@ public abstract class Mixin_Minecraft {
     private void dai$startUseItem(CallbackInfo callback) {
         if (DAI_ErasCinematicRuntime.ownsInput()
                 || DAI_VehicleInputBridge.ownsMouseControls()
-                || DAI_MusashiDirectionalCombat.interceptVanillaUse()) {
+                || DAI_InputProfileRuntime.interceptVanillaUse()) {
             callback.cancel();
         }
     }

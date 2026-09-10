@@ -1,0 +1,14 @@
+{
+  "display_name": "Slow Drift",
+  "schema": "decisions_and_impulses:scene_environment",
+  "priority": 50,
+  "patch": {
+    "camera": {
+      "motion": {
+        "drift": 0.05,
+        "drift_speed": 0.08,
+        "shake": 0.0
+      }
+    }
+  }
+}

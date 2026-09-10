@@ -1,0 +1,13 @@
+{
+  "display_name": "Subtle Shake",
+  "schema": "decisions_and_impulses:scene_environment",
+  "priority": 40,
+  "patch": {
+    "camera": {
+      "motion": {
+        "shake": 0.015,
+        "shake_speed": 0.45
+      }
+    }
+  }
+}

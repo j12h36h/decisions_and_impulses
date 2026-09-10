@@ -1,0 +1,65 @@
+{
+  "display_name": "Particle",
+  "folder": "dai_particles",
+  "rail": "standalone",
+  "category": "MEDIA",
+  "description": "Data-defined particle module.",
+  "priority": 54,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Particle Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "particle.lifetime",
+      "label": "Lifetime",
+      "type": "number",
+      "default": "30",
+      "level": 0
+    },
+    {
+      "path": "particle.full_bright",
+      "label": "Full Bright",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    },
+    {
+      "path": "particle.collision",
+      "label": "Collision",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    }
+  ],
+  "template": {
+    "display_name": "Particle Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

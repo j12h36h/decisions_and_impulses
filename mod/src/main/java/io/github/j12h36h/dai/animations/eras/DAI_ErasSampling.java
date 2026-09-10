@@ -183,7 +183,7 @@ public final class DAI_ErasSampling {
         // object order when two objects share the same layer/zIndex. List.sort is
         // stable, so compare only the layer here. Sorting by id as a tiebreaker
         // incorrectly reordered the whole scene (for example, a later "sky"
-        // object could cover earlier forest/city/title objects in Musashi Story).
+        // object could cover earlier scene objects).
         result.sort(Comparator.comparingDouble(
                 (JsonObject o) -> number(o, "layer", number(o, "zIndex", 0.0D))
         ));

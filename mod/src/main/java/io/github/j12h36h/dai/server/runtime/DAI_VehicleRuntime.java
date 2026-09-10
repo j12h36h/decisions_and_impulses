@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Server-authoritative controller for dai_vehicles.
  *
- * DAI 3.3 DirtBikeLife extension:
+ * Data-driven vehicle runtime extension:
  * - preserves the existing default vehicle behavior;
  * - adds the opt-in "manual_motorcycle" control profile;
  * - supports LMB throttle, RMB tap/double-tap/hold transmission + braking;

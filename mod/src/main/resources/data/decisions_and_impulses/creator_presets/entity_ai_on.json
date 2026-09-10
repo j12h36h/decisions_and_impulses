@@ -1,0 +1,10 @@
+{
+  "display_name": "AI Enabled",
+  "schema": "decisions_and_impulses:entity",
+  "priority": 50,
+  "patch": {
+    "entity": {
+      "vanilla_ai": true
+    }
+  }
+}

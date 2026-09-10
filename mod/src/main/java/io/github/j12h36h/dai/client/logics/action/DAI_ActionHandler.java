@@ -8,6 +8,7 @@ import io.github.j12h36h.dai.client.customization.DAI_GameCustomizationLogic;
 import io.github.j12h36h.dai.client.logics.DAI_CommandLogic;
 import io.github.j12h36h.dai.client.logics.DAI_ServerActionLogic;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.client.story.DAI_StoryLogic;
 
 import java.util.function.Consumer;
 
@@ -46,6 +47,7 @@ public final class DAI_ActionHandler {
         registerAutomationActions();
         registerGameModeActions();
         registerCustomizationActions();
+        registerStoryActions();
         registerExtensionActions();
 
         DAI_Core.LOGGER.info(
@@ -532,6 +534,13 @@ public final class DAI_ActionHandler {
                 "wait_for_creative_build",
                 DAI_CreativeBuildLogic::waitForBlueprint
         );
+    }
+
+    private static void registerStoryActions() {
+        register("story_open", DAI_StoryLogic::open);
+        register("story_event", DAI_StoryLogic::event);
+        register("story_session_start", DAI_StoryLogic::start);
+        register("story_session_end", DAI_StoryLogic::end);
     }
 
     private static void registerExtensionActions() {

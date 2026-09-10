@@ -32,7 +32,7 @@ public final class DAI_TitleScreenController {
         // A world disconnect can install the vanilla title screen while the
         // mouse button that activated "Save and Quit to Title" is still in
         // its release cycle.  Do not replace that screen in the same input
-        // transition.  MineTrigger (and any other JSON title) may place its
+        // transition.  Any JSON-authored title screen may place its
         // own Quit button in the same region, which can otherwise turn an
         // ordinary world exit into a clean Minecraft.stop() shutdown.
         vanillaTitleTicks++;

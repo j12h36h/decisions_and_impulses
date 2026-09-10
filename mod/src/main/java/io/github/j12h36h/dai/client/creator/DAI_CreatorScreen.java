@@ -1,8 +1,15 @@
 package io.github.j12h36h.dai.client.creator;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.github.j12h36h.dai.client.menus.DAI_StyledButton;
 import io.github.j12h36h.dai.client.menus.system.DAI_ButtonStyle;
 import io.github.j12h36h.dai.client.network.DAI_ServerBridge;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.creator.DAI_CreatorPresetRegistry;
+import io.github.j12h36h.dai.creator.DAI_CreatorSchemaDefinition;
+import io.github.j12h36h.dai.creator.DAI_CreatorSchemaRegistry;
 import io.github.j12h36h.dai.network.DAI_CreatorActionPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -12,286 +19,664 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
- * Responsive orange/purple DAI Creator workspace. The main view intentionally
- * exposes only navigation, one property edit, one preset and mode controls;
- * transform/destructive actions live in a separate tool drawer.
+ * DAI 3.9 Creator workspace.
+ *
+ * The Creator is intentionally a thin, schema-driven visual shell:
+ * - compact project bar at the top
+ * - creation browser at the left
+ * - dominant live preview/canvas in the center
+ * - progressive property inspector at the right
+ *
+ * Module catalogs, fields, presets, preview adapters and module tools are all
+ * provided by creator_schemas / creator_presets JSON. Java owns only generic
+ * editing/navigation/rendering primitives.
  */
 public final class DAI_CreatorScreen extends Screen {
-    private static final KindGroup WORLD = new KindGroup("WORLD", List.of(
-            "physics", "block", "portal", "interactive", "fluid", "structure", "feature"));
-    private static final KindGroup GAMEPLAY = new KindGroup("GAMEPLAY", List.of(
-            "entity", "item", "vehicle", "projectile", "effect", "potion"));
-    private static final KindGroup PRESENT = new KindGroup("PRESENT", List.of(
-            "particle", "sound", "music", "hud", "timeline"));
-    private static final List<KindGroup> GROUPS = List.of(WORLD, GAMEPLAY, PRESENT);
-
-    private static final DAI_ButtonStyle ORANGE = new DAI_ButtonStyle(
-            "#A8140B09", "#D936170B", "#EA5A2710", "#FFF4EA", "#FF8A2A");
-    private static final DAI_ButtonStyle PURPLE = new DAI_ButtonStyle(
-            "#A8100918", "#D827123B", "#E6421C60", "#FAF0FF", "#A855F7");
-    private static final DAI_ButtonStyle DARK = new DAI_ButtonStyle(
-            "#A70B0710", "#D31B1025", "#E32A1738", "#F8EFFD", "#704090");
+    private static final DAI_ButtonStyle MODULE = new DAI_ButtonStyle(
+            "#B20D1320", "#E0202C48", "#F06C3FA0", "#FFF6FF", "#8758B8");
+    private static final DAI_ButtonStyle ACTION = new DAI_ButtonStyle(
+            "#B61C1009", "#E43A1E0D", "#EF6A2A12", "#FFF7EF", "#FF8A2A");
+    private static final DAI_ButtonStyle SOFT = new DAI_ButtonStyle(
+            "#A70D0B13", "#CF1B1528", "#D5302345", "#EEE7F7", "#4E3A66");
     private static final DAI_ButtonStyle DANGER = new DAI_ButtonStyle(
-            "#A6231018", "#D7471728", "#E45C1F35", "#FFF0F5", "#EF5A82");
+            "#AD261018", "#D9491628", "#E85E1F36", "#FFF2F6", "#EF5A82");
 
-    private int groupIndex;
-    private int kindIndex;
-    private int presetIndex;
+    private final String requestedSchema;
+    private final int propertyPage;
+    private final int presetPage;
+    private final int categoryPage;
+    private final int typePage;
+    private final int complexity;
+
     private EditBox idEdit;
-    private EditBox keyEdit;
-    private EditBox valueEdit;
-    private String status = "READY // choose a type, create/load, then author in the live world";
+    private final List<FieldBinding> fieldBindings = new ArrayList<>();
+    private String status = "READY";
 
-    private DAI_StyledButton editMode;
-    private DAI_StyledButton previewMode;
-    private DAI_StyledButton simulateMode;
+    private int bodyTop;
+    private int bodyBottom;
+    private int browserX;
+    private int browserW;
+    private int previewX;
+    private int previewW;
+    private int inspectorX;
+    private int inspectorW;
+    private float uiTextScale = 1.0F;
+
+    private int categoryPageIndex;
+    private int categoryPageCount = 1;
+    private int typePageIndex;
+    private int typePageCount = 1;
+    private int presetPageIndex;
+    private int presetPageCount = 1;
+    private int browserCategoryLabelY;
+    private int browserTypeLabelY;
+    private int browserPresetLabelY = -1;
+    private int categoryPagerY = -1;
+    private int typePagerY = -1;
+    private int presetPagerY = -1;
 
     public DAI_CreatorScreen() {
-        this(groupForKind(DAI_CreatorRuntime.kind()), DAI_CreatorRuntime.kind());
+        this(DAI_CreatorRuntime.schemaId(), 0, 0, 0, 0, 0);
     }
 
-    private DAI_CreatorScreen(int group, String kind) {
+    private DAI_CreatorScreen(
+            String schemaId,
+            int propertyPage,
+            int presetPage,
+            int categoryPage,
+            int typePage,
+            int complexity
+    ) {
         super(Component.literal("DAI Creator"));
-        groupIndex = clamp(group, 0, GROUPS.size() - 1);
-        int found = GROUPS.get(groupIndex).kinds().indexOf(kind);
-        kindIndex = found < 0 ? 0 : found;
+        this.requestedSchema = schemaId == null ? "" : schemaId;
+        this.propertyPage = Math.max(0, propertyPage);
+        this.presetPage = Math.max(0, presetPage);
+        this.categoryPage = Math.max(0, categoryPage);
+        this.typePage = Math.max(0, typePage);
+        this.complexity = clamp(complexity, 0, 2);
     }
 
     @Override
     protected void init() {
         super.init();
         DAI_CreatorRuntime.open(Minecraft.getInstance().player);
+        if (!requestedSchema.isBlank()) DAI_CreatorRuntime.selectSchema(requestedSchema);
+
+        calculateLayout();
+        buildProjectBar();
+        buildBrowser();
+        buildInspector();
         send("open", "", "", 0, 0, 0);
-
-        int margin = 10;
-        int topH = 38;
-        int bottomH = 34;
-        int leftW = Math.min(118, Math.max(92, width / 7));
-        int rightW = Math.min(230, Math.max(184, width / 4));
-        int left = margin;
-        int right = width - rightW - margin;
-
-        buildTop(width < 600 ? margin : left + leftW + margin, width - margin);
-        buildNav(left, topH + margin, leftW);
-        buildInspector(right, topH + margin, rightW);
-        buildModes(margin, height - bottomH + 4, width - margin * 2);
-        refreshModes();
     }
 
-    private void buildTop(int start, int end) {
-        int y = 9;
-        int available = Math.max(260, end - start);
-        int idW = Math.max(82, available - 214);
-        idEdit = new EditBox(font, start, y, idW, 20, Component.literal("namespace:id"));
+    private void calculateLayout() {
+        uiTextScale = width < 520 ? 0.72F
+                : width < 640 ? 0.78F
+                : width < 820 ? 0.84F
+                : 0.90F;
+
+        int margin = 8;
+        int gap = 6;
+        bodyTop = 34;
+        bodyBottom = Math.max(bodyTop + 150, height - 8);
+
+        browserW = clamp(width / 5, 96, 126);
+        inspectorW = clamp(width / 3, 158, 210);
+
+        int requiredPreview = width < 520 ? 155 : 205;
+        int maxSides = Math.max(210, width - margin * 2 - gap * 2 - requiredPreview);
+        if (browserW + inspectorW > maxSides) {
+            int overflow = browserW + inspectorW - maxSides;
+            int fromInspector = Math.min(overflow, Math.max(0, inspectorW - 145));
+            inspectorW -= fromInspector;
+            overflow -= fromInspector;
+            browserW = Math.max(88, browserW - overflow);
+        }
+
+        browserX = margin;
+        inspectorX = width - margin - inspectorW;
+        previewX = browserX + browserW + gap;
+        previewW = Math.max(120, inspectorX - gap - previewX);
+    }
+
+    private void buildProjectBar() {
+        int actionH = 18;
+        int y = 8;
+        int gap = 3;
+        int smallW = width < 560 ? 34 : 40;
+        int saveW = width < 560 ? 38 : 44;
+        int testW = width < 560 ? 38 : 44;
+        int right = width - 8;
+
+        int closeX = right - smallW;
+        int testX = closeX - gap - testW;
+        int saveX = testX - gap - saveW;
+        int loadX = saveX - gap - smallW;
+        int newX = loadX - gap - smallW;
+
+        int idX = width < 560 ? 116 : 142;
+        int idW = Math.max(84, newX - gap - idX);
+        idEdit = new EditBox(font, idX, y, idW, actionH, Component.literal("namespace:id"));
         idEdit.setValue(DAI_CreatorRuntime.id());
         addRenderableWidget(idEdit);
-        int x = start + idW + 5;
-        button(x, y, 48, 20, "NEW", ORANGE, this::create); x += 52;
-        button(x, y, 48, 20, "LOAD", PURPLE, this::load); x += 52;
-        button(x, y, 48, 20, "SAVE", ORANGE, () -> send("save", "", "", 0, 0, 0)); x += 52;
-        button(x, y, 34, 20, "X", DANGER, this::onClose);
+
+        button(newX, y, smallW, actionH, "NEW", SOFT, this::create);
+        button(loadX, y, smallW, actionH, "LOAD", SOFT, this::load);
+        button(saveX, y, saveW, actionH, "SAVE", ACTION, this::save);
+        button(testX, y, testW, actionH, "TEST", MODULE, this::toggleTest);
+        button(closeX, y, smallW, actionH, "X", DANGER, this::onClose);
     }
 
-    private void buildNav(int x, int y, int w) {
-        int inner = w - 8;
-        for (int i = 0; i < GROUPS.size(); i++) {
-            final int index = i;
-            DAI_StyledButton b = button(x + 4, y, inner, 20, GROUPS.get(i).title(), DARK,
-                    () -> switchGroup(index));
-            b.setSelectedStyle(i == groupIndex);
-            y += 24;
+    private void buildBrowser() {
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        if (schema == null) return;
+
+        categoryPagerY = -1;
+        typePagerY = -1;
+        presetPagerY = -1;
+        browserPresetLabelY = -1;
+
+        int x = browserX + 5;
+        int w = browserW - 10;
+        int y = bodyTop + 23;
+        int halfGap = 3;
+        int half = Math.max(34, (w - halfGap) / 2);
+
+        DAI_StyledButton game = button(x, y, half, 18, "GAME", SOFT,
+                () -> selectRail("experience"));
+        DAI_StyledButton parts = button(x + half + halfGap, y, w - half - halfGap, 18, "PARTS", SOFT,
+                () -> selectRail("standalone"));
+        game.setSelectedStyle("experience".equals(schema.rail()));
+        parts.setSelectedStyle("standalone".equals(schema.rail()));
+        y += 24;
+
+        browserCategoryLabelY = y;
+        y += 12;
+        List<CategoryBucket> categories = categories(schema.rail());
+        int categoryRows = height < 280 ? 2 : compactHeight() ? 3 : 4;
+        int catPages = Math.max(1, (categories.size() + categoryRows - 1) / categoryRows);
+        int selectedCategory = indexOfCategory(categories, schema.category());
+        int wantedCatPage = categoryPage;
+        if (wantedCatPage >= catPages || wantedCatPage < 0) wantedCatPage = selectedCategory / categoryRows;
+        categoryPageIndex = Math.min(catPages - 1, wantedCatPage);
+        categoryPageCount = catPages;
+
+        int catStart = categoryPageIndex * categoryRows;
+        int catEnd = Math.min(categories.size(), catStart + categoryRows);
+        for (int i = catStart; i < catEnd; i++) {
+            CategoryBucket bucket = categories.get(i);
+            DAI_StyledButton b = button(x, y, w, 18, fit(prettyCategory(bucket.name()), w - 8), MODULE,
+                    () -> selectCategory(schema.rail(), bucket.name()));
+            b.setSelectedStyle(normalizedCategory(bucket.name()).equals(normalizedCategory(schema.category())));
+            y += 20;
         }
-        y += 10;
-        int arrow = 28;
-        button(x + 4, y, arrow, 20, "<", PURPLE, this::previousKind);
-        button(x + w - arrow - 4, y, arrow, 20, ">", PURPLE, this::nextKind);
+        if (catPages > 1) {
+            categoryPagerY = y;
+            buildPager(x, y, w, categoryPageIndex, catPages,
+                    page -> reopen(propertyPage, presetPage, page, typePage, complexity));
+            y += 19;
+        }
+
+        y += 5;
+        browserTypeLabelY = y;
+        y += 12;
+        List<DAI_CreatorSchemaRegistry.Entry> types = categoryTypes(schema.rail(), schema.category());
+        int remaining = Math.max(60, bodyBottom - y - 54);
+        int typeRows = clamp((remaining / 2) / 20, height < 280 ? 1 : 2, compactHeight() ? 3 : 4);
+        int selectedType = indexOfType(types, DAI_CreatorRuntime.schemaId());
+        int typePages = Math.max(1, (types.size() + typeRows - 1) / typeRows);
+        int wantedTypePage = typePage;
+        if (wantedTypePage >= typePages || wantedTypePage < 0) wantedTypePage = selectedType / typeRows;
+        if (selectedType / typeRows != wantedTypePage && typePage == 0) wantedTypePage = selectedType / typeRows;
+        typePageIndex = Math.min(typePages - 1, wantedTypePage);
+        typePageCount = typePages;
+
+        int typeStart = typePageIndex * typeRows;
+        int typeEnd = Math.min(types.size(), typeStart + typeRows);
+        for (int i = typeStart; i < typeEnd; i++) {
+            DAI_CreatorSchemaRegistry.Entry entry = types.get(i);
+            DAI_StyledButton b = button(x, y, w, 18,
+                    fit(entry.definition().shortName(), w - 8), MODULE,
+                    () -> selectSchema(entry.id().toString()));
+            b.setSelectedStyle(entry.id().toString().equals(DAI_CreatorRuntime.schemaId()));
+            y += 20;
+        }
+        if (typePages > 1) {
+            typePagerY = y;
+            buildPager(x, y, w, typePageIndex, typePages,
+                    page -> reopen(propertyPage, presetPage, categoryPageIndex, page, complexity));
+            y += 19;
+        }
+
+        List<Variation> variations = variations();
+        if (!variations.isEmpty() && y + 30 < bodyBottom) {
+            y += 5;
+            browserPresetLabelY = y;
+            y += 12;
+            int roomRows = Math.max(1, (bodyBottom - y - 7) / 20);
+            int visible = Math.min(2, roomRows);
+            int pages = Math.max(1, (variations.size() + visible - 1) / visible);
+            presetPageIndex = Math.min(presetPage, pages - 1);
+            presetPageCount = pages;
+            int start = presetPageIndex * visible;
+            int end = Math.min(variations.size(), start + visible);
+            for (int i = start; i < end; i++) {
+                Variation variation = variations.get(i);
+                button(x, y, w, 18, fit(variation.label(), w - 8), SOFT,
+                        () -> applyVariation(variation));
+                y += 20;
+            }
+            if (pages > 1 && y + 17 < bodyBottom) {
+                presetPagerY = y;
+                buildPager(x, y, w, presetPageIndex, pages,
+                        page -> reopen(propertyPage, page, categoryPageIndex, typePageIndex, complexity));
+            }
+        }
     }
 
-    private void buildInspector(int x, int y, int w) {
-        int inner = w - 16;
-        int left = x + 8;
-        int top = y + 30;
-        keyEdit = new EditBox(font, left, top, inner, 20, Component.literal("JSON path"));
-        keyEdit.setValue(defaultPath(kind()));
-        addRenderableWidget(keyEdit);
-        valueEdit = new EditBox(font, left, top + 26, Math.max(70, inner - 52), 20, Component.literal("value"));
-        valueEdit.setValue(defaultValue(kind()));
-        addRenderableWidget(valueEdit);
-        button(left + inner - 48, top + 26, 48, 20, "SET", ORANGE, this::setValue);
+    private void buildInspector() {
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        if (schema == null) return;
 
-        int presetY = top + 68;
-        button(left, presetY, 30, 20, "<", PURPLE, this::previousPreset);
-        button(left + inner - 30, presetY, 30, 20, ">", PURPLE, this::nextPreset);
-        button(left, presetY + 26, inner, 22, "APPLY PRESET", ORANGE, this::applyPreset);
+        int x = inspectorX + 8;
+        int w = inspectorW - 16;
+        int y = bodyTop + 37;
+        int footerH = compactHeight() ? 50 : 62;
+        int bottom = bodyBottom - footerH;
+
+        List<JsonObject> fields = visibleFields(schema.fields());
+        int rowH = compactHeight() ? 31 : 34;
+        int visibleRows = Math.max(1, (bottom - y) / rowH);
+        int pages = Math.max(1, (fields.size() + visibleRows - 1) / visibleRows);
+        int actualPage = Math.min(propertyPage, pages - 1);
+        int start = actualPage * visibleRows;
+        int end = Math.min(fields.size(), start + visibleRows);
+        fieldBindings.clear();
+
+        for (int i = start; i < end; i++) {
+            JsonObject field = fields.get(i);
+            String path = DAI_CreatorSchemaDefinition.string(field, "path", "");
+            if (path.isBlank()) continue;
+            String label = DAI_CreatorSchemaDefinition.string(field, "label", path);
+            String fallback = valueText(field.get("default"));
+            EditBox edit = new EditBox(font, x, y + 11, w, 18, Component.literal(label));
+            edit.setValue(DAI_CreatorRuntime.get(path, fallback));
+            addRenderableWidget(edit);
+            fieldBindings.add(new FieldBinding(path, label, edit, y));
+            y += rowH;
+        }
+
+        int footerY = bodyBottom - footerH + 5;
+        if (pages > 1) {
+            int navW = Math.max(26, (w - 4) / 2);
+            button(x, footerY, navW, 17, "<", SOFT,
+                    () -> reopen(Math.floorMod(actualPage - 1, pages), presetPageIndex,
+                            categoryPageIndex, typePageIndex, complexity));
+            button(x + w - navW, footerY, navW, 17, ">", SOFT,
+                    () -> reopen((actualPage + 1) % pages, presetPageIndex,
+                            categoryPageIndex, typePageIndex, complexity));
+            footerY += 20;
+        }
+
+        int gap = 3;
+        int half = Math.max(34, (w - gap) / 2);
+        button(x, footerY, half, 18, detailLabel(), SOFT, this::cycleDetail);
+        button(x + half + gap, footerY, w - half - gap, 18, "APPLY", ACTION, this::applyVisible);
+        footerY += 21;
+
+        boolean hasTools = schema.tools().size() > 0;
+        boolean hasActions = schema.rightActions().size() > 0;
+        if (footerY + 18 <= bodyBottom - 4) {
+            if (hasTools && hasActions) {
+                button(x, footerY, half, 18, "TOOLS", SOFT, this::openTools);
+                button(x + half + gap, footerY, w - half - gap, 18, "ACTION", MODULE,
+                        this::executeFirstSchemaAction);
+            } else if (hasTools) {
+                button(x, footerY, w, 18, "TOOLS", SOFT, this::openTools);
+            } else if (hasActions) {
+                button(x, footerY, w, 18, "ACTION", MODULE, this::executeFirstSchemaAction);
+            }
+        }
     }
 
-    private void buildModes(int x, int y, int totalW) {
-        int gap = 5;
-        int count = 5;
-        int usable = Math.max(150, totalW - gap * (count - 1));
-        int base = Math.max(28, Math.min(82, usable / count));
-        int[] widths = new int[]{base, base, base, base, base};
-        int need = base * count + gap * (count - 1);
-        x += Math.max(0, totalW - need) / 2;
+    private void buildPager(int x, int y, int w, int page, int pages, java.util.function.IntConsumer change) {
+        int arrow = 22;
+        button(x, y, arrow, 17, "<", SOFT, () -> change.accept(Math.floorMod(page - 1, pages)));
+        button(x + w - arrow, y, arrow, 17, ">", SOFT, () -> change.accept((page + 1) % pages));
+    }
 
-        editMode = button(x, y, widths[0], 20, "EDIT", PURPLE,
-                () -> mode(DAI_CreatorRuntime.EditorMode.EDIT)); x += widths[0] + gap;
-        previewMode = button(x, y, widths[1], 20, "PREVIEW", PURPLE,
-                () -> mode(DAI_CreatorRuntime.EditorMode.PREVIEW)); x += widths[1] + gap;
-        simulateMode = button(x, y, widths[2], 20, "SIMULATE", ORANGE,
-                () -> mode(DAI_CreatorRuntime.EditorMode.SIMULATE)); x += widths[2] + gap;
-        button(x, y, widths[3], 20, "TOOLS", ORANGE,
-                () -> Minecraft.getInstance().gui.setScreen(new DAI_CreatorToolsScreen(this, kind(), id()))); x += widths[3] + gap;
-        button(x, y, widths[4], 20, "HOLOGRAM", PURPLE,
-                () -> send("hologram", "", "", 0, 0, 0));
+    private void selectRail(String rail) {
+        commitVisibleFields();
+        List<CategoryBucket> buckets = categories(rail);
+        if (buckets.isEmpty() || buckets.getFirst().entries().isEmpty()) return;
+        DAI_CreatorRuntime.selectSchema(buckets.getFirst().entries().getFirst().id().toString());
+        reopen(0, 0, 0, 0, complexity);
+    }
+
+    private void selectCategory(String rail, String category) {
+        commitVisibleFields();
+        List<DAI_CreatorSchemaRegistry.Entry> entries = categoryTypes(rail, category);
+        if (entries.isEmpty()) return;
+        DAI_CreatorRuntime.selectSchema(entries.getFirst().id().toString());
+        status = prettyCategory(category);
+        reopen(0, 0, categoryPageIndex, 0, complexity);
+    }
+
+    private void selectSchema(String schemaId) {
+        commitVisibleFields();
+        DAI_CreatorRuntime.selectSchema(schemaId);
+        status = "SELECTED";
+        reopen(0, 0, categoryPageIndex, 0, complexity);
     }
 
     private void create() {
-        Vec3 p = playerPos();
-        DAI_CreatorRuntime.create(kind(), id(), p);
-        send("create", "", "", p.x, p.y, p.z);
-        mode(DAI_CreatorRuntime.EditorMode.PREVIEW);
-        status = "CREATED // " + kind() + " " + id();
+        Vec3 pos = playerPos();
+        DAI_CreatorRuntime.createSelected(id(), pos);
+        send("create", "", "", pos.x, pos.y, pos.z);
+        syncRaw();
+        status = "NEW // " + id();
+        reopen(0, 0, categoryPageIndex, typePageIndex, complexity);
     }
 
     private void load() {
-        boolean local = DAI_CreatorRuntime.load(kind(), id());
-        send("load", "", "", 0, 0, 0);
-        status = local ? "LOADED // live registry mirrored" : "LOAD REQUEST // server/export source";
-    }
-
-    private void setValue() {
-        String key = keyEdit.getValue();
-        String value = valueEdit.getValue();
-        DAI_CreatorRuntime.set(key, value);
-        send("set", key, value, 0, 0, 0);
-        status = "PROPERTY // " + key + " = " + value;
-    }
-
-    private void mode(DAI_CreatorRuntime.EditorMode next) {
-        DAI_CreatorRuntime.setMode(next);
-        send("mode", "", next.name().toLowerCase(), 0, 0, 0);
-        refreshModes();
-        status = next == DAI_CreatorRuntime.EditorMode.SIMULATE
-                ? "SIMULATE // live runtime behavior" : next.name() + " // authoring workspace";
-    }
-
-    private void refreshModes() {
-        if (editMode != null) editMode.setSelectedStyle(DAI_CreatorRuntime.mode() == DAI_CreatorRuntime.EditorMode.EDIT);
-        if (previewMode != null) previewMode.setSelectedStyle(DAI_CreatorRuntime.mode() == DAI_CreatorRuntime.EditorMode.PREVIEW);
-        if (simulateMode != null) simulateMode.setSelectedStyle(DAI_CreatorRuntime.mode() == DAI_CreatorRuntime.EditorMode.SIMULATE);
-    }
-
-    private void previousKind() { switchKind(Math.floorMod(kindIndex - 1, group().kinds().size())); }
-    private void nextKind() { switchKind((kindIndex + 1) % group().kinds().size()); }
-    private void previousPreset() { presetIndex = Math.floorMod(presetIndex - 1, presets().size()); }
-    private void nextPreset() { presetIndex = (presetIndex + 1) % presets().size(); }
-
-    private void applyPreset() {
-        String preset = presets().get(Math.floorMod(presetIndex, presets().size()));
-        switch (preset) {
-            case "GRAVITY DOWN" -> gravity(0, -1, 0, 0.08);
-            case "GRAVITY UP" -> gravity(0, 1, 0, 0.08);
-            case "ZERO G" -> {
-                set("numbers.gravity_strength", "0"); set("numbers.surface_drag", "0");
-                set("numbers.max_speed", "0.8"); set("flags.free_flight", "true");
-            }
-            case "GRAVITY NORTH" -> gravity(0, 0, -1, 0.08);
-            case "GRAVITY EAST" -> gravity(1, 0, 0, 0.08);
-            case "ALL ENTITIES" -> set("properties.affects", "all");
-            case "LOW GRAVITY" -> set("numbers.gravity_strength", "0.03");
-            case "ARCADE VEHICLE" -> { set("numbers.acceleration", "0.06"); set("numbers.turn_rate", "7"); set("numbers.drag", "0.04"); }
-            case "HEAVY VEHICLE" -> { set("numbers.acceleration", "0.025"); set("numbers.turn_rate", "3"); set("numbers.drag", "0.015"); }
-            case "STRAIGHT SHOT" -> set("stats.gravity", "0");
-            case "ARC SHOT" -> set("stats.gravity", "0.05");
-            case "HOMING" -> { set("projectile.homing_radius", "16"); set("projectile.homing_strength", "0.18"); }
-            case "RETURNING" -> set("projectile.return_to_owner", "true");
-            case "FULL BRIGHT" -> set("particle.full_bright", "true");
-            case "COLLIDING" -> set("particle.collision", "true");
-            case "AI ON" -> set("entity.vanilla_ai", "true");
-            case "AI OFF" -> set("entity.vanilla_ai", "false");
-            case "BOX VOLUME" -> set("properties.shape", "box");
-            case "SPHERE VOLUME" -> set("properties.shape", "sphere");
-            default -> mode(DAI_CreatorRuntime.EditorMode.PREVIEW);
+        boolean local = DAI_CreatorRuntime.loadSelected(id());
+        if (local) {
+            send("create", "", "", 0, 0, 0);
+            syncRaw();
+            status = "LOADED // " + id();
+            reopen(0, 0, categoryPageIndex, typePageIndex, complexity);
+        } else {
+            send("load", "", "", 0, 0, 0);
+            status = "LOAD REQUEST";
         }
-        status = "PRESET // " + preset;
     }
 
-    private void gravity(double x, double y, double z, double strength) {
-        set("numbers.gravity_x", Double.toString(x)); set("numbers.gravity_y", Double.toString(y));
-        set("numbers.gravity_z", Double.toString(z)); set("numbers.gravity_strength", Double.toString(strength));
+    private void save() {
+        commitVisibleFields();
+        syncRaw();
+        send("save", "", "", 0, 0, 0);
+        status = "SAVED // " + id();
     }
 
-    private void set(String key, String value) {
-        DAI_CreatorRuntime.set(key, value);
-        send("set", key, value, 0, 0, 0);
+    private void applyVisible() {
+        commitVisibleFields();
+        syncRaw();
+        status = "APPLIED";
     }
 
-    private List<String> presets() {
-        return switch (kind()) {
-            case "physics" -> List.of("GRAVITY DOWN", "GRAVITY UP", "ZERO G", "GRAVITY NORTH", "GRAVITY EAST", "ALL ENTITIES", "LOW GRAVITY");
-            case "vehicle" -> List.of("ARCADE VEHICLE", "HEAVY VEHICLE");
-            case "projectile" -> List.of("STRAIGHT SHOT", "ARC SHOT", "HOMING", "RETURNING");
-            case "particle" -> List.of("FULL BRIGHT", "COLLIDING");
-            case "entity" -> List.of("AI ON", "AI OFF");
-            case "portal", "interactive" -> List.of("BOX VOLUME", "SPHERE VOLUME", "ALL ENTITIES");
-            default -> List.of("LIVE PREVIEW");
-        };
+    private void commitVisibleFields() {
+        for (FieldBinding binding : fieldBindings) {
+            DAI_CreatorRuntime.set(binding.path(), binding.edit().getValue());
+            send("set", binding.path(), binding.edit().getValue(), 0, 0, 0);
+        }
     }
 
-    private void switchGroup(int next) {
-        int group = clamp(next, 0, GROUPS.size() - 1);
-        Minecraft.getInstance().gui.setScreen(new DAI_CreatorScreen(group, GROUPS.get(group).kinds().get(0)));
+    private void applyVariation(Variation variation) {
+        DAI_CreatorRuntime.applyPatch(variation.patch());
+        syncRaw();
+        status = "PRESET // " + variation.label();
+        reopen(propertyPage, presetPageIndex, categoryPageIndex, typePageIndex, complexity);
     }
 
-    private void switchKind(int next) {
-        Minecraft.getInstance().gui.setScreen(new DAI_CreatorScreen(groupIndex, group().kinds().get(next)));
+    private void toggleTest() {
+        commitVisibleFields();
+        DAI_CreatorRuntime.setMode(DAI_CreatorRuntime.isTesting()
+                ? DAI_CreatorRuntime.EditorMode.PREVIEW
+                : DAI_CreatorRuntime.EditorMode.SIMULATE);
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        JsonObject preview = schema == null ? new JsonObject()
+                : DAI_CreatorSchemaDefinition.object(schema.json(), "preview");
+        String adapter = DAI_CreatorSchemaDefinition.string(preview, "adapter", "");
+        String action = DAI_CreatorSchemaDefinition.string(preview, "action", "");
+        send("preview_config", adapter, action, 0, 0, 0);
+        send("mode", adapter, DAI_CreatorRuntime.mode().name().toLowerCase(Locale.ROOT), 0, 0, 0);
+        status = DAI_CreatorRuntime.isTesting() ? "TESTING" : "PREVIEW";
     }
 
-    private DAI_StyledButton button(int x, int y, int w, int h, String text, DAI_ButtonStyle style, Runnable action) {
-        DAI_StyledButton b = new DAI_StyledButton(x, y, Math.max(24, w), h, Component.literal(text), ignored -> action.run(), style);
-        addRenderableWidget(b);
-        return b;
+    private void cycleDetail() {
+        int next = (complexity + 1) % 3;
+        DAI_CreatorRuntime.setMode(next == 0 ? DAI_CreatorRuntime.EditorMode.CREATE
+                : next == 1 ? DAI_CreatorRuntime.EditorMode.BUILD
+                : DAI_CreatorRuntime.EditorMode.CODE);
+        reopen(0, presetPageIndex, categoryPageIndex, typePageIndex, next);
     }
 
-    private void send(String operation, String key, String value, double x, double y, double z) {
-        DAI_ServerBridge.send(new DAI_CreatorActionPayload(operation, kind(), id(), key, value, x, y, z));
+    private void openTools() {
+        Minecraft.getInstance().gui.setScreen(new DAI_CreatorToolsScreen(
+                this, DAI_CreatorRuntime.schemaId(), DAI_CreatorRuntime.folder(), id()));
+    }
+
+    private void executeFirstSchemaAction() {
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        if (schema == null) return;
+        for (JsonElement element : schema.rightActions()) {
+            if (element != null && element.isJsonObject()) {
+                executeSchemaAction(element.getAsJsonObject());
+                return;
+            }
+        }
+    }
+
+    private void executeSchemaAction(JsonObject action) {
+        String operation = DAI_CreatorSchemaDefinition.string(action, "operation", "");
+        String key = DAI_CreatorSchemaDefinition.string(action, "key", "");
+        String value = DAI_CreatorSchemaDefinition.string(action, "value", "");
+        if (operation.isBlank()) return;
+        if (operation.equals("set")) DAI_CreatorRuntime.set(key, value);
+        send(operation, key, value, 0, 0, 0);
+        status = "ACTION // " + operation;
+    }
+
+    private void syncRaw() {
+        send("raw_json", "", DAI_CreatorRuntime.rawJson(), 0, 0, 0);
+    }
+
+    private List<CategoryBucket> categories(String rail) {
+        LinkedHashMap<String, List<DAI_CreatorSchemaRegistry.Entry>> grouped = new LinkedHashMap<>();
+        for (DAI_CreatorSchemaRegistry.Entry entry : DAI_CreatorSchemaRegistry.rail(rail)) {
+            String category = normalizedCategory(entry.definition().category());
+            grouped.computeIfAbsent(category, ignored -> new ArrayList<>()).add(entry);
+        }
+        List<CategoryBucket> output = new ArrayList<>();
+        grouped.forEach((name, entries) -> output.add(new CategoryBucket(name, List.copyOf(entries))));
+        return List.copyOf(output);
+    }
+
+    private List<DAI_CreatorSchemaRegistry.Entry> categoryTypes(String rail, String category) {
+        String wanted = normalizedCategory(category);
+        return DAI_CreatorSchemaRegistry.rail(rail).stream()
+                .filter(entry -> normalizedCategory(entry.definition().category()).equals(wanted))
+                .toList();
+    }
+
+    private int indexOfCategory(List<CategoryBucket> categories, String category) {
+        String wanted = normalizedCategory(category);
+        for (int i = 0; i < categories.size(); i++) {
+            if (normalizedCategory(categories.get(i).name()).equals(wanted)) return i;
+        }
+        return 0;
+    }
+
+    private static int indexOfType(List<DAI_CreatorSchemaRegistry.Entry> types, String id) {
+        for (int i = 0; i < types.size(); i++) {
+            if (types.get(i).id().toString().equals(id)) return i;
+        }
+        return 0;
+    }
+
+    private List<Variation> variations() {
+        List<Variation> output = new ArrayList<>();
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        if (schema != null) {
+            for (JsonElement element : schema.variations()) {
+                if (element == null || !element.isJsonObject()) continue;
+                JsonObject object = element.getAsJsonObject();
+                String label = DAI_CreatorSchemaDefinition.string(object, "display_name", "Preset");
+                output.add(new Variation(label, DAI_CreatorSchemaDefinition.object(object, "patch").deepCopy()));
+            }
+            for (DAI_CreatorPresetRegistry.Entry preset : DAI_CreatorPresetRegistry.forSchema(DAI_CreatorRuntime.schemaId())) {
+                output.add(new Variation(preset.definition().displayName(), preset.definition().patch()));
+            }
+        }
+        return List.copyOf(output);
+    }
+
+    private List<JsonObject> visibleFields(JsonArray source) {
+        List<JsonObject> output = new ArrayList<>();
+        if (source == null) return output;
+        for (JsonElement element : source) {
+            if (element == null || !element.isJsonObject()) continue;
+            JsonObject field = element.getAsJsonObject();
+            int level = DAI_CreatorSchemaDefinition.integer(field, "level", 0);
+            if (level <= complexity) output.add(field);
+        }
+        return output;
     }
 
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        int margin = 10;
-        int topH = 38;
-        int bottomH = 34;
-        int leftW = Math.min(118, Math.max(92, width / 7));
-        int rightW = Math.min(230, Math.max(184, width / 4));
-        int right = width - rightW - margin;
-        int bodyTop = topH + margin;
-        int bodyBottom = height - bottomH - 4;
+        graphics.fillGradient(0, 0, width, height, 0xF2080910, 0xF0120719);
+        graphics.fillGradient(0, 0, width, bodyTop - 3, 0xF01B0E25, 0xC00C0A13);
 
-        graphics.fillGradient(0, 0, width, topH + 4, 0xE0090610, 0xB012081B);
-        graphics.fillGradient(0, height - bottomH, width, height, 0xC012081B, 0xEA09060F);
-        panel(graphics, margin, bodyTop, leftW, bodyBottom - bodyTop, 0xA60B0710, 0xFF7A3CB1);
-        panel(graphics, right, bodyTop, rightW, bodyBottom - bodyTop, 0xB50C0711, 0xFFFF8428);
+        panel(graphics, browserX, bodyTop, browserW, bodyBottom - bodyTop, 0xBD0B0B12, 0xFF5B3C7A);
+        panel(graphics, previewX, bodyTop, previewW, bodyBottom - bodyTop, 0xC00A0C12, 0xFF7347A0);
+        panel(graphics, inspectorX, bodyTop, inspectorW, bodyBottom - bodyTop, 0xC0110C16, 0xFFFF812B);
 
-        graphics.text(font, Component.literal("D.A.I. // CREATOR"), 12, 8, 0xFFFFA05B);
-        graphics.text(font, Component.literal("UNIVERSAL WIREFRAME AUTHORING"), 12, 20, 0xFFC48AEF);
-        graphics.text(font, Component.literal(kindLabel(kind()) + " // " + id()),
-                Math.max(leftW + 24, width / 2 - 80), 31, 0xFFF7EFFF);
+        drawText(graphics, "D.A.I. // CREATOR 3.9", 9, 7, 0xFFFF9A4D);
+        if (width >= 560) drawText(graphics, "VISUAL GAME CREATOR", 9, 19, 0xFFB985E0);
 
-        graphics.text(font, Component.literal("SPACE"), margin + 8, bodyTop + 8, 0xFFA977D2);
-        graphics.centeredText(font, Component.literal(kindLabel(kind())), margin + leftW / 2, bodyTop + 96, 0xFFFFA05B);
-        graphics.text(font, Component.literal("INSPECTOR"), right + 8, bodyTop + 8, 0xFFFF9A50);
-        graphics.text(font, Component.literal(contextHint(kind())), right + 8, bodyTop + 18, 0xFFB38DC6);
-        graphics.centeredText(font, Component.literal(presets().get(Math.floorMod(presetIndex, presets().size()))),
-                right + rightW / 2, bodyTop + 133, 0xFFE7C8FA);
+        DAI_CreatorSchemaDefinition schema = DAI_CreatorRuntime.schema();
+        drawText(graphics, "CREATE", browserX + 7, bodyTop + 8, 0xFFD8B6F0);
+        drawText(graphics, "PREVIEW", previewX + 9, bodyTop + 8, 0xFFFFB277);
+        drawText(graphics, "PROPERTIES", inspectorX + 9, bodyTop + 8, 0xFFFFB277);
 
-        drawWireframe(graphics, margin + leftW + 10, right - 10, bodyTop + 6, bodyBottom - 6);
-        graphics.text(font, Component.literal(status), 12, height - bottomH - 12, 0xFFFFC27C);
+        if (schema == null) {
+            drawCenteredText(graphics, "No Creator definitions loaded",
+                    previewX + previewW / 2, bodyTop + 55, 0xFFFF758D);
+        } else {
+            drawAdaptiveText(graphics, schema.displayName(), previewX + 9, bodyTop + 22,
+                    previewW - 18, 0xFFF5EEFF, 0.64F);
+            List<String> description = wrap(schema.description(), previewW - 18, 2);
+            int dy = bodyTop + 34;
+            for (String line : description) {
+                drawText(graphics, line, previewX + 9, dy, 0xFFAFA0BF);
+                dy += 9;
+            }
+            int previewContentY = Math.max(bodyTop + 54, dy + 3);
+            renderPreview(graphics, schema, partialTick, previewContentY);
+
+            drawAdaptiveText(graphics, schema.shortName(), inspectorX + 9, bodyTop + 21,
+                    inspectorW - 18, 0xFFD7C5E4, 0.62F);
+        }
+
+        drawText(graphics, "CATEGORY", browserX + 7, browserCategoryLabelY, 0xFF9276A8);
+        drawText(graphics, "TYPE", browserX + 7, browserTypeLabelY, 0xFF9276A8);
+        if (browserPresetLabelY >= 0) {
+            drawText(graphics, "START FROM", browserX + 7, browserPresetLabelY, 0xFF9276A8);
+        }
+        if (categoryPagerY >= 0) {
+            drawPageIndicator(graphics, browserX, categoryPagerY + 4, browserW,
+                    categoryPageIndex, categoryPageCount);
+        }
+        if (typePagerY >= 0) {
+            drawPageIndicator(graphics, browserX, typePagerY + 4, browserW,
+                    typePageIndex, typePageCount);
+        }
+        if (presetPagerY >= 0) {
+            drawPageIndicator(graphics, browserX, presetPagerY + 4, browserW,
+                    presetPageIndex, presetPageCount);
+        }
+
+        for (FieldBinding binding : fieldBindings) {
+            drawAdaptiveText(graphics, binding.label(), inspectorX + 8, binding.y(),
+                    inspectorW - 16, 0xFFD7C5E4, 0.62F);
+        }
+
+        drawAdaptiveText(graphics, status, previewX + 9, bodyBottom - 12,
+                previewW - 18, 0xFFFFC087, 0.58F);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderPreview(GuiGraphicsExtractor graphics, DAI_CreatorSchemaDefinition schema, float partialTick, int contentY) {
+        int x = previewX + 9;
+        int y = contentY;
+        int w = Math.max(20, previewW - 18);
+        int h = Math.max(28, bodyBottom - y - 20);
+        boolean rendered = false;
+        if (schema.previewType().equals("scene")) {
+            if (schema.previewSource().equals("draft")) {
+                DAI_SceneRenderer.renderDefinition(graphics, DAI_CreatorRuntime.draft(), x, y, w, h,
+                        partialTick, previewVariables(schema));
+                rendered = true;
+            } else if (!schema.previewScene().isBlank()) {
+                rendered = DAI_SceneRenderer.render(graphics, schema.previewScene(), x, y, w, h,
+                        partialTick, previewVariables(schema));
+            }
+        }
+        if (rendered) return;
+
+        if (schema.previewType().equals("world")) {
+            renderWorldPreview(graphics, x, y, w, h);
+            return;
+        }
+        renderDocumentPreview(graphics, x, y, w, h);
+    }
+
+    private void renderDocumentPreview(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
+        graphics.fillGradient(x, y, x + w, y + h, 0xD00A0C13, 0xD0100B18);
+        graphics.outline(x, y, w, h, 0xFF443456);
+        int pad = 8;
+        int lineY = y + 8;
+        drawText(graphics, "DOCUMENT", x + pad, lineY, 0xFFFFB277);
+        drawAdaptiveText(graphics, id(), x + pad + 48, lineY,
+                Math.max(18, w - pad * 2 - 48), 0xFFD7C5E4, 0.54F);
+        lineY += 14;
+
+        String[] lines = prettyJsonPreview(DAI_CreatorRuntime.rawJson(),
+                Math.max(18, w / 6), Math.max(2, (h - 29) / 10));
+        for (String line : lines) {
+            if (lineY + 9 >= y + h - 4) break;
+            int depth = leadingSpaces(line) / 2;
+            int indent = Math.min(18, depth * 5);
+            String shown = line.stripLeading();
+            int color = shown.startsWith("\"") ? 0xFFC7A7E0 : 0xFFB9AEC4;
+            drawAdaptiveText(graphics, shown, x + pad + indent, lineY,
+                    Math.max(12, w - pad * 2 - indent), color, 0.52F);
+            lineY += 10;
+        }
+    }
+
+    private void renderWorldPreview(GuiGraphicsExtractor graphics, int x, int y, int w, int h) {
+        graphics.fillGradient(x, y, x + w, y + h, 0xD00A0D16, 0xD0120C19);
+        graphics.outline(x, y, w, h, 0xFF443456);
+        int cx = x + w / 2;
+        int cy = y + h / 2;
+        for (int gx = x + 8; gx < x + w - 8; gx += 12)
+            graphics.fill(gx, y + 8, gx + 1, y + h - 8, 0x223F3152);
+        for (int gy = y + 8; gy < y + h - 8; gy += 12)
+            graphics.fill(x + 8, gy, x + w - 8, gy + 1, 0x223F3152);
+        graphics.fill(cx - 8, cy, cx + 9, cy + 1, 0xAAFF8A2A);
+        graphics.fill(cx, cy - 8, cx + 1, cy + 9, 0xAAFF8A2A);
+        Vec3 pos = playerPos();
+        drawCenteredText(graphics, "WORLD", cx, y + 10, 0xFFFFB277);
+        drawCenteredText(graphics, String.format(Locale.ROOT, "%.1f  %.1f  %.1f", pos.x, pos.y, pos.z),
+                cx, y + h - 15, 0xFFBFA8D0);
+    }
+
+    private Map<String, Object> previewVariables(DAI_CreatorSchemaDefinition schema) {
+        LinkedHashMap<String, Object> vars = new LinkedHashMap<>();
+        vars.put("creator.id", id());
+        vars.put("creator.schema", DAI_CreatorRuntime.schemaId());
+        vars.put("creator.folder", schema.folder());
+        vars.put("creator.mode", DAI_CreatorRuntime.mode().name().toLowerCase(Locale.ROOT));
+        return Map.copyOf(vars);
     }
 
     @Override
@@ -304,59 +689,208 @@ public final class DAI_CreatorScreen extends Screen {
         Minecraft.getInstance().gui.setScreen(null);
     }
 
-    @Override public boolean isPauseScreen() { return false; }
+    @Override
+    public boolean isPauseScreen() { return false; }
+
+    private void reopen(int newProperty, int newPreset, int newCategory, int newType, int newComplexity) {
+        Minecraft.getInstance().gui.setScreen(new DAI_CreatorScreen(
+                DAI_CreatorRuntime.schemaId(), newProperty, newPreset,
+                newCategory, newType, newComplexity));
+    }
 
     private String id() {
-        String v = idEdit == null ? "" : idEdit.getValue().trim();
-        return v.isBlank() ? DAI_CreatorRuntime.id() : v;
+        String value = idEdit == null ? "" : idEdit.getValue().trim();
+        return value.isBlank() ? DAI_CreatorRuntime.id() : value;
     }
-    private Vec3 playerPos() { var p = Minecraft.getInstance().player; return p == null ? Vec3.ZERO : p.position(); }
-    private KindGroup group() { return GROUPS.get(clamp(groupIndex, 0, GROUPS.size() - 1)); }
-    private String kind() { return group().kinds().get(clamp(kindIndex, 0, group().kinds().size() - 1)); }
 
-    private static String defaultPath(String kind) {
-        return switch (kind) {
-            case "physics" -> "numbers.gravity_strength"; case "vehicle" -> "numbers.max_speed";
-            case "projectile" -> "stats.projectile_speed"; case "particle" -> "particle.lifetime";
-            case "portal", "interactive" -> "properties.affects"; case "entity" -> "events.spawn";
-            default -> "display_name";
-        };
+    private Vec3 playerPos() {
+        var player = Minecraft.getInstance().player;
+        return player == null ? Vec3.ZERO : player.position();
     }
-    private static String defaultValue(String kind) {
-        return switch (kind) {
-            case "physics" -> "0.08"; case "vehicle" -> "0.8"; case "projectile" -> "1.5";
-            case "particle" -> "30"; case "portal", "interactive" -> "all";
-            case "entity" -> "example:entity/spawn"; default -> "Creator Draft";
-        };
+
+    private void send(String operation, String key, String value, double x, double y, double z) {
+        DAI_ServerBridge.send(new DAI_CreatorActionPayload(
+                operation, DAI_CreatorRuntime.folder(), id(), key, value, x, y, z));
     }
-    private static String contextHint(String kind) {
-        return switch (kind) {
-            case "physics" -> "gravity / drag / volume"; case "vehicle" -> "handling / speed / boost";
-            case "projectile" -> "trajectory / collision"; case "portal" -> "destination / volume";
-            case "particle" -> "motion / render"; case "entity" -> "behavior / events";
-            default -> "properties / events / JSON";
-        };
+
+    private DAI_StyledButton button(int x, int y, int w, int h, String text, DAI_ButtonStyle style, Runnable action) {
+        DAI_StyledButton button = new DAI_StyledButton(x, y, Math.max(18, w), Math.max(16, h),
+                Component.literal(text), ignored -> action.run(), style);
+        button.setTextScale(uiTextScale);
+        addRenderableWidget(button);
+        return button;
     }
-    private static int groupForKind(String kind) {
-        for (int i = 0; i < GROUPS.size(); i++) if (GROUPS.get(i).kinds().contains(kind)) return i;
-        return 0;
+
+    private void drawText(GuiGraphicsExtractor graphics, String text, int x, int y, int color) {
+        drawTextAtScale(graphics, text, x, y, color, uiTextScale);
     }
-    private static String kindLabel(String raw) { return raw == null ? "UNKNOWN" : raw.replace('_', ' ').toUpperCase(); }
-    private static int clamp(int v, int min, int max) { return Math.max(min, Math.min(max, v)); }
+
+    private void drawCenteredText(GuiGraphicsExtractor graphics, String text, int x, int y, int color) {
+        if (uiTextScale >= 0.999F) {
+            graphics.centeredText(font, Component.literal(text), x, y, color);
+            return;
+        }
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(uiTextScale, uiTextScale);
+        graphics.centeredText(font, Component.literal(text),
+                Math.round(x / uiTextScale), Math.round(y / uiTextScale), color);
+        graphics.pose().popMatrix();
+    }
+
+    private void drawAdaptiveText(
+            GuiGraphicsExtractor graphics, String text, int x, int y,
+            int maxPixels, int color, float minimumScale
+    ) {
+        String value = text == null ? "" : text.trim();
+        if (value.isEmpty() || maxPixels <= 0) return;
+        int rawWidth = Math.max(1, font.width(value));
+        float scale = Math.min(uiTextScale, maxPixels / (float)rawWidth);
+        scale = Math.max(Math.min(uiTextScale, 1.0F), Math.max(0.48F, minimumScale));
+        if (rawWidth * scale > maxPixels) {
+            scale = Math.max(0.48F, Math.min(uiTextScale, maxPixels / (float)rawWidth));
+        }
+        int logicalMax = Math.max(1, (int)Math.floor(maxPixels / scale));
+        drawTextAtScale(graphics, fitAtScale(value, logicalMax), x, y, color, scale);
+    }
+
+    private void drawTextAtScale(
+            GuiGraphicsExtractor graphics, String text, int x, int y, int color, float scale
+    ) {
+        if (scale >= 0.999F) {
+            graphics.text(font, Component.literal(text), x, y, color);
+            return;
+        }
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(scale, scale);
+        graphics.text(font, Component.literal(text),
+                Math.round(x / scale), Math.round(y / scale), color);
+        graphics.pose().popMatrix();
+    }
+
+    private void drawPageIndicator(GuiGraphicsExtractor graphics, int x, int y, int w, int page, int pages) {
+        String value = (page + 1) + "/" + pages;
+        drawCenteredText(graphics, value, x + w / 2, y, 0xFF7F6A93);
+    }
+
+    private String fitAtScale(String text, int logicalMax) {
+        String value = text == null ? "" : text.trim();
+        if (logicalMax <= 0 || font.width(value) <= logicalMax) return value;
+        String ellipsis = "...";
+        int allowed = Math.max(1, logicalMax - font.width(ellipsis));
+        int end = value.length();
+        while (end > 1 && font.width(value.substring(0, end)) > allowed) end--;
+        return value.substring(0, Math.max(1, end)).trim() + ellipsis;
+    }
+
+    private String fit(String text, int maxPixels) {
+        String value = text == null ? "" : text.trim();
+        int logicalMax = uiTextScale <= 0.0F ? maxPixels
+                : Math.max(1, (int)Math.floor(maxPixels / uiTextScale));
+        return fitAtScale(value, logicalMax);
+    }
+
+    private List<String> wrap(String text, int maxPixels, int maxLines) {
+        String value = text == null ? "" : text.trim();
+        if (value.isBlank() || maxLines <= 0) return List.of();
+        int logicalMax = uiTextScale <= 0.0F ? maxPixels
+                : Math.max(1, (int)Math.floor(maxPixels / uiTextScale));
+        List<String> out = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        String[] words = value.split("\\s+");
+        int cursor = 0;
+        for (; cursor < words.length; cursor++) {
+            String word = words[cursor];
+            String candidate = line.isEmpty() ? word : line + " " + word;
+            if (font.width(candidate) <= logicalMax) {
+                line.setLength(0);
+                line.append(candidate);
+                continue;
+            }
+            if (!line.isEmpty()) {
+                out.add(line.toString());
+                line.setLength(0);
+                if (out.size() >= maxLines) break;
+            }
+            if (font.width(word) > logicalMax) out.add(fit(word, maxPixels));
+            else line.append(word);
+            if (out.size() >= maxLines) break;
+        }
+        if (out.size() < maxLines && !line.isEmpty()) out.add(line.toString());
+        if (cursor < words.length - 1 && !out.isEmpty()) {
+            int last = out.size() - 1;
+            out.set(last, fit(out.get(last) + "...", maxPixels));
+        }
+        return List.copyOf(out);
+    }
+
+    private String detailLabel() {
+        return complexity == 0 ? "BASIC" : complexity == 1 ? "MORE" : "ALL";
+    }
+
+    private boolean compactHeight() { return height < 330; }
+
+    private static String normalizedCategory(String value) {
+        return DAI_CreatorSchemaDefinition.normalized(value == null ? "GENERAL" : value);
+    }
+
+    private static String prettyCategory(String value) {
+        String normalized = normalizedCategory(value).replace('_', ' ').trim();
+        return normalized.isBlank() ? "GENERAL" : normalized.toUpperCase(Locale.ROOT);
+    }
+
+    private static String valueText(JsonElement value) {
+        if (value == null || value.isJsonNull()) return "";
+        try { return value.isJsonPrimitive() ? value.getAsString() : value.toString(); }
+        catch (RuntimeException ignored) { return ""; }
+    }
+
+    private static int leadingSpaces(String value) {
+        int count = 0;
+        while (count < value.length() && value.charAt(count) == ' ') count++;
+        return count;
+    }
+
+    private static String[] prettyJsonPreview(String raw, int approximateWidth, int maxLines) {
+        if (raw == null || raw.isBlank()) return new String[]{"{}"};
+        try {
+            JsonElement element = com.google.gson.JsonParser.parseString(raw);
+            String pretty = new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(element);
+            String[] source = pretty.split("\\R");
+            List<String> out = new ArrayList<>();
+            for (String line : source) {
+                if (out.size() >= maxLines) break;
+                if (line.length() <= approximateWidth * 2) out.add(line);
+                else out.add(compact(line, Math.max(8, approximateWidth * 2)));
+            }
+            if (source.length > out.size() && !out.isEmpty()) {
+                int last = out.size() - 1;
+                out.set(last, compact(out.get(last), Math.max(4, approximateWidth * 2 - 3)) + "...");
+            }
+            return out.toArray(String[]::new);
+        } catch (RuntimeException ignored) {
+            return new String[]{compact(raw, Math.max(12, approximateWidth * 2))};
+        }
+    }
+
+    private static String compact(String text, int max) {
+        String value = text == null ? "" : text.trim();
+        if (value.length() <= max) return value;
+        return value.substring(0, Math.max(1, max - 3)) + "...";
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
     private static void panel(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill, int border) {
-        g.fill(x, y, x + w, y + h, fill); g.outline(x, y, w, h, border);
-        g.fill(x + 2, y + 2, x + w - 2, y + 3, 0x99FF8428);
-        g.fill(x + w - 3, y + 3, x + w - 2, y + h - 3, 0x99A855F7);
+        g.fill(x, y, x + w, y + h, fill);
+        g.outline(x, y, w, h, border);
+        if (w > 6 && h > 6) {
+            g.fill(x + 2, y + 2, x + w - 2, y + 3, 0x66FF8428);
+        }
     }
-    private static void drawWireframe(GuiGraphicsExtractor g, int left, int right, int top, int bottom) {
-        if (right - left < 80 || bottom - top < 80) return;
-        int cx = (left + right) / 2, cy = (top + bottom) / 2;
-        int orange = 0x66FF8428, purple = 0x66A855F7;
-        g.outline(left + 8, top + 8, 22, 22, purple); g.outline(right - 30, top + 8, 22, 22, orange);
-        g.outline(left + 8, bottom - 30, 22, 22, orange); g.outline(right - 30, bottom - 30, 22, 22, purple);
-        g.fill(cx - 18, cy, cx - 5, cy + 1, orange); g.fill(cx + 5, cy, cx + 18, cy + 1, orange);
-        g.fill(cx, cy - 18, cx + 1, cy - 5, purple); g.fill(cx, cy + 5, cx + 1, cy + 18, purple);
-    }
-    private record KindGroup(String title, List<String> kinds) {}
+
+    private record FieldBinding(String path, String label, EditBox edit, int y) {}
+    private record Variation(String label, JsonObject patch) {}
+    private record CategoryBucket(String name, List<DAI_CreatorSchemaRegistry.Entry> entries) {}
 }

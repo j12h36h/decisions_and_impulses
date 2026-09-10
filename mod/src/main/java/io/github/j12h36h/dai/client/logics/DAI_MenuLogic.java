@@ -7,7 +7,7 @@ import io.github.j12h36h.dai.client.logics.action.DAI_ActionStatus;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.menus.DAI_MenuCore;
 import io.github.j12h36h.dai.client.creator.DAI_CreatorScreen;
-import io.github.j12h36h.dai.client.creator.DAI_AutomationCreatorScreen;
+import io.github.j12h36h.dai.client.creator.DAI_CreatorRuntime;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.client.menus.DAI_ScreenManager;
@@ -41,7 +41,8 @@ public final class DAI_MenuLogic {
             return;
         }
         Screen current = minecraft.gui.screen();
-        DAI_ScreenManager.openTemporary(current, new DAI_AutomationCreatorScreen());
+        DAI_CreatorRuntime.selectSchema("decisions_and_impulses:action");
+        DAI_ScreenManager.openTemporary(current, new DAI_CreatorScreen());
     }
 
     public static void openPauseMenu(

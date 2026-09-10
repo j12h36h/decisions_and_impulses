@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 /**
  * Lightweight client -> server vehicle control state.
  *
- * DAI 3.3 DirtBikeLife extension: attack/use are included so authored
+ * Data-driven vehicle extension: attack/use are included so authored
  * vehicles can bind throttle/brake/transmission behavior to the mouse while
  * preserving the existing movement-key vehicle and physics inputs.
  */

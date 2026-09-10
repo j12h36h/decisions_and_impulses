@@ -1,0 +1,44 @@
+{
+  "display_name": "Enchantment",
+  "folder": "dai_enchantments",
+  "rail": "standalone",
+  "category": "GAMEPLAY",
+  "description": "Data-defined enchantment module.",
+  "priority": 51,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Enchantment Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "Enchantment Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

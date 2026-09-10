@@ -88,7 +88,7 @@ public final class DAI_ExperienceLauncher {
 
 
     /**
-     * Boxhead/custom-experience creator entry point. Minecraft still owns the
+     * Generic custom-experience creator entry point. Minecraft still owns the
      * actual CreateWorldScreen; this only supplies the user-facing name and a
      * selected DAI worldgen definition for the pending first-start handoff.
      */

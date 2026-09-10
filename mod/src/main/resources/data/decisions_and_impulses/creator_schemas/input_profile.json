@@ -1,0 +1,52 @@
+{
+  "display_name": "Input Profile",
+  "short_name": "Input",
+  "folder": "input_profiles",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Map controls and contextual inputs entirely through JSON.",
+  "priority": 94,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "context",
+      "label": "Context",
+      "type": "text",
+      "default": "gameplay",
+      "level": 0
+    },
+    {
+      "path": "consume",
+      "label": "Consume Input",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "priority": 0,
+    "context": "gameplay",
+    "bindings": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.48
+  }
+}

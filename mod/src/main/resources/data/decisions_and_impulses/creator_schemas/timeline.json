@@ -1,0 +1,33 @@
+{
+  "display_name": "Timeline",
+  "folder": "dai_timelines",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Sequence actions, events and presentation over time.",
+  "priority": 74,
+  "fields": [
+    {
+      "path": "duration",
+      "label": "Duration",
+      "type": "number",
+      "default": "200",
+      "level": 0
+    },
+    {
+      "path": "loop",
+      "label": "Loop",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    }
+  ],
+  "template": {
+    "duration": 200,
+    "loop": false,
+    "entries": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

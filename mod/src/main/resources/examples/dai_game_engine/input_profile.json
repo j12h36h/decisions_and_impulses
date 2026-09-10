@@ -1,0 +1,38 @@
+{
+  "enabled": true,
+  "priority": 100,
+  "match": {
+    "item_ids": ["example:custom_tool"]
+  },
+  "primary": {
+    "mode": "directional_release",
+    "begin_action": "example:input_begin",
+    "tick_action": "example:input_tick",
+    "release_action": "example:input_release",
+    "suppress_vanilla": true
+  },
+  "secondary": {
+    "begin_action": "example:secondary_begin",
+    "tick_action": "example:secondary_tick",
+    "end_action": "example:secondary_end",
+    "suppress_vanilla": true
+  },
+  "directional": {
+    "threshold_degrees": 5.0,
+    "fallback_direction": 0,
+    "release_action_pattern": "example:direction_{direction_name}"
+  },
+  "first_person": {
+    "enabled": true,
+    "ready_blend_ticks": 5,
+    "release_duration_ticks": 8,
+    "ready": { "pitch": 0, "yaw": 0, "roll": 0, "x": 0, "y": 0, "z": 0 },
+    "secondary": { "pitch": -10, "yaw": 5, "roll": 0, "x": 0, "y": 0, "z": 0 },
+    "directions": {
+      "1": { "pitch": -35, "yaw": 0, "roll": 0, "x": 0, "y": 0, "z": 0 },
+      "3": { "pitch": 0, "yaw": 35, "roll": 0, "x": 0, "y": 0, "z": 0 },
+      "5": { "pitch": 35, "yaw": 0, "roll": 0, "x": 0, "y": 0, "z": 0 },
+      "7": { "pitch": 0, "yaw": -35, "roll": 0, "x": 0, "y": 0, "z": 0 }
+    }
+  }
+}

@@ -189,3 +189,55 @@ Static registry note:
    The older explicit "native_components" spelling is still accepted by the
    early scanner/cache for compatibility. Prefer "components" for new packs so
    reload preflight can compare the current definition directly.
+
+14) Scene environments
+    scene_environment.json demonstrates the generic scene_environments format.
+    Datapacks/resource packs define camera keyframes, interpolation, drift,
+    shake, backgrounds, overlays, textures, items/blocks, text and scene
+    composition. DAI supplies only projection/rendering primitives.
+
+    Data path:
+      data/<namespace>/scene_environments/*.json
+
+    Resource path:
+      assets/<namespace>/scene_environments/*.json
+
+    A resource-pack scene with the same id may replace the data copy.
+
+15) Screen overrides
+    screen_override.json demonstrates screen_overrides. Rules match arbitrary
+    vanilla or modded Screen classes/titles with globs. mode "replace" opens a
+    DAI data screen; non-replace modes retain the native screen and layer
+    background_scene / foreground_scene around it.
+
+    Data path:
+      data/<namespace>/screen_overrides/*.json
+
+16) Story archives / paged viewers
+    story_profile.json demonstrates story_profiles. Session start/end,
+    observed-event conditions, importance, cooldowns, titles, narration,
+    scene selection, page compilation, panel layout, colors and navigation are
+    profile data. DAI does not assign project-specific story meaning.
+
+    Data path:
+      data/<namespace>/story_profiles/*.json
+
+    Generic actions:
+      story_open
+      story_event
+      story_session_start
+      story_session_end
+
+17) Input profiles
+    input_profile.json demonstrates input_profiles. Matching items/content,
+    primary/secondary gesture actions, directional thresholds and every
+    first-person transform are authored by JSON rather than Java.
+
+    Data path:
+      data/<namespace>/input_profiles/*.json
+
+    Resource path:
+      assets/<namespace>/input_profiles/*.json
+
+    This replaces the historical project-specific directional input path with
+    a reusable pack-defined input/presentation primitive.

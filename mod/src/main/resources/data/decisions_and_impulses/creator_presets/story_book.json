@@ -1,0 +1,10 @@
+{
+  "display_name": "Book Viewer",
+  "schema": "decisions_and_impulses:story_profile",
+  "priority": 50,
+  "patch": {
+    "viewer": {
+      "layout": "book"
+    }
+  }
+}

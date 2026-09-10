@@ -1,0 +1,10 @@
+{
+  "display_name": "AI Disabled",
+  "schema": "decisions_and_impulses:entity",
+  "priority": 40,
+  "patch": {
+    "entity": {
+      "vanilla_ai": false
+    }
+  }
+}

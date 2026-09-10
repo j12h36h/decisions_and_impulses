@@ -1,0 +1,41 @@
+{
+  "display_name": "Reaction Event",
+  "short_name": "Event Hook",
+  "folder": "reaction_events",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Declare reusable event channels and contextual data for reactions.",
+  "priority": 88,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "scope",
+      "label": "Scope",
+      "type": "text",
+      "default": "client",
+      "level": 0
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "description": "",
+    "scope": "client"
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

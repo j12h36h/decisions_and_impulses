@@ -1,0 +1,56 @@
+{
+  "display_name": "Reaction",
+  "folder": "reactions",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Connect data-defined events and phases to actions.",
+  "priority": 90,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "event",
+      "label": "Event",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "phase",
+      "label": "Phase",
+      "type": "text",
+      "default": "post",
+      "level": 0
+    },
+    {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "action",
+      "label": "Action",
+      "type": "text",
+      "default": "",
+      "level": 0
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "event": "",
+    "phase": "post",
+    "priority": 0,
+    "action": ""
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

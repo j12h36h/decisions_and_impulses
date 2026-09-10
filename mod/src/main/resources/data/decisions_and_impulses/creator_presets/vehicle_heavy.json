@@ -1,0 +1,12 @@
+{
+  "display_name": "Heavy Handling",
+  "schema": "decisions_and_impulses:vehicle",
+  "priority": 40,
+  "patch": {
+    "numbers": {
+      "acceleration": 0.025,
+      "turn_rate": 3,
+      "drag": 0.015
+    }
+  }
+}

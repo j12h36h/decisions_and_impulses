@@ -1,0 +1,87 @@
+{
+  "enabled": true,
+  "priority": 0,
+  "poll_interval_ticks": 5,
+  "session": {
+    "auto_start": false,
+    "auto_start_on_explicit": true,
+    "start_when": [
+      { "field": "player.alive", "operator": "became_true" }
+    ],
+    "end_when": [
+      { "field": "player.dead", "operator": "became_true" }
+    ]
+  },
+  "events": [
+    {
+      "id": "entered_environment",
+      "when": [
+        { "field": "world.biome", "operator": "changed" }
+      ],
+      "once_per_value": "world.biome",
+      "importance": 25,
+      "caption": "Entered {world.biome}",
+      "narration": "The environment changed around {player.name}.",
+      "scene": "example:event_environment"
+    },
+    {
+      "id": "low_health",
+      "when": [
+        { "field": "player.health_ratio", "operator": "crossed_below", "compare": 0.25 }
+      ],
+      "cooldown_ticks": 200,
+      "importance": 60,
+      "caption": "A dangerous moment",
+      "narration": "Health fell to {player.health}.",
+      "scene": "example:event_danger"
+    }
+  ],
+  "compiler": {
+    "minimum_importance": 0,
+    "max_events": 24,
+    "preserve_first": true,
+    "preserve_last": true,
+    "panels_per_page": 2,
+    "title": "Session {session.number}",
+    "subtitle": "{session.event_count} recorded events"
+  },
+  "viewer": {
+    "library": {
+      "title": "Archive",
+      "entry_text": "{session.title}",
+      "background": "#DD101014",
+      "text_color": "#FFFFFFFF",
+      "card_background": "#DD24242A",
+      "card_border": "#FF808080"
+    },
+    "cover": {
+      "enabled": true,
+      "heading": "{session.title}",
+      "subheading": "{session.subtitle}",
+      "background": "#FFF0E9D7",
+      "text_color": "#FF202020"
+    },
+    "story_page": {
+      "heading": "Page {page.number}",
+      "background": "#FFF0E9D7",
+      "text_color": "#FF202020"
+    },
+    "panel": {
+      "background": "#FF202020",
+      "border": "#FFFFFFFF",
+      "text_color": "#FFFFFFFF",
+      "padding": 5
+    },
+    "navigation": {
+      "previous": "<",
+      "library": "=",
+      "next": ">"
+    },
+    "layouts": {
+      "2": [
+        { "x": 0.04, "y": 0.14, "width": 0.44, "height": 0.68 },
+        { "x": 0.52, "y": 0.14, "width": 0.44, "height": 0.68 }
+      ]
+    }
+  }
+}

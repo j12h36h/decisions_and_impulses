@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client.screens.data;
 
 import io.github.j12h36h.dai.api.DAI_StateValue;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
@@ -16,6 +17,8 @@ import org.jspecify.annotations.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Runtime renderer for a {@code dai_screens} definition. */
 public final class DAI_DataScreen extends Screen {
@@ -137,8 +140,12 @@ public final class DAI_DataScreen extends Screen {
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         int right = Math.min(width, left + definition.width());
         int bottom = Math.min(height, top + definition.height());
-        graphics.fill(left, top, right, bottom, 0xD00B0710);
-        graphics.outline(left, top, Math.max(1, right - left), Math.max(1, bottom - top), 0xFFFF8B32);
+        if (!definition.backgroundScene().isBlank()) {
+            DAI_SceneRenderer.render(graphics, definition.backgroundScene(), left, top, Math.max(1, right-left), Math.max(1, bottom-top), partialTick, screenVariables());
+        } else {
+            graphics.fill(left, top, right, bottom, 0xD00B0710);
+            graphics.outline(left, top, Math.max(1, right - left), Math.max(1, bottom - top), 0xFFFF8B32);
+        }
         graphics.text(font, Component.literal(definition.title()), left + 8, top + 7, 0xFFFFB06A);
 
         for (DAI_DataScreenDefinition.Widget widget : visualWidgets) renderVisual(graphics, widget);
@@ -173,8 +180,29 @@ public final class DAI_DataScreen extends Screen {
                 if (!widget.label().isBlank()) graphics.text(font, Component.literal(widget.label()), x + 19, y + 4, widget.color());
             }
             case "label" -> graphics.text(font, Component.literal(widget.label()), x, y, widget.color());
+            case "scene_view", "scene" -> {
+                if (!widget.scene().isBlank()) DAI_SceneRenderer.render(graphics, widget.scene(), x, y, widget.width(), widget.height(), 0.0F, screenVariables());
+            }
             default -> { }
         }
+    }
+
+    private Map<String,Object> screenVariables() {
+        LinkedHashMap<String,Object> vars = new LinkedHashMap<>();
+        vars.put("screen.id", definitionId);
+        vars.put("screen.width", definition.width());
+        vars.put("screen.height", definition.height());
+        for (DAI_DataScreenDefinition.Widget widget : definition.widgets()) {
+            if (widget == null || widget.state().isBlank()) continue;
+            DAI_StateValue value = DAI_DataScreenState.get(widget.state());
+            switch (value.type()) {
+                case BOOLEAN -> vars.put("state." + widget.state(), value.booleanValue());
+                case NUMBER -> vars.put("state." + widget.state(), value.numberValue());
+                case STRING -> vars.put("state." + widget.state(), value.stringValue());
+                default -> { }
+            }
+        }
+        return vars;
     }
 
     @Override public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {}

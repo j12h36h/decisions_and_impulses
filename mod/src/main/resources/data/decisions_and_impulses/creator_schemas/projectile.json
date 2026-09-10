@@ -1,0 +1,144 @@
+{
+  "display_name": "Projectile",
+  "folder": "dai_projectiles",
+  "rail": "standalone",
+  "category": "GAMEPLAY",
+  "description": "Data-defined projectile module.",
+  "priority": 55,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Projectile Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "stats.projectile_speed",
+      "label": "Speed",
+      "type": "number",
+      "default": "1.5",
+      "level": 0
+    },
+    {
+      "path": "stats.gravity",
+      "label": "Gravity",
+      "type": "number",
+      "default": "0.05",
+      "level": 1
+    },
+    {
+      "path": "projectile.homing_radius",
+      "label": "Homing Radius",
+      "type": "number",
+      "default": "0",
+      "level": 2
+    }
+  ],
+  "template": {
+    "display_name": "Projectile Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "tools": [
+    {
+      "label": "X -",
+      "operation": "nudge",
+      "x": -1,
+      "style": "soft"
+    },
+    {
+      "label": "X +",
+      "operation": "nudge",
+      "x": 1,
+      "style": "soft"
+    },
+    {
+      "label": "Y -",
+      "operation": "nudge",
+      "y": -1,
+      "style": "soft"
+    },
+    {
+      "label": "Y +",
+      "operation": "nudge",
+      "y": 1,
+      "style": "soft"
+    },
+    {
+      "label": "Z -",
+      "operation": "nudge",
+      "z": -1,
+      "style": "soft"
+    },
+    {
+      "label": "Z +",
+      "operation": "nudge",
+      "z": 1,
+      "style": "soft"
+    },
+    {
+      "label": "SIZE -",
+      "operation": "resize",
+      "x": -1,
+      "y": -1,
+      "z": -1,
+      "style": "soft"
+    },
+    {
+      "label": "SIZE +",
+      "operation": "resize",
+      "x": 1,
+      "y": 1,
+      "z": 1,
+      "style": "soft"
+    },
+    {
+      "label": "HOLOGRAM",
+      "operation": "hologram",
+      "style": "action"
+    },
+    {
+      "label": "UNDO",
+      "operation": "undo",
+      "style": "soft"
+    },
+    {
+      "label": "REDO",
+      "operation": "redo",
+      "style": "soft"
+    },
+    {
+      "label": "DUPLICATE",
+      "operation": "duplicate",
+      "style": "action"
+    },
+    {
+      "label": "DELETE",
+      "operation": "delete",
+      "style": "danger"
+    }
+  ]
+}

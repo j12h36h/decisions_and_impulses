@@ -1,0 +1,68 @@
+{
+  "display_name": "Data Screen",
+  "short_name": "UI Screen",
+  "folder": "dai_screens",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Build a complete JSON-driven DAI screen with widgets, actions and scene views.",
+  "priority": 100,
+  "fields": [
+    {
+      "path": "title",
+      "label": "Title",
+      "type": "text",
+      "default": "Custom Screen",
+      "level": 0
+    },
+    {
+      "path": "width",
+      "label": "Width",
+      "type": "number",
+      "default": "320",
+      "level": 1
+    },
+    {
+      "path": "height",
+      "label": "Height",
+      "type": "number",
+      "default": "180",
+      "level": 1
+    },
+    {
+      "path": "background_scene",
+      "label": "Background Scene",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "close_on_escape",
+      "label": "Close on Escape",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    },
+    {
+      "path": "pause",
+      "label": "Pause Game",
+      "type": "boolean",
+      "default": "false",
+      "level": 2
+    }
+  ],
+  "template": {
+    "title": "Custom Screen",
+    "width": 320,
+    "height": 180,
+    "close_on_escape": true,
+    "pause": false,
+    "widgets": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.64
+  }
+}

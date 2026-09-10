@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.client.title;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.packs.DAI_PackBrowserScreen;
+import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -52,9 +53,7 @@ public final class DAI_TitleActionDispatcher {
                     parent,
                     definition.experience()
             );
-            case "open_experience_creator" -> minecraft.gui.setScreen(
-                    new DAI_BoxheadExperienceCreateScreen(parent, definition.experience())
-            );
+            case "open_experience_creator" -> DAI_ExperienceLauncher.launchNew(parent, definition.experience());
             case "continue_experience" -> DAI_ExperienceLauncher.continueLast(
                     parent,
                     definition.experience()
@@ -71,10 +70,11 @@ public final class DAI_TitleActionDispatcher {
                 );
                 stopMinecraft();
             }
-            default -> DAI_Core.LOGGER.warn(
-                    "<DAI>: Unknown title-screen action '{}'.",
-                    action
-            );
+            default -> {
+                /* Any other value is treated as a normal DAI action reference,
+                 * keeping title behavior extensible from datapacks. */
+                if (action != null && !action.isBlank()) DAI_ActionQueue.enqueueDeferredReference(action.trim());
+            }
         }
     }
 

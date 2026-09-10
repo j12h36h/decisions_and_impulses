@@ -1,0 +1,40 @@
+{
+  "display_name": "Dimension",
+  "folder": "dai_dimensions",
+  "rail": "experience",
+  "category": "WORLD",
+  "description": "Define DAI dimension/world behavior.",
+  "priority": 68,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Dimension",
+      "level": 0
+    },
+    {
+      "path": "type",
+      "label": "Dimension Type",
+      "type": "text",
+      "default": "minecraft:overworld",
+      "level": 0
+    },
+    {
+      "path": "generator",
+      "label": "Generator",
+      "type": "text",
+      "default": "",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "Dimension",
+    "type": "minecraft:overworld",
+    "generator": ""
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "display_name": "Dimension Type",
+  "short_name": "Dimension Type",
+  "folder": "dai_dimension_types",
+  "rail": "experience",
+  "category": "WORLD",
+  "description": "Define reusable dimension-type settings.",
+  "priority": 66,
+  "fields": [
+    {
+      "path": "natural",
+      "label": "Natural",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "has_skylight",
+      "label": "Has Skylight",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "coordinate_scale",
+      "label": "Coordinate Scale",
+      "type": "number",
+      "default": "1",
+      "level": 1
+    }
+  ],
+  "template": {
+    "natural": true,
+    "has_skylight": true,
+    "coordinate_scale": 1.0
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

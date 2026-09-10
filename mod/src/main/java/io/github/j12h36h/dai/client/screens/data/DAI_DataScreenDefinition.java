@@ -13,6 +13,7 @@ public record DAI_DataScreenDefinition(
         int height,
         boolean closeOnEscape,
         boolean pauseGame,
+        String backgroundScene,
         List<Widget> widgets
 ) {
     public static final Codec<DAI_DataScreenDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -21,6 +22,7 @@ public record DAI_DataScreenDefinition(
             Codec.INT.optionalFieldOf("height", 220).forGetter(DAI_DataScreenDefinition::height),
             Codec.BOOL.optionalFieldOf("close_on_escape", true).forGetter(DAI_DataScreenDefinition::closeOnEscape),
             Codec.BOOL.optionalFieldOf("pause_game", false).forGetter(DAI_DataScreenDefinition::pauseGame),
+            Codec.STRING.optionalFieldOf("background_scene", "").forGetter(DAI_DataScreenDefinition::backgroundScene),
             Widget.CODEC.listOf().optionalFieldOf("widgets", List.of()).forGetter(DAI_DataScreenDefinition::widgets)
     ).apply(instance, DAI_DataScreenDefinition::new));
 
@@ -28,6 +30,7 @@ public record DAI_DataScreenDefinition(
         title = title == null ? "DAI Screen" : title;
         width = Math.max(80, Math.min(4096, width));
         height = Math.max(60, Math.min(4096, height));
+        backgroundScene = backgroundScene == null ? "" : backgroundScene.trim();
         widgets = widgets == null ? List.of() : List.copyOf(widgets);
     }
 
@@ -42,6 +45,7 @@ public record DAI_DataScreenDefinition(
             String state,
             String action,
             String item,
+            String scene,
             double min,
             double max,
             double step,
@@ -51,7 +55,7 @@ public record DAI_DataScreenDefinition(
             int maxLength
     ) {
         private record Core(String type, String id, int x, int y, int width, int height, String label, String state) {}
-        private record Payload(String action, String item, double min, double max, double step, List<String> options, int color, int background, int maxLength) {}
+        private record Payload(String action, String item, String scene, double min, double max, double step, List<String> options, int color, int background, int maxLength) {}
 
         private static final com.mojang.serialization.MapCodec<Core> CORE_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("type", "label").forGetter(Core::type),
@@ -67,6 +71,7 @@ public record DAI_DataScreenDefinition(
         private static final com.mojang.serialization.MapCodec<Payload> PAYLOAD_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("action", "").forGetter(Payload::action),
                 Codec.STRING.optionalFieldOf("item", "").forGetter(Payload::item),
+                Codec.STRING.optionalFieldOf("scene", "").forGetter(Payload::scene),
                 Codec.DOUBLE.optionalFieldOf("min", 0.0D).forGetter(Payload::min),
                 Codec.DOUBLE.optionalFieldOf("max", 1.0D).forGetter(Payload::max),
                 Codec.DOUBLE.optionalFieldOf("step", 0.0D).forGetter(Payload::step),
@@ -82,10 +87,10 @@ public record DAI_DataScreenDefinition(
         ).apply(instance, Widget::fromParts));
 
         private Core core() { return new Core(type, id, x, y, width, height, label, state); }
-        private Payload payload() { return new Payload(action, item, min, max, step, options, color, background, maxLength); }
+        private Payload payload() { return new Payload(action, item, scene, min, max, step, options, color, background, maxLength); }
         private static Widget fromParts(Core c, Payload p) {
             return new Widget(c.type(), c.id(), c.x(), c.y(), c.width(), c.height(), c.label(), c.state(),
-                    p.action(), p.item(), p.min(), p.max(), p.step(), p.options(), p.color(), p.background(), p.maxLength());
+                    p.action(), p.item(), p.scene(), p.min(), p.max(), p.step(), p.options(), p.color(), p.background(), p.maxLength());
         }
 
         public Widget {
@@ -97,6 +102,7 @@ public record DAI_DataScreenDefinition(
             state = state == null ? "" : state.trim();
             action = action == null ? "" : action.trim();
             item = item == null ? "" : item.trim();
+            scene = scene == null ? "" : scene.trim();
             if (!Double.isFinite(min)) min = 0.0D;
             if (!Double.isFinite(max)) max = 1.0D;
             if (max < min) { double swap = min; min = max; max = swap; }

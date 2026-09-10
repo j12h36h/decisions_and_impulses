@@ -1,0 +1,15 @@
+{
+  "display_name": "Zero Gravity",
+  "schema": "decisions_and_impulses:physics",
+  "priority": 40,
+  "patch": {
+    "numbers": {
+      "gravity_strength": 0,
+      "surface_drag": 0,
+      "max_speed": 0.8
+    },
+    "flags": {
+      "free_flight": true
+    }
+  }
+}

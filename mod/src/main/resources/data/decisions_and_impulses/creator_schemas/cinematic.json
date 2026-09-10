@@ -1,0 +1,44 @@
+{
+  "display_name": "Cinematic",
+  "folder": "eras_cinematics",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Author cinematic camera/UI sequences and ERAS-compatible animation data.",
+  "priority": 82,
+  "fields": [
+    {
+      "path": "duration",
+      "label": "Duration",
+      "type": "number",
+      "default": "100",
+      "level": 0
+    },
+    {
+      "path": "loop",
+      "label": "Loop",
+      "type": "boolean",
+      "default": "false",
+      "level": 0
+    },
+    {
+      "path": "skippable",
+      "label": "Skippable",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    }
+  ],
+  "template": {
+    "duration": 100,
+    "loop": false,
+    "skippable": true,
+    "tracks": []
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.65
+  }
+}

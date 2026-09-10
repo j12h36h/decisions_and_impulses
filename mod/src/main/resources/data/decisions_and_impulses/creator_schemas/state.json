@@ -1,0 +1,52 @@
+{
+  "display_name": "State Definition",
+  "short_name": "State",
+  "folder": "dai_state",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Define persistent state values used by screens, logic, stories and worlds.",
+  "priority": 86,
+  "fields": [
+    {
+      "path": "type",
+      "label": "Value Type",
+      "type": "text",
+      "default": "string",
+      "level": 0
+    },
+    {
+      "path": "default",
+      "label": "Default",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "scope",
+      "label": "Scope",
+      "type": "text",
+      "default": "player",
+      "level": 0
+    },
+    {
+      "path": "persistent",
+      "label": "Persistent",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    }
+  ],
+  "template": {
+    "type": "string",
+    "default": "",
+    "scope": "player",
+    "persistent": true
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.42
+  }
+}

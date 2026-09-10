@@ -1,0 +1,77 @@
+{
+  "display_name": "Screen Override",
+  "short_name": "Screen",
+  "folder": "screen_overrides",
+  "rail": "experience",
+  "category": "PRESENTATION",
+  "description": "Replace or skin any matching vanilla/modded screen through data instead of Java.",
+  "priority": 105,
+  "fields": [
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "target.class",
+      "label": "Target Screen Class",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "target.role",
+      "label": "Target Role",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "mode",
+      "label": "Mode",
+      "type": "text",
+      "default": "replace",
+      "level": 0
+    },
+    {
+      "path": "screen",
+      "label": "DAI Screen ID",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "background_scene",
+      "label": "Background Scene",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 2
+    }
+  ],
+  "template": {
+    "enabled": true,
+    "priority": 0,
+    "target": {
+      "class": ""
+    },
+    "mode": "replace",
+    "screen": "",
+    "background_scene": ""
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "layout": {
+    "preview_ratio": 0.62
+  }
+}

@@ -2,6 +2,8 @@ package io.github.j12h36h.dai.client.title;
 
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -281,26 +283,11 @@ public final class DAI_TitleScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        if ("mineshaft".equals(definition.theme()) || "mine".equals(definition.theme())) {
-            DAI_TitleMineShaftRenderer.render(
-                    graphics,
-                    width,
-                    height,
-                    definition.backgroundTop(),
-                    definition.backgroundBottom()
-            );
+        if (DAI_Config.featureModuleEnabled("scene_environments") && !definition.backgroundScene().isBlank()) {
+            DAI_SceneRenderer.render(graphics, definition.backgroundScene(), 0, 0, width, height, partialTick, java.util.Map.of("title.id", definition.id()));
         } else {
-            graphics.fillGradient(
-                    0,
-                    0,
-                    width,
-                    height,
-                    definition.backgroundTop(),
-                    definition.backgroundBottom()
-            );
+            graphics.fillGradient(0, 0, width, height, definition.backgroundTop(), definition.backgroundBottom());
         }
-
-        renderButtonPanel(graphics);
         renderSaveBrowserPanel(graphics);
         renderDecorations(graphics);
 
@@ -321,18 +308,6 @@ public final class DAI_TitleScreen extends Screen {
         );
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-    }
-
-    private void renderButtonPanel(GuiGraphicsExtractor graphics) {
-        if (!("mineshaft".equals(definition.theme()) || "mine".equals(definition.theme()))) return;
-        int column = buttonColumnWidth();
-        int panelX = wideSaveLayout
-                ? width / 2 - (definition.saveBrowser().width() + SAVE_LAYOUT_GAP) / 2 - column / 2 - 10
-                : width / 2 - column / 2 - 10;
-        int panelY = Math.max(subtitleY() + font.lineHeight + 7, height / 2 - 64);
-        int panelBottom = Math.min(height - 7, height / 2 + 139);
-        graphics.fill(panelX, panelY, panelX + column + 20, panelBottom, 0xB20B0907);
-        graphics.outline(panelX, panelY, column + 20, panelBottom - panelY, 0xFF765A34);
     }
 
     private void renderDecorations(GuiGraphicsExtractor graphics) {

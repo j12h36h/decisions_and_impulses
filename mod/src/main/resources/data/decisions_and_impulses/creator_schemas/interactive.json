@@ -1,0 +1,190 @@
+{
+  "display_name": "Interactive Object",
+  "short_name": "Interactive",
+  "folder": "dai_interactives",
+  "rail": "standalone",
+  "category": "WORLD",
+  "description": "Data-defined interactive object module.",
+  "priority": 47,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Interactive Object Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "properties.shape",
+      "label": "Shape",
+      "type": "text",
+      "default": "box",
+      "level": 1
+    },
+    {
+      "path": "numbers.x",
+      "label": "X",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "numbers.y",
+      "label": "Y",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "numbers.z",
+      "label": "Z",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "numbers.width",
+      "label": "Width",
+      "type": "number",
+      "default": "4",
+      "level": 1
+    },
+    {
+      "path": "numbers.height",
+      "label": "Height",
+      "type": "number",
+      "default": "4",
+      "level": 1
+    },
+    {
+      "path": "numbers.depth",
+      "label": "Depth",
+      "type": "number",
+      "default": "4",
+      "level": 1
+    }
+  ],
+  "template": {
+    "display_name": "Interactive Object Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {
+      "shape": "box",
+      "affects": "all"
+    },
+    "numbers": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "width": 4,
+      "height": 4,
+      "depth": 4
+    },
+    "flags": {
+      "enabled": true
+    },
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  },
+  "create_context": {
+    "x_path": "numbers.x",
+    "y_path": "numbers.y",
+    "z_path": "numbers.z"
+  },
+  "tools": [
+    {
+      "label": "X -",
+      "operation": "nudge",
+      "x": -1,
+      "style": "soft"
+    },
+    {
+      "label": "X +",
+      "operation": "nudge",
+      "x": 1,
+      "style": "soft"
+    },
+    {
+      "label": "Y -",
+      "operation": "nudge",
+      "y": -1,
+      "style": "soft"
+    },
+    {
+      "label": "Y +",
+      "operation": "nudge",
+      "y": 1,
+      "style": "soft"
+    },
+    {
+      "label": "Z -",
+      "operation": "nudge",
+      "z": -1,
+      "style": "soft"
+    },
+    {
+      "label": "Z +",
+      "operation": "nudge",
+      "z": 1,
+      "style": "soft"
+    },
+    {
+      "label": "SIZE -",
+      "operation": "resize",
+      "x": -1,
+      "y": -1,
+      "z": -1,
+      "style": "soft"
+    },
+    {
+      "label": "SIZE +",
+      "operation": "resize",
+      "x": 1,
+      "y": 1,
+      "z": 1,
+      "style": "soft"
+    },
+    {
+      "label": "HOLOGRAM",
+      "operation": "hologram",
+      "style": "action"
+    },
+    {
+      "label": "UNDO",
+      "operation": "undo",
+      "style": "soft"
+    },
+    {
+      "label": "REDO",
+      "operation": "redo",
+      "style": "soft"
+    },
+    {
+      "label": "DUPLICATE",
+      "operation": "duplicate",
+      "style": "action"
+    },
+    {
+      "label": "DELETE",
+      "operation": "delete",
+      "style": "danger"
+    }
+  ]
+}

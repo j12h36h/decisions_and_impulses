@@ -1,0 +1,41 @@
+{
+  "display_name": "Dialogue",
+  "folder": "dai_dialogues",
+  "rail": "experience",
+  "category": "STORY",
+  "description": "Create branching dialogue and actions.",
+  "priority": 76,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Dialogue",
+      "level": 0
+    },
+    {
+      "path": "speaker",
+      "label": "Speaker",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "entry",
+      "label": "Entry Node",
+      "type": "text",
+      "default": "start",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "Dialogue",
+    "speaker": "",
+    "entry": "start",
+    "nodes": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

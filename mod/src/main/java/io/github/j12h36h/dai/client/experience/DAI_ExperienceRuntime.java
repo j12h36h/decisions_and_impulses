@@ -192,7 +192,7 @@ public final class DAI_ExperienceRuntime {
      * declaring grave_open_action / grave_close_action. If those fields are
      * omitted, DAI also recognizes the conventional <namespace>:open and
      * <namespace>:close actions for backwards compatibility with existing
-     * experience packs such as TamaCrafti.
+     * data-driven experience packs.
      */
     public static boolean handleGraveKey() {
         if (!interceptsGraveKey()) {

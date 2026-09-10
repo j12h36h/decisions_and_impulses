@@ -1,0 +1,44 @@
+{
+  "display_name": "Shop",
+  "folder": "dai_shops",
+  "rail": "standalone",
+  "category": "ECONOMY",
+  "description": "Data-defined shop module.",
+  "priority": 37,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Shop Draft",
+      "level": 0
+    },
+    {
+      "path": "description",
+      "label": "Description",
+      "type": "text",
+      "default": "",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    }
+  ],
+  "template": {
+    "display_name": "Shop Draft",
+    "description": "",
+    "enabled": true,
+    "properties": {},
+    "numbers": {},
+    "flags": {},
+    "events": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

@@ -1,6 +1,8 @@
 package io.github.j12h36h.dai.client.title;
 
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -141,7 +143,7 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        renderPackBackground(graphics);
+        renderPackBackground(graphics, partialTick);
 
         int panelWidth = Math.min(Math.max(320, browser.width() + 74), Math.max(320, width - 56));
         int left = width / 2 - panelWidth / 2;
@@ -180,27 +182,12 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void renderPackBackground(GuiGraphicsExtractor graphics) {
-        String theme = titleDefinition.theme();
-        if ("mineshaft".equals(theme) || "mine".equals(theme)) {
-            DAI_TitleMineShaftRenderer.render(
-                    graphics,
-                    width,
-                    height,
-                    titleDefinition.backgroundTop(),
-                    titleDefinition.backgroundBottom()
-            );
-            return;
+    private void renderPackBackground(GuiGraphicsExtractor graphics, float partialTick) {
+        if (DAI_Config.featureModuleEnabled("scene_environments") && !titleDefinition.backgroundScene().isBlank()) {
+            DAI_SceneRenderer.render(graphics, titleDefinition.backgroundScene(), 0, 0, width, height, partialTick, java.util.Map.of("title.id", titleDefinition.id()));
+        } else {
+            graphics.fillGradient(0, 0, width, height, titleDefinition.backgroundTop(), titleDefinition.backgroundBottom());
         }
-
-        graphics.fillGradient(
-                0,
-                0,
-                width,
-                height,
-                titleDefinition.backgroundTop(),
-                titleDefinition.backgroundBottom()
-        );
     }
 
     @Override

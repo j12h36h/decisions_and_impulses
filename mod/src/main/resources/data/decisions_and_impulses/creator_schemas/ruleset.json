@@ -1,0 +1,41 @@
+{
+  "display_name": "Ruleset",
+  "folder": "dai_rules",
+  "rail": "experience",
+  "category": "SYSTEMS",
+  "description": "Define project gameplay rules and constraints.",
+  "priority": 72,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Ruleset",
+      "level": 0
+    },
+    {
+      "path": "enabled",
+      "label": "Enabled",
+      "type": "text",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    }
+  ],
+  "template": {
+    "display_name": "Ruleset",
+    "enabled": true,
+    "priority": 0,
+    "rules": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

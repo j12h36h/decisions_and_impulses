@@ -1,0 +1,41 @@
+{
+  "display_name": "Biome",
+  "folder": "dai_biomes",
+  "rail": "experience",
+  "category": "WORLD",
+  "description": "Define DAI biome behavior and presentation.",
+  "priority": 70,
+  "fields": [
+    {
+      "path": "display_name",
+      "label": "Name",
+      "type": "text",
+      "default": "Biome",
+      "level": 0
+    },
+    {
+      "path": "temperature",
+      "label": "Temperature",
+      "type": "number",
+      "default": "0.8",
+      "level": 1
+    },
+    {
+      "path": "downfall",
+      "label": "Downfall",
+      "type": "number",
+      "default": "0.4",
+      "level": 1
+    }
+  ],
+  "template": {
+    "display_name": "Biome",
+    "temperature": 0.8,
+    "downfall": 0.4,
+    "properties": {}
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}
