@@ -16,59 +16,30 @@ public final class DAI_Core {
 
     /** Data/API feature level represented by this source tree. */
     public static final String FEATURE_LEVEL =
-            "3.5";
+            "3.9";
 
     public static final Logger LOGGER =
             LogUtils.getLogger();
 
-    /**
-     * DAI-owned debug logging is gated by the common debugging config so a
-     * release user can disable verbose diagnostics without suppressing normal
-     * INFO/WARN/ERROR messages from the mod or Minecraft.
-     */
     public static void debug(
             String message,
             Object... arguments
     ) {
-
-        if (!DAI_Config.isDebuggingEnabled()) {
-            return;
-        }
-
-        LOGGER.debug(
-                message,
-                arguments
-        );
+        if (!DAI_Config.isDebuggingEnabled()) return;
+        LOGGER.debug(message, arguments);
     }
 
     public DAI_Core(
             IEventBus modBus,
             ModContainer container
     ) {
-
-        LOGGER.info(
-                "<DAI>: Starting Decisions and Impulses feature level {}...",
-                FEATURE_LEVEL
-        );
+        LOGGER.info("<DAI>: Starting Decisions and Impulses feature level {}...", FEATURE_LEVEL);
 
         try {
-
-            DAI_Bootstrap.initialize(
-                    modBus,
-                    container
-            );
-
-            LOGGER.info(
-                    "<DAI>: Decisions and Impulses initialized successfully."
-            );
-
+            DAI_Bootstrap.initialize(modBus, container);
+            LOGGER.info("<DAI>: Decisions and Impulses initialized successfully.");
         } catch (Exception exception) {
-
-            LOGGER.error(
-                    "<DAI>: Failed to initialize Decisions and Impulses.",
-                    exception
-            );
-
+            LOGGER.error("<DAI>: Failed to initialize Decisions and Impulses.", exception);
             throw exception;
         }
     }
