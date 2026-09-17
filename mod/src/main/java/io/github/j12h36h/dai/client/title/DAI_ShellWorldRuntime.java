@@ -3,6 +3,8 @@ package io.github.j12h36h.dai.client.title;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.client.branding.DAI_SafeLoadingVeil;
+import io.github.j12h36h.dai.client.data.DAI_ClientDataBootstrap;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderSafety;
 import io.github.j12h36h.dai.client.play.DAI_WorldLaunchConfirmation;
@@ -285,6 +287,87 @@ public final class DAI_ShellWorldRuntime {
         state = State.LEAVING;
         shellLevel = null;
         DAI_SafeLoadingVeil.beginBootstrap("RETURNING TO DAI");
+    }
+
+    /**
+     * Leaves the current gameplay world and returns to the currently-owned
+     * Experience title shell. Unlike returnToDaiUniverse(), this deliberately
+     * preserves datapack shell ownership, so a full-takeover Experience lands
+     * back on its own title screen after Minecraft completes save/disconnect.
+     */
+    public static boolean returnToExperienceTitle() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.gui == null) return false;
+
+        shellRevealTicks = 0;
+        state = State.LEAVING;
+        shellLevel = null;
+        DAI_SafeLoadingVeil.beginBootstrap("RETURNING TO TITLE");
+
+        boolean connected = minecraft.level != null
+                || hasIntegratedServer(minecraft)
+                || invokeNoArg(minecraft, "getConnection") != null;
+
+        if (!connected) {
+            minecraft.gui.setScreen(new TitleScreen());
+            DAI_Core.LOGGER.info("<DAI>: Returning to Experience title from an already-detached client.");
+            return true;
+        }
+
+        if (disconnectForWorldHandoff(minecraft)) {
+            DAI_Core.LOGGER.info("<DAI>: Return to Experience title disconnect started.");
+            return true;
+        }
+
+        DAI_Core.LOGGER.warn("<DAI>: Return to Experience title could not disconnect the active world.");
+        DAI_SafeLoadingVeil.cancel();
+        state = State.IDLE;
+        shellLevel = null;
+        return false;
+    }
+
+    /**
+     * Leaves the current world/session and explicitly returns to DAI's built-in
+     * Universe shell, even when a MAIN datapack currently owns the application
+     * shell. This is the client-side primitive datapacks should invoke instead
+     * of trying to kick the local player from an integrated server.
+     */
+    public static boolean returnToDaiUniverse() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.gui == null) return false;
+
+        prepareReturnToShell();
+        DAI_ShellPresentationRepository.enterDaiUniverseMode();
+
+        /*
+         * Re-resolve title/presentation data immediately so the technical
+         * TitleScreen waypoint cannot bounce back into the just-suspended
+         * Experience shell while disconnect teardown is still completing.
+         */
+        DAI_TitleScreenRepository.reload();
+        DAI_ClientDataBootstrap.reloadLocalData();
+
+        boolean connected = minecraft.level != null
+                || hasIntegratedServer(minecraft)
+                || invokeNoArg(minecraft, "getConnection") != null;
+
+        if (!connected) {
+            minecraft.gui.setScreen(new TitleScreen());
+            DAI_Core.LOGGER.info("<DAI>: Returning to DAI Universe from an already-detached client.");
+            return true;
+        }
+
+        if (disconnectForWorldHandoff(minecraft)) {
+            DAI_Core.LOGGER.info("<DAI>: Return to DAI Universe disconnect started.");
+            return true;
+        }
+
+        DAI_Core.LOGGER.warn("<DAI>: Return to DAI Universe could not disconnect the active world.");
+        DAI_ShellPresentationRepository.cancelDaiUniverseMode();
+        DAI_TitleScreenRepository.reload();
+        DAI_ClientDataBootstrap.reloadLocalData();
+        DAI_SafeLoadingVeil.cancel();
+        return false;
     }
 
     /** Restores the shell if a Create World / launch flow was cancelled or rejected. */

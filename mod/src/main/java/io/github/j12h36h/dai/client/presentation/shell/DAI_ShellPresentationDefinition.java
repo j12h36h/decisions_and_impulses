@@ -25,6 +25,7 @@ public final class DAI_ShellPresentationDefinition {
     private final String id;
     private final boolean enabled;
     private final int priority;
+    private final String experience;
     private final String fallback;
     private final Map<String, Route> routes;
     private final SafeLoadingStyle safeLoading;
@@ -33,6 +34,7 @@ public final class DAI_ShellPresentationDefinition {
             String id,
             boolean enabled,
             int priority,
+            String experience,
             String fallback,
             Map<String, Route> routes,
             SafeLoadingStyle safeLoading
@@ -40,6 +42,7 @@ public final class DAI_ShellPresentationDefinition {
         this.id = id;
         this.enabled = enabled;
         this.priority = priority;
+        this.experience = experience == null ? "" : experience.trim();
         this.fallback = normalizeMode(fallback, MODE_DEFAULT);
         this.routes = Map.copyOf(routes);
         this.safeLoading = safeLoading;
@@ -84,6 +87,11 @@ public final class DAI_ShellPresentationDefinition {
                 id == null ? "" : id,
                 bool(root, "enabled", true),
                 integer(root, "priority", 0),
+                string(
+                        root,
+                        "experience",
+                        string(root, "owner_experience", string(root, "experience_id", ""))
+                ),
                 string(root, "fallback", MODE_DEFAULT),
                 routes,
                 safeStyle
@@ -97,6 +105,7 @@ public final class DAI_ShellPresentationDefinition {
     public String id() { return id; }
     public boolean enabled() { return enabled; }
     public int priority() { return priority; }
+    public String experience() { return experience; }
     public String fallback() { return fallback; }
     public SafeLoadingStyle safeLoading() { return safeLoading; }
 

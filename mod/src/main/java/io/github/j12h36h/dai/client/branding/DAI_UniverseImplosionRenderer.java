@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Three-minute looping world-entry simulation used by DAI Engine 4.1.
+ * Three-minute looping world-entry simulation used by DAI Engine 4.2.
  * The renderer is intentionally resource-independent and safe while no client
  * level exists. It models a universe collapsing toward the destination point,
  * then restarts only after 180 seconds if world generation is still active.

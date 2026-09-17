@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
@@ -386,7 +387,19 @@ public final class DAI_CompanionResourcePackPreferences {
     private static DAI_ExperienceDefinition currentExperience() {
         DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
         if (pending != null && pending.definition() != null) return pending.definition();
-        return DAI_ExperienceRuntime.active();
+
+        DAI_ExperienceDefinition active = DAI_ExperienceRuntime.active();
+        if (active != null) return active;
+
+        /*
+         * Full-shell MAIN packs own their companion resource pack before a
+         * gameplay world exists. Without this fallback, the datapack can win
+         * the shell route while its logo/loading/title assets remain disabled.
+         */
+        String shellExperience = DAI_ShellPresentationRepository.ownerExperienceId();
+        return shellExperience.isBlank()
+                ? null
+                : DAI_ExperienceRepository.get(shellExperience);
     }
 
     private static boolean matchesExperience(Companion companion, DAI_ExperienceDefinition experience) {

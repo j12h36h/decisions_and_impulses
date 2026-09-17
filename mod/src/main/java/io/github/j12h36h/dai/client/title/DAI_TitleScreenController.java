@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
-/** Installs the DAI Engine 4.1 shell over vanilla title and pause entry points. */
+/** Installs the DAI Engine 4.2 shell over vanilla title and pause entry points. */
 public final class DAI_TitleScreenController {
 
     private static final int TITLE_STABLE_TICKS_BEFORE_REPLACE = 4;

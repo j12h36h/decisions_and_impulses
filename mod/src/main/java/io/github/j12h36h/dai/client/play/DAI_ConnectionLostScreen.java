@@ -3,11 +3,10 @@ package io.github.j12h36h.dai.client.play;
 import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
 import io.github.j12h36h.dai.client.presentation.DAI_UniverseButton;
 import io.github.j12h36h.dai.client.presentation.DAI_UniverseShellRenderer;
-import net.minecraft.client.Minecraft;
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
@@ -26,7 +25,7 @@ public final class DAI_ConnectionLostScreen extends Screen {
     @Override protected void init() {
         super.init();
         addRenderableWidget(button(width / 2 - 90, height / 2 + 58, 180, 22,
-                "RETURN TO DAI UNIVERSE", b -> Minecraft.getInstance().gui.setScreen(new TitleScreen()), true));
+                "RETURN TO DAI UNIVERSE", b -> DAI_ShellWorldRuntime.returnToDaiUniverse(), true));
     }
 
     private DAI_UniverseButton button(int x, int y, int w, int h, String text, Button.OnPress press, boolean primary) {

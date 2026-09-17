@@ -7,6 +7,9 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.client.packs.DAI_ExperienceResourcePackLifecycle;
+import io.github.j12h36h.dai.client.data.DAI_ClientDataBootstrap;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
+import io.github.j12h36h.dai.client.title.DAI_TitleScreenRepository;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -51,6 +54,18 @@ public final class DAI_ExperienceRuntime {
             String worldgenOverride
     ) {
         if (definition == null) return;
+
+        /*
+         * If this Experience previously owned the application shell and the
+         * player explicitly returned to DAI Universe, selecting the same
+         * Experience again is the point at which its full takeover becomes
+         * eligible again.
+         */
+        if (DAI_ShellPresentationRepository.resumeForExperience(definition.id())) {
+            DAI_TitleScreenRepository.reload();
+            DAI_ClientDataBootstrap.reloadLocalData();
+        }
+
         DAI_ExperienceLaunchState.prepare(definition, firstJoin, sourcePack, worldgenOverride);
         // Resource packs are applied by DAI_ExperienceLauncher through the
         // pre-world-open barrier. Keeping prepare() state-only prevents the

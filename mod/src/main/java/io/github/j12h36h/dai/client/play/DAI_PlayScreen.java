@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
-/** Default player-facing PLAY hub for DAI Engine 4.1. */
+/** Default player-facing PLAY hub for DAI Engine 4.2. */
 public final class DAI_PlayScreen extends Screen {
 
     private final Screen parent;

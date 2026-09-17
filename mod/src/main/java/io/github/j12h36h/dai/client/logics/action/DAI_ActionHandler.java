@@ -123,6 +123,16 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "return_to_experience_title",
+                DAI_MenuLogic::returnToExperienceTitle
+        );
+
+        register(
+                "return_to_dai_universe",
+                DAI_MenuLogic::returnToDaiUniverse
+        );
+
+        register(
                 "close_screen",
                 DAI_MenuLogic::closeScreen
         );

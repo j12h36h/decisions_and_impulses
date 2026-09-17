@@ -24,7 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-/** DAI Engine 4.1 Worlds hub: Discover, Library, install/update, offline cache and launch. */
+/** DAI Engine 4.2 Worlds hub: Discover, Library, install/update, offline cache and launch. */
 public final class DAI_PackBrowserScreen extends Screen {
 
     private enum View { EXPERIENCE_PACKS, ADDONS, LIBRARY }

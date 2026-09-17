@@ -24,7 +24,7 @@ import org.jspecify.annotations.NonNull;
 import java.lang.reflect.Method;
 
 /**
- * DAI Engine 4.1 in-game system shell. This replaces the default pause-menu
+ * DAI Engine 4.2 in-game system shell. This replaces the default pause-menu
  * visual loop while leaving world save/disconnect behavior owned by Minecraft.
  */
 public final class DAI_GameMenuScreen extends Screen {

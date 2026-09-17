@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
-/** DAI 4.1 fallback loading presentation driven by the selected presentation profile. */
+/** DAI 4.2 fallback loading presentation driven by the selected presentation profile. */
 public final class DAI_UniverseLoadingRenderer {
     private DAI_UniverseLoadingRenderer() {}
 

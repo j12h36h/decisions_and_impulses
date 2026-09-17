@@ -3,7 +3,10 @@ package io.github.j12h36h.dai.client.branding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.packs.DAI_CompanionResourcePackPreferences;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
+import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -103,7 +106,27 @@ public final class DAI_ClientBranding {
         // its ClientLevel activates. Without this guard, installing one MAIN pack
         // could hijack the DAI shell branding/title before the player selected it.
         DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
-        return pending == null ? null : pending.definition();
+        if (pending != null) return pending.definition();
+
+        /*
+         * A MAIN datapack may explicitly own the application shell before any
+         * gameplay world is active. That owner must also own bootstrap/loading
+         * branding; otherwise the shell route can be pack-defined while the
+         * loading presentation still falls back to DAI.
+         *
+         * Never apply this fallback over a real unrelated gameplay world.
+         */
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean shellContext = minecraft == null
+                || minecraft.level == null
+                || DAI_ShellWorldRuntime.isShellActive()
+                || DAI_ShellWorldRuntime.isBootstrapping();
+        if (!shellContext) return null;
+
+        String shellExperience = DAI_ShellPresentationRepository.ownerExperienceId();
+        return shellExperience.isBlank()
+                ? null
+                : DAI_ExperienceRepository.get(shellExperience);
     }
 
     public static DAI_ExperienceDefinition.Branding currentBranding() {

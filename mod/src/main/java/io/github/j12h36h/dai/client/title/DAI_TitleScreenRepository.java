@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -86,7 +87,7 @@ public final class DAI_TitleScreenRepository {
      * Resolves the highest-priority title definition authored by one specific
      * Experience namespace without making that Experience globally active.
      *
-     * This is used by DAI 4.1's Experience handoff: selecting a MAIN
+     * This is used by DAI 4.2's Experience handoff: selecting a MAIN
      * Experience may enter its own title/menu loop first, while START/CONTINUE
      * buttons on that title still own the actual world launch. Installed MAIN
      * packs therefore do not hijack the global DAI shell until selected.
@@ -163,12 +164,24 @@ public final class DAI_TitleScreenRepository {
      * eligible again alongside built-in/config shell definitions.
      */
     private static String selectedExperienceNamespace() {
+        if (DAI_ShellPresentationRepository.daiUniverseMode()) {
+            return "";
+        }
+
         DAI_ExperienceDefinition definition = DAI_ExperienceRuntime.active();
         if (definition == null) {
             DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
             if (pending != null) definition = pending.definition();
         }
-        if (definition == null || definition.id() == null) return "";
+        if (definition == null) {
+            String shellExperience = DAI_ShellPresentationRepository.ownerExperienceId();
+            if (!shellExperience.isBlank()) {
+                int separator = shellExperience.indexOf(':');
+                return separator <= 0 ? "" : shellExperience.substring(0, separator);
+            }
+            return "";
+        }
+        if (definition.id() == null) return "";
 
         String id = definition.id().trim();
         int colon = id.indexOf(':');

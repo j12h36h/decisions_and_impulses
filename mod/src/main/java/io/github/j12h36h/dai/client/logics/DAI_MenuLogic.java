@@ -12,6 +12,7 @@ import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.client.settings.DAI_SettingsScreen;
 import io.github.j12h36h.dai.client.menus.DAI_GameMenuScreen;
 import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.client.title.DAI_TitleActionDispatcher;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.client.menus.DAI_ScreenManager;
@@ -151,6 +152,36 @@ public final class DAI_MenuLogic {
 
         DAI_Core.debug(
                 "<DAI>: Opened chat screen."
+        );
+    }
+
+    /**
+     * Cleanly leaves the current gameplay world and returns to the active
+     * Experience-owned title shell without releasing that shell ownership.
+     */
+    public static void returnToExperienceTitle(
+            DAI_ActionDefinition action
+    ) {
+        boolean started = DAI_ShellWorldRuntime.returnToExperienceTitle();
+        DAI_ActionStatus.set(
+                started
+                        ? DAI_ActionResult.SUCCESS
+                        : DAI_ActionResult.FAILURE
+        );
+    }
+
+    /**
+     * Cleanly leaves the current gameplay world and returns to DAI's built-in
+     * Universe shell. Unlike close_screen this is a real session transition.
+     */
+    public static void returnToDaiUniverse(
+            DAI_ActionDefinition action
+    ) {
+        boolean started = DAI_ShellWorldRuntime.returnToDaiUniverse();
+        DAI_ActionStatus.set(
+                started
+                        ? DAI_ActionResult.SUCCESS
+                        : DAI_ActionResult.FAILURE
         );
     }
 
