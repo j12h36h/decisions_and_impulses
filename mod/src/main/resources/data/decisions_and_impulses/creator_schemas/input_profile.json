@@ -26,7 +26,13 @@
       "label": "Context",
       "type": "text",
       "default": "gameplay",
-      "level": 0
+      "level": 0,
+      "options": [
+        "gameplay",
+        "menu",
+        "creator",
+        "cinematic"
+      ]
     },
     {
       "path": "consume",

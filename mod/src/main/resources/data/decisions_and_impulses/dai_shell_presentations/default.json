@@ -1,0 +1,65 @@
+{
+  "enabled": true,
+  "priority": -100000,
+  "fallback": "default",
+  "stages": {
+    "safe_loading": {
+      "mode": "default"
+    },
+    "title": {
+      "mode": "default"
+    },
+    "pause": {
+      "mode": "default"
+    },
+    "play": {
+      "mode": "default"
+    },
+    "play_worlds": {
+      "mode": "default"
+    },
+    "singleplayer_create": {
+      "mode": "default"
+    },
+    "minecraft_dai_create": {
+      "mode": "default"
+    },
+    "experience_create": {
+      "mode": "default"
+    },
+    "experience_setup": {
+      "mode": "default"
+    },
+    "addon_selection": {
+      "mode": "default"
+    },
+    "world_options": {
+      "mode": "vanilla"
+    },
+    "launch_transition": {
+      "mode": "default"
+    },
+    "worlds": {
+      "mode": "default"
+    },
+    "library": {
+      "mode": "default"
+    },
+    "creator": {
+      "mode": "default"
+    },
+    "settings": {
+      "mode": "default"
+    },
+    "world_loading": {
+      "mode": "default",
+      "scene": "decisions_and_impulses:dai_loading_village"
+    },
+    "return_to_shell": {
+      "mode": "default"
+    }
+  },
+  "safe_loading": {
+    "show_percentage": true
+  }
+}

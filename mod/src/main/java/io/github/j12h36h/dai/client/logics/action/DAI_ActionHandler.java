@@ -63,6 +63,11 @@ public final class DAI_ActionHandler {
         );
 
         register(
+                "open_dai_settings",
+                DAI_MenuLogic::openSettings
+        );
+
+        register(
                 "open_automation_creator",
                 DAI_MenuLogic::openAutomationCreator
         );
@@ -90,6 +95,21 @@ public final class DAI_ActionHandler {
         register(
                 "open_data_screen",
                 DAI_DataScreenLogic::open
+        );
+
+        register(
+                "open_screen_class",
+                DAI_PresentationLogic::openScreenClass
+        );
+
+        register(
+                "open_shell_stage",
+                DAI_PresentationLogic::openShellStage
+        );
+
+        register(
+                "reload_presentation",
+                DAI_PresentationLogic::reloadPresentation
         );
 
         register(

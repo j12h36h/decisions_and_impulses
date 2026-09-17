@@ -38,6 +38,15 @@ public final class DAI_ScreenOverrideRuntime {
         if (match == null) return;
         DAI_ScreenOverrideDefinition definition = match.definition();
         String mode = definition.mode();
+
+        // A datapack can completely suppress any matched vanilla/mod/DAI screen.
+        // This is intentionally handled before replacement so "hide" never
+        // needs a dummy Java screen implementation.
+        if (mode.equals("hide")) {
+            event.setNewScreen(null);
+            return;
+        }
+
         if (!mode.equals("replace")) return;
 
         String screenId = definition.replacementScreen();
@@ -53,7 +62,9 @@ public final class DAI_ScreenOverrideRuntime {
 
     private static void onBackground(ScreenEvent.Render.Background event) {
         DAI_ScreenOverrideRegistry.Match match = DAI_ScreenOverrideRegistry.resolve(event.getScreen());
-        if (match == null || match.definition().mode().equals("replace")) return;
+        if (match == null) return;
+        String mode = match.definition().mode();
+        if (mode.equals("replace") || mode.equals("hide")) return;
         String scene = match.definition().backgroundScene();
         if (scene.isBlank()) return;
         Screen screen = event.getScreen();
@@ -63,7 +74,9 @@ public final class DAI_ScreenOverrideRuntime {
 
     private static void onForeground(ScreenEvent.Render.Post event) {
         DAI_ScreenOverrideRegistry.Match match = DAI_ScreenOverrideRegistry.resolve(event.getScreen());
-        if (match == null || match.definition().mode().equals("replace")) return;
+        if (match == null) return;
+        String mode = match.definition().mode();
+        if (mode.equals("replace") || mode.equals("hide")) return;
         String scene = match.definition().foregroundScene();
         if (scene.isBlank()) return;
         Screen screen = event.getScreen();

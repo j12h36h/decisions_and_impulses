@@ -26,6 +26,13 @@
       "type": "boolean",
       "default": "true",
       "level": 0
+    },
+    {
+      "path": "flags.client_callable",
+      "label": "Client Callable",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
     }
   ],
   "template": {
@@ -34,7 +41,9 @@
     "enabled": true,
     "properties": {},
     "numbers": {},
-    "flags": {},
+    "flags": {
+      "client_callable": false
+    },
     "events": {}
   },
   "variations": [],

@@ -11,7 +11,10 @@
     "Mixin_Minecraft",
     "Mixin_LoadingOverlay",
     "Mixin_MultiPlayerGameMode",
-    "Mixin_Camera"
+    "Mixin_Camera",
+    "Mixin_WorldSelectionList",
+    "Mixin_AbstractButton",
+    "Mixin_EditBox"
   ],
   "injectors": {
     "defaultRequire": 1

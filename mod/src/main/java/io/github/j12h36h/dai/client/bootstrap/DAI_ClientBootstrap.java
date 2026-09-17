@@ -11,8 +11,13 @@ import io.github.j12h36h.dai.client.combat.indicator.DAI_DamageIndicatorRenderRu
 import io.github.j12h36h.dai.client.physics.DAI_ClientPhysicsRuntime;
 import io.github.j12h36h.dai.client.physics.DAI_PhysicsRenderRuntime;
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
+import io.github.j12h36h.dai.client.branding.DAI_SafeLoadingVeil;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.client.play.DAI_PlayWorldAccess;
+import io.github.j12h36h.dai.client.play.DAI_VanillaWorldScreens;
+import io.github.j12h36h.dai.client.play.DAI_WorldCreationThemeRuntime;
+import io.github.j12h36h.dai.client.play.DAI_ConnectionScreenRuntime;
 import io.github.j12h36h.dai.client.logics.core.DAI_ClientTick;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -24,9 +29,12 @@ import io.github.j12h36h.dai.client.menus.system.DAI_ClientRuntime;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.client.packs.DAI_ManagedResourcePackBootstrap;
 import io.github.j12h36h.dai.client.presentation.screen.DAI_ScreenOverrideRuntime;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.presentation.scene.DAI_SceneLoader;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderSafety;
 import io.github.j12h36h.dai.input.DAI_InputProfileLoader;
 import io.github.j12h36h.dai.client.title.DAI_TitleScreenController;
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -89,6 +97,11 @@ public final class DAI_ClientBootstrap {
     }
 
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAboveAll(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "safe_loading_veil"),
+                DAI_SafeLoadingVeil::extractHud
+        );
+
         if (DAI_Config.featureModuleEnabled("overlays")) {
             event.registerAboveAll(
                     Identifier.fromNamespaceAndPath(DAI_Core.MODID, "custom_overlays"),
@@ -155,6 +168,8 @@ public final class DAI_ClientBootstrap {
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
+        DAI_ShellPresentationRepository.current();
+        DAI_WorldCreationThemeRuntime.initialize();
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, DAI_ClientBootstrap::onClientTick);
         if (DAI_Config.featureModuleEnabled("screen_overrides")) DAI_ScreenOverrideRuntime.initialize();
 
@@ -174,6 +189,13 @@ public final class DAI_ClientBootstrap {
     }
 
     private static void onClientTick(ClientTickEvent.Post event) {
+        DAI_SceneRenderSafety.tick();
+        DAI_SafeLoadingVeil.tick();
+        DAI_ShellWorldRuntime.tick();
+        DAI_PlayWorldAccess.tickWorldOpen();
+        DAI_VanillaWorldScreens.tickCreateFlow();
+        DAI_ConnectionScreenRuntime.tick();
+
         if (DAI_Config.featureModuleEnabled("experience")) DAI_ExperienceLauncher.tickFreshLaunch();
 
         if (DAI_Config.featureModuleEnabled("title_branding")) {

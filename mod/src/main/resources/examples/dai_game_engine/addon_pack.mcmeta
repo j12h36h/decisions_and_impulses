@@ -1,0 +1,11 @@
+{
+  "pack": {
+    "pack_format": 1,
+    "description": "Example DAI addon metadata"
+  },
+  "dai": {
+    "role": "addon",
+    "id": "example:weather_addon",
+    "version": "2.4.1"
+  }
+}

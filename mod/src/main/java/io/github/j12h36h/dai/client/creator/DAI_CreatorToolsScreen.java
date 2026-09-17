@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.client.creator;
 
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.j12h36h.dai.client.menus.DAI_StyledButton;
@@ -146,7 +147,7 @@ public final class DAI_CreatorToolsScreen extends Screen {
     }
 
     @Override
-    public boolean isPauseScreen() { return false; }
+    public boolean isPauseScreen() { return DAI_ShellWorldRuntime.isShellActive(); }
 
     @Override
     public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {}

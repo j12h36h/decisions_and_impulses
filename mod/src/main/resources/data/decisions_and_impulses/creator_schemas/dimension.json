@@ -18,7 +18,12 @@
       "label": "Dimension Type",
       "type": "text",
       "default": "minecraft:overworld",
-      "level": 0
+      "level": 0,
+      "options": [
+        "minecraft:overworld",
+        "minecraft:the_nether",
+        "minecraft:the_end"
+      ]
     },
     {
       "path": "generator",

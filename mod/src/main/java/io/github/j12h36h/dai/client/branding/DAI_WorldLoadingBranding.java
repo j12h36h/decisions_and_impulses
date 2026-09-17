@@ -2,6 +2,11 @@ package io.github.j12h36h.dai.client.branding;
 
 import net.minecraft.client.renderer.RenderPipelines;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
+import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderSafety;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
+import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -22,6 +27,9 @@ import java.util.Locale;
  * narration state and completion/removal remain owned by vanilla Minecraft.
  */
 public final class DAI_WorldLoadingBranding {
+
+    private static Screen transitionScreen;
+    private static long scenePromotionNanos;
 
     private DAI_WorldLoadingBranding() {}
 
@@ -47,6 +55,8 @@ public final class DAI_WorldLoadingBranding {
         if (!("LevelLoadingScreen".equals(screenName) || "ReceivingLevelScreen".equals(screenName))) {
             return false;
         }
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.WORLD_LOADING)
+                || DAI_ShellScreenRouter.none(DAI_ShellScreenRouter.WORLD_LOADING)) return false;
 
         DAI_ExperienceDefinition experience = DAI_ClientBranding.preferredExperience();
         DAI_ExperienceDefinition.WorldLoading world = experience == null ? null : experience.branding().worldLoading();
@@ -77,15 +87,77 @@ public final class DAI_WorldLoadingBranding {
         int height = minecraft.getWindow().getGuiScaledHeight();
         if (width <= 0 || height <= 0) return false;
 
-        if (!experienceOwns) {
-            float p = progress(screen);
-            DAI_UniverseLoadingRenderer.render(graphics, width, height, p);
-            String stage = "LevelLoadingScreen".equals(screen.getClass().getSimpleName())
-                    ? "GENERATING WORLD" : "ENTERING WORLD";
-            graphics.centeredText(minecraft.font, Component.literal(stage), width / 2, height / 2 + 54, 0xFFFFA15C);
+        /*
+         * First-ever world creation is deliberately texture/model independent.
+         * The DAI shell world is what binds registry components for model-backed
+         * scene rendering; until that has happened, use the primitive village
+         * splash and never touch ItemStack/block models.
+         */
+        trackTransition(screen);
+        if (!DAI_SceneRenderSafety.registryModelsReady()) {
+            scenePromotionNanos = 0L;
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress(screen));
             return true;
         }
 
+        DAI_PresentationProfileService.Profile profile = DAI_PresentationProfileService.selected();
+
+        /*
+         * Loading presentation is scene-first. The default DAI route points at
+         * a vanilla-style 3-D village, while MAIN datapacks may replace this
+         * stage with any authored scene. If the selected scene cannot render,
+         * the same bootstrap-safe village splash remains visible instead of
+         * exposing an unrelated engine theme underneath a pack-owned scene.
+         */
+        boolean renderedLoadingScene = false;
+        if (DAI_Config.featureModuleEnabled("scene_environments")) {
+            renderedLoadingScene = DAI_SceneRenderer.render(
+                    graphics,
+                    DAI_ShellScreenRouter.scene(
+                            DAI_ShellScreenRouter.WORLD_LOADING,
+                            "decisions_and_impulses:dai_loading_village"
+                    ),
+                    0, 0, width, height, 0.0F,
+                    java.util.Map.of(
+                            "loading.phase", DAI_UniverseImplosionRenderer.phase(screen),
+                            "loading.progress", progress(screen)
+                    )
+            );
+        }
+        if (!renderedLoadingScene) {
+            scenePromotionNanos = 0L;
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress(screen));
+        } else {
+            renderSplashCrossfade(graphics, screen, width, height, progress(screen));
+        }
+
+        if (!experienceOwns) {
+            float p = progress(screen);
+            String stage = "LevelLoadingScreen".equals(screen.getClass().getSimpleName())
+                    ? "DAI VILLAGE · GENERATING WORLD"
+                    : "DAI VILLAGE · ENTERING WORLD";
+            graphics.centeredText(
+                    minecraft.font,
+                    Component.literal(stage),
+                    width / 2,
+                    height / 2 + 54,
+                    profile.primary()
+            );
+            if (p >= 0.0F) {
+                int barWidth = Math.max(120, Math.min(360, width - 48));
+                int barX = width / 2 - barWidth / 2;
+                int barY = height / 2 + 68;
+                graphics.fill(barX, barY, barX + barWidth, barY + 3, 0x55333333);
+                graphics.fill(barX, barY, barX + Math.round(barWidth * clamp(p)), barY + 3, profile.primary());
+            }
+            return true;
+        }
+
+        /*
+         * Experience branding layers over the selected loading scene. MAIN
+         * datapacks may replace that scene entirely through the generic shell
+         * route, so the default village never becomes mandatory presentation.
+         */
         Identifier background = parse(world.backgroundTexture());
         if (background != null) {
             graphics.blit(
@@ -99,10 +171,10 @@ public final class DAI_WorldLoadingBranding {
                     height,
                     width,
                     height,
-                    0xFFFFFFFF
+                    0x66FFFFFF
             );
         } else {
-            graphics.fill(0, 0, width, height, world.background());
+            graphics.fill(0, 0, width, height, withAlpha(world.background(), 0x44));
         }
 
         int centerX = width / 2;
@@ -188,6 +260,85 @@ public final class DAI_WorldLoadingBranding {
         return true;
     }
 
+
+    /**
+     * Covers vanilla's final live-level handoff frames without cancelling its
+     * render-state extraction. This preserves Minecraft's renderer bookkeeping
+     * while still preventing the player from seeing the vanilla terrain/loading
+     * screen underneath the DAI shell.
+     */
+    public static void extractPostVeil(Screen screen, GuiGraphicsExtractor graphics) {
+        if (screen == null || graphics == null || !DAI_ClientConfig.loadingScreens()) return;
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.WORLD_LOADING)
+                || DAI_ShellScreenRouter.none(DAI_ShellScreenRouter.WORLD_LOADING)) return;
+        String name = screen.getClass().getSimpleName();
+        if (!("LevelLoadingScreen".equals(name) || "ReceivingLevelScreen".equals(name))) return;
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.getWindow() == null || minecraft.level == null) return;
+        int width = minecraft.getWindow().getGuiScaledWidth();
+        int height = minecraft.getWindow().getGuiScaledHeight();
+        if (width <= 0 || height <= 0) return;
+
+        trackTransition(screen);
+        if (!DAI_SceneRenderSafety.registryModelsReady()) {
+            scenePromotionNanos = 0L;
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress(screen));
+            return;
+        }
+
+        /*
+         * Loading presentation is scene-first. The default DAI route points at
+         * a vanilla-style 3-D village, while MAIN datapacks may replace this
+         * stage with any authored scene. If the selected scene cannot render,
+         * the same bootstrap-safe village splash remains visible instead of
+         * exposing an unrelated engine theme underneath a pack-owned scene.
+         */
+        boolean renderedLoadingScene = false;
+        if (DAI_Config.featureModuleEnabled("scene_environments")) {
+            renderedLoadingScene = DAI_SceneRenderer.render(
+                    graphics,
+                    DAI_ShellScreenRouter.scene(
+                            DAI_ShellScreenRouter.WORLD_LOADING,
+                            "decisions_and_impulses:dai_loading_village"
+                    ),
+                    0, 0, width, height, 0.0F,
+                    java.util.Map.of(
+                            "loading.phase", DAI_UniverseImplosionRenderer.phase(screen),
+                            "loading.progress", progress(screen)
+                    )
+            );
+        }
+        if (!renderedLoadingScene) {
+            scenePromotionNanos = 0L;
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress(screen));
+        } else {
+            renderSplashCrossfade(graphics, screen, width, height, progress(screen));
+        }
+    }
+
+    private static void trackTransition(Screen screen) {
+        if (transitionScreen != screen) {
+            transitionScreen = screen;
+            scenePromotionNanos = 0L;
+        }
+    }
+
+    private static void renderSplashCrossfade(
+            GuiGraphicsExtractor graphics,
+            Screen screen,
+            int width,
+            int height,
+            float progress
+    ) {
+        trackTransition(screen);
+        if (scenePromotionNanos == 0L) scenePromotionNanos = System.nanoTime();
+        float alpha = 1.0F - Math.min(1.0F,
+                (System.nanoTime() - scenePromotionNanos) / 650_000_000.0F);
+        if (alpha > 0.001F) {
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress, alpha);
+        }
+    }
 
     private static int drawCenteredWrappedText(
             GuiGraphicsExtractor graphics,
@@ -281,7 +432,10 @@ public final class DAI_WorldLoadingBranding {
     }
 
     private static Identifier parse(String value) {
-        return value == null || value.isBlank() ? null : Identifier.tryParse(value);
+        if (value == null) return null;
+        String raw = value.trim();
+        if (raw.isEmpty() || raw.endsWith(":")) return null;
+        return Identifier.tryParse(raw);
     }
 
     private static float clamp(float value) {

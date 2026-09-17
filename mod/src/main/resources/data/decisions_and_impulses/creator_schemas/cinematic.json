@@ -3,40 +3,200 @@
   "folder": "eras_cinematics",
   "rail": "experience",
   "category": "PRESENTATION",
-  "description": "Author cinematic camera/UI sequences and ERAS-compatible animation data.",
+  "description": "Author ERAS-compatible 2D/3D cinematic projects with canvas, camera, lighting, post, objects, clips, sounds and timing.",
   "priority": 82,
   "fields": [
     {
-      "path": "duration",
-      "label": "Duration",
+      "path": "version",
+      "label": "Project Version",
       "type": "number",
-      "default": "100",
+      "default": "1",
+      "level": 2
+    },
+    {
+      "path": "title",
+      "label": "Cinematic Title",
+      "type": "text",
+      "default": "Cinematic",
+      "level": 0
+    },
+    {
+      "path": "mode",
+      "label": "Mode",
+      "type": "text",
+      "default": "3D",
+      "level": 0,
+      "options": [
+        "2D",
+        "3D"
+      ]
+    },
+    {
+      "path": "duration",
+      "label": "Duration Seconds",
+      "type": "number",
+      "default": "5",
       "level": 0
     },
     {
       "path": "loop",
       "label": "Loop",
       "type": "boolean",
-      "default": "false",
+      "default": "true",
       "level": 0
     },
     {
-      "path": "skippable",
-      "label": "Skippable",
-      "type": "boolean",
-      "default": "true",
+      "path": "canvas.width",
+      "label": "Canvas Width",
+      "type": "number",
+      "default": "960",
+      "level": 1
+    },
+    {
+      "path": "canvas.height",
+      "label": "Canvas Height",
+      "type": "number",
+      "default": "540",
+      "level": 1
+    },
+    {
+      "path": "canvas.background",
+      "label": "Canvas Background",
+      "type": "color",
+      "default": "#02090b",
+      "level": 0,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
+    },
+    {
+      "path": "camera",
+      "label": "Camera",
+      "type": "json",
+      "default": "{}",
+      "level": 0
+    },
+    {
+      "path": "lighting",
+      "label": "Lighting",
+      "type": "json",
+      "default": "{}",
+      "level": 1
+    },
+    {
+      "path": "post",
+      "label": "Post Processing",
+      "type": "json",
+      "default": "{}",
+      "level": 1
+    },
+    {
+      "path": "timing",
+      "label": "Timing",
+      "type": "json",
+      "default": "{}",
+      "level": 1
+    },
+    {
+      "path": "assets",
+      "label": "Assets",
+      "type": "json",
+      "default": "{}",
+      "level": 1
+    },
+    {
+      "path": "objects",
+      "label": "Objects",
+      "type": "json",
+      "default": "[]",
+      "level": 0
+    },
+    {
+      "path": "sounds",
+      "label": "Sounds",
+      "type": "json",
+      "default": "[]",
+      "level": 1
+    },
+    {
+      "path": "clips",
+      "label": "Clips",
+      "type": "json",
+      "default": "{}",
       "level": 1
     }
   ],
   "template": {
-    "duration": 100,
-    "loop": false,
-    "skippable": true,
-    "tracks": []
+    "version": 1,
+    "title": "Cinematic",
+    "mode": "3D",
+    "duration": 5.0,
+    "loop": true,
+    "canvas": {
+      "width": 960,
+      "height": 540,
+      "background": "#02090b"
+    },
+    "camera": {},
+    "lighting": {},
+    "post": {},
+    "timing": {},
+    "assets": {},
+    "objects": [],
+    "sounds": [],
+    "clips": {}
   },
   "variations": [],
   "preview": {
-    "type": "json"
+    "type": "animation",
+    "source": "draft"
   },
   "layout": {
     "preview_ratio": 0.65

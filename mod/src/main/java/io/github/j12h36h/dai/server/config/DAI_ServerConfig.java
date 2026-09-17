@@ -5,6 +5,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 /** Dedicated/integrated-server controls for privileged creator tooling. */
 public final class DAI_ServerConfig {
     public enum CreatorAccessMode { OPS_ONLY, ALLOWLIST, ALL }
+    public enum CreatorPrivilegedAccessMode { OPS_ONLY, ALLOWLIST, DISABLED }
 
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
@@ -24,6 +25,18 @@ public final class DAI_ServerConfig {
             .comment("Comma/semicolon separated player names or UUIDs allowed when creatorAccessMode=ALLOWLIST. Operators are always allowed.")
             .define("creatorAllowedPlayers", "");
 
+    public static final ModConfigSpec.EnumValue<CreatorPrivilegedAccessMode> CREATOR_PRIVILEGED_ACCESS_MODE = BUILDER
+            .comment(
+                    "Authority for Creator operations that write/delete server files or execute arbitrary live server commands/functions. ",
+                    "OPS_ONLY requires server-owner permission level 4. ALLOWLIST additionally permits creatorPrivilegedAllowedPlayers. ",
+                    "DISABLED blocks remote privileged Creator operations, including operators. This never changes ordinary draft/hologram access."
+            )
+            .defineEnum("creatorPrivilegedAccessMode", CreatorPrivilegedAccessMode.OPS_ONLY);
+
+    public static final ModConfigSpec.ConfigValue<String> CREATOR_PRIVILEGED_ALLOWED_PLAYERS = BUILDER
+            .comment("Comma/semicolon separated player names or UUIDs explicitly trusted for privileged Creator operations when creatorPrivilegedAccessMode=ALLOWLIST.")
+            .define("creatorPrivilegedAllowedPlayers", "");
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean creatorEnabled() { return bool(CREATOR_ENABLED, true); }
@@ -33,6 +46,14 @@ public final class DAI_ServerConfig {
     }
     public static String allowedPlayers() {
         try { return CREATOR_ALLOWED_PLAYERS.get(); } catch (IllegalStateException ignored) { return ""; }
+    }
+    public static CreatorPrivilegedAccessMode privilegedAccessMode() {
+        try { return CREATOR_PRIVILEGED_ACCESS_MODE.get(); }
+        catch (IllegalStateException ignored) { return CreatorPrivilegedAccessMode.OPS_ONLY; }
+    }
+    public static String privilegedAllowedPlayers() {
+        try { return CREATOR_PRIVILEGED_ALLOWED_PLAYERS.get(); }
+        catch (IllegalStateException ignored) { return ""; }
     }
 
     private static boolean bool(ModConfigSpec.BooleanValue value, boolean fallback) {

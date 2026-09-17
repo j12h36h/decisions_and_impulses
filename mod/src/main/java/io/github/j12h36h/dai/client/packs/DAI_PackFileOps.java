@@ -43,7 +43,17 @@ final class DAI_PackFileOps {
                 HttpResponse.BodyHandlers.ofInputStream()
         );
 
+        // Redirects are followed by the HTTP client, so validate the final
+        // destination as well as the catalog-provided URI. This permits
+        // normal GitHub/ForgeCDN redirects without turning the catalog into
+        // an arbitrary URL fetcher.
+        if (!DAI_CurseForgeDownload.isAllowed(response.uri())) {
+            try { response.body().close(); } catch (Exception ignored) { }
+            throw new IOException("Download redirected to an untrusted source.");
+        }
+
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            try { response.body().close(); } catch (Exception ignored) { }
             throw new IOException("Download returned HTTP " + response.statusCode());
         }
 

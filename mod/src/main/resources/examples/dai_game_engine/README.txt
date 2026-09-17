@@ -190,11 +190,46 @@ Static registry note:
    early scanner/cache for compatibility. Prefer "components" for new packs so
    reload preflight can compare the current definition directly.
 
-14) Scene environments
+14) Scene environments + 3D block landscapes
     scene_environment.json demonstrates the generic scene_environments format.
     Datapacks/resource packs define camera keyframes, interpolation, drift,
     shake, backgrounds, overlays, textures, items/blocks, text and scene
-    composition. DAI supplies only projection/rendering primitives.
+    composition. DAI supplies projection/rendering primitives.
+
+    block_castle_scene.json demonstrates the DAI 4.0 block_structure element.
+    A structure may use explicit block positions or compact palette/layer voxel
+    maps. Palette values are normal registry ids, so the same JSON can refer to
+    vanilla blocks, blocks from another installed mod, or registry-backed DAI
+    blocks. Normal block items are rendered through their baked 3D GUI model.
+
+    Compact form:
+      "type": "block_structure"
+      "palette": {"#": "minecraft:stone_bricks", "G": "minecraft:glowstone"}
+      "layers": [["###", "#G#", "###"]]
+
+    Explicit form:
+      "blocks": [
+        {"block": "minecraft:stone_bricks", "pos": [0,0,0]},
+        {"block": "othermod:custom_block", "pos": [1,0,0]}
+      ]
+
+    Optional structure controls include block_size, scale_x/y/z, yaw,
+    centered, model_scale, screen_rotation, near/far and max_blocks.
+    block_structure children also default to grid_fit=true: DAI compensates for
+    the transparent margin in Minecraft's baked GUI block model, half-pixel
+    snaps projected centers, and applies a tiny seam overlap so adjacent voxel
+    blocks visually meet instead of looking like undersized floating cubes.
+    Packs may tune model_fit and seam_overlap_pixels, or set grid_fit=false for
+    deliberately separated/icon-like block compositions. The renderer hard-
+    caps a scene structure at 16,384 blocks and performs viewport culling.
+    Model ItemStacks are cached by registry id.
+
+    Lifecycle note: ItemStack-backed item/block models are skipped on screens
+    that exist before a client level has been attached. This prevents the
+    known early-title lifecycle crash on current Minecraft. Primitive/texture
+    scene elements remain safe there; block-model landscapes are intended for
+    live-world Creator previews, story/data screens and other attached-level
+    simulations.
 
     Data path:
       data/<namespace>/scene_environments/*.json
@@ -241,3 +276,24 @@ Static registry note:
 
     This replaces the historical project-specific directional input path with
     a reusable pack-defined input/presentation primitive.
+
+DAI 4.0 public pack classes and experience addon policy
+------------------------------------------------------
+ERAS public catalog entries use exactly two public_type values:
+  addon
+  experience_pack
+
+Experience definitions may control globally installed ADDON packs with:
+  "addons": { "enabled": false }
+which disables all addons for that experience, or:
+  "addons": {
+    "enabled": true,
+    "whitelist": ["example:weather_addon", "example:combat_fx"]
+  }
+which allows only those stable addon ids.
+
+An enabled policy with an empty/omitted whitelist allows all installed addons,
+matching legacy DAI behavior. The whitelist matches stable ids, not versions.
+New ADDON datapacks should declare a stable id in pack.mcmeta, for example:
+  "dai": { "role": "addon", "id": "example:weather_addon", "version": "2.4.1" }
+Changing the addon version does not require changing an experience whitelist.

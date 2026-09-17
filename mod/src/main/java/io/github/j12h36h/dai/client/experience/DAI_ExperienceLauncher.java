@@ -7,12 +7,21 @@ import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
+import io.github.j12h36h.dai.client.title.DAI_TitleScreen;
+import io.github.j12h36h.dai.client.title.DAI_TitleScreenDefinition;
+import io.github.j12h36h.dai.client.title.DAI_TitleScreenRepository;
+import io.github.j12h36h.dai.client.play.DAI_WorldLaunchConfirmation;
+import io.github.j12h36h.dai.client.play.DAI_ExperimentalFeaturesScreen;
+import io.github.j12h36h.dai.client.play.DAI_WorldCreationThemeRuntime;
+import io.github.j12h36h.dai.client.packs.DAI_ExperienceResourcePackLifecycle;
 import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenDefinition;
 import io.github.j12h36h.dai.worldgen.DAI_WorldgenRepository;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.lang.reflect.Method;
@@ -42,6 +51,11 @@ import java.util.zip.ZipFile;
 public final class DAI_ExperienceLauncher {
 
     private static PendingFresh pendingFresh;
+    private static Screen lastManagedPrompt;
+    private static int managedPromptTicks;
+    private static int managedLaunchTicks;
+    private static boolean managedFallbackRevealed;
+    private static Object managedSourceLevel;
 
     private DAI_ExperienceLauncher() {}
 
@@ -51,10 +65,10 @@ public final class DAI_ExperienceLauncher {
      * collision-safe save folder, so previous runs are never deleted here.
      */
     public static void launchNew(Screen parent, String experienceId) {
-        DAI_ExperienceRepository.reload();
+        DAI_ExperienceRepository.reloadSelectable();
         DAI_WorldgenRepository.reload();
 
-        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.getSelectable(experienceId);
         if (experience == null) {
             DAI_Core.LOGGER.error("<DAI>: Unknown experience '{}'.", experienceId);
             return;
@@ -68,6 +82,7 @@ public final class DAI_ExperienceLauncher {
         }
 
         Path sourcePack = findExperienceSourcePack(experience);
+        beginTransition(experience, experience.autoCreate());
         DAI_ExperienceRuntime.prepare(experience, true, sourcePack);
         DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(experience.worldgen());
 
@@ -78,12 +93,15 @@ public final class DAI_ExperienceLauncher {
             );
         }
 
-        if (openFresh(parent, experience, worldgen)) return;
-        clearFreshLaunch();
-        DAI_Core.LOGGER.error(
-                "<DAI>: Could not open Minecraft's fresh-world flow for experience '{}'.",
-                experience.id()
-        );
+        DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+            if (openFresh(parent, experience, worldgen)) return;
+            clearFreshLaunch();
+            transitionFailed();
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not open Minecraft's fresh-world flow for experience '{}'.",
+                    experience.id()
+            );
+        });
     }
 
 
@@ -98,11 +116,11 @@ public final class DAI_ExperienceLauncher {
             String worldName,
             String worldgenId
     ) {
-        DAI_ExperienceRepository.reload();
+        DAI_ExperienceRepository.reloadSelectable();
         DAI_WorldgenRepository.reload();
-        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.get(experienceId);
+        DAI_ExperienceDefinition experience = DAI_ExperienceRepository.getSelectable(experienceId);
         if (experience == null || !experience.createIfMissing()) {
-            DAI_Core.LOGGER.warn("<DAI>: Cannot create configured experience '{}'.", experienceId);
+            DAI_Core.LOGGER.warn("<DAI>: Cannot create configured installed experience '{}'.", experienceId);
             return;
         }
         DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(worldgenId);
@@ -111,10 +129,14 @@ public final class DAI_ExperienceLauncher {
             return;
         }
         Path sourcePack = findExperienceSourcePack(experience);
+        beginTransition(experience, experience.autoCreate());
         DAI_ExperienceRuntime.prepare(experience, true, sourcePack, worldgen.id());
-        if (openFresh(parent, experience, worldgen, worldName)) return;
-        clearFreshLaunch();
-        DAI_Core.LOGGER.error("<DAI>: Could not open configured fresh-world flow for '{}'.", experience.id());
+        DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+            if (openFresh(parent, experience, worldgen, worldName)) return;
+            clearFreshLaunch();
+            transitionFailed();
+            DAI_Core.LOGGER.error("<DAI>: Could not open configured fresh-world flow for '{}'.", experience.id());
+        });
     }
 
     /**
@@ -151,21 +173,25 @@ public final class DAI_ExperienceLauncher {
 
         Path sourcePack = findExperienceSourcePack(experience);
         boolean firstJoin = markerRequiresFirstJoin(save);
+        beginTransition(experience, true);
         DAI_ExperienceRuntime.prepare(experience, firstJoin, sourcePack);
 
-        if (openExisting(parent, save.getFileName().toString())) {
-            DAI_Core.LOGGER.info(
-                    "<DAI>: Continuing latest experience '{}' save '{}'.",
-                    experience.id(), save.getFileName()
-            );
-            return;
-        }
+        DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+            if (openExisting(parent, save.getFileName().toString())) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Continuing latest experience '{}' save '{}'.",
+                        experience.id(), save.getFileName()
+                );
+                return;
+            }
 
-        DAI_ExperienceLaunchState.clear();
-        DAI_Core.LOGGER.error(
-                "<DAI>: Could not open latest experience '{}' save '{}'.",
-                experience.id(), save
-        );
+            DAI_ExperienceLaunchState.clear();
+            transitionFailed();
+            DAI_Core.LOGGER.error(
+                    "<DAI>: Could not open latest experience '{}' save '{}'.",
+                    experience.id(), save
+            );
+        });
     }
 
     /**
@@ -218,14 +244,18 @@ public final class DAI_ExperienceLauncher {
         }
 
         Path sourcePack = findExperienceSourcePack(experience);
+        beginTransition(experience, true);
         DAI_ExperienceRuntime.prepare(experience, markerRequiresFirstJoin(save), sourcePack);
-        if (openExisting(parent, saveId)) {
-            DAI_Core.LOGGER.info("<DAI>: Continuing selected experience '{}' save '{}'.", experience.id(), saveId);
-            return;
-        }
+        DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+            if (openExisting(parent, saveId)) {
+                DAI_Core.LOGGER.info("<DAI>: Continuing selected experience '{}' save '{}'.", experience.id(), saveId);
+                return;
+            }
 
-        DAI_ExperienceLaunchState.clear();
-        DAI_Core.LOGGER.error("<DAI>: Could not open selected experience '{}' save '{}'.", experience.id(), saveId);
+            DAI_ExperienceLaunchState.clear();
+            transitionFailed();
+            DAI_Core.LOGGER.error("<DAI>: Could not open selected experience '{}' save '{}'.", experience.id(), saveId);
+        });
     }
 
     /**
@@ -280,20 +310,43 @@ public final class DAI_ExperienceLauncher {
             return;
         }
 
+        // MAIN Experiences may own their entire front-end loop. Selecting one
+        // from DAI first enters its authored title screen; START/CONTINUE on
+        // that screen call launchNew/continueLast and perform the real world
+        // handoff. Experiences without a custom title keep the legacy direct
+        // launch behavior.
+        DAI_TitleScreenDefinition experienceTitle = DAI_TitleScreenRepository.forExperience(experience.id());
+        if (experienceTitle != null) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft != null && minecraft.gui != null) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Entering authored title loop '{}' for experience '{}'.",
+                        experienceTitle.id(), experience.id()
+                );
+                minecraft.gui.setScreen(new DAI_TitleScreen(experienceTitle));
+                return;
+            }
+        }
+
         Path save = findExperienceSave(experience);
         boolean exists = save != null && Files.isRegularFile(save.resolve("level.dat"));
         Path sourcePack = findExperienceSourcePack(experience);
 
         if (exists && experience.loadIfExisting()) {
             boolean firstJoin = markerRequiresFirstJoin(save);
+            beginTransition(experience, true);
             DAI_ExperienceRuntime.prepare(experience, firstJoin, sourcePack);
-            if (openExisting(parent, save.getFileName().toString())) return;
-            DAI_ExperienceLaunchState.clear();
-            DAI_Core.LOGGER.error("<DAI>: Could not directly open experience save '{}'.", save);
+            DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+                if (openExisting(parent, save.getFileName().toString())) return;
+                DAI_ExperienceLaunchState.clear();
+                transitionFailed();
+                DAI_Core.LOGGER.error("<DAI>: Could not directly open experience save '{}'.", save);
+            });
             return;
         }
 
         if (!exists && experience.createIfMissing()) {
+            beginTransition(experience, experience.autoCreate());
             DAI_ExperienceRuntime.prepare(experience, true, sourcePack);
             DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(experience.worldgen());
             if (worldgen != null) {
@@ -302,9 +355,12 @@ public final class DAI_ExperienceLauncher {
                         experience.id(), worldgen.id(), worldgen.worldPreset()
                 );
             }
-            if (openFresh(parent, experience, worldgen)) return;
-            clearFreshLaunch();
-            DAI_Core.LOGGER.error("<DAI>: Could not open Minecraft's fresh-world flow for experience '{}'.", experience.id());
+            DAI_ExperienceResourcePackLifecycle.applyBeforeWorldLaunch(() -> {
+                if (openFresh(parent, experience, worldgen)) return;
+                clearFreshLaunch();
+                transitionFailed();
+                DAI_Core.LOGGER.error("<DAI>: Could not open Minecraft's fresh-world flow for experience '{}'.", experience.id());
+            });
             return;
         }
 
@@ -316,19 +372,179 @@ public final class DAI_ExperienceLauncher {
 
     /** Called from the post-client-tick hook while a fresh experience is being created. */
     public static void tickFreshLaunch() {
+        Minecraft minecraft = Minecraft.getInstance();
+
+        /*
+         * Any DAI-owned launch may be intercepted by Minecraft confirmation UI
+         * before the destination ClientLevel attaches. Keep retrying the prompt
+         * instead of marking one failed reflective attempt as permanently done.
+         * BackupConfirmScreen uses Skip & Join so a hidden backup task cannot
+         * itself hold the Safe Loading Veil at ~50%.
+         */
+        Screen managedScreen = minecraft.gui.screen();
+        DAI_ExperienceLaunchState.Pending managedLaunch = DAI_ExperienceLaunchState.pending();
+        if (managedLaunch != null) {
+            managedLaunchTicks++;
+
+            boolean destinationAttached = minecraft.level != null
+                    && minecraft.player != null
+                    && minecraft.level != managedSourceLevel;
+            if (destinationAttached) {
+                clearManagedLaunchWatchdog();
+            } else if (managedScreen instanceof DAI_ExperimentalFeaturesScreen) {
+                if (!managedFallbackRevealed) {
+                    managedFallbackRevealed = true;
+                    DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+                }
+                return;
+            } else if (DAI_WorldLaunchConfirmation.isBackupPrompt(managedScreen)) {
+                if (managedScreen != lastManagedPrompt) {
+                    lastManagedPrompt = managedScreen;
+                    managedPromptTicks = 0;
+                }
+
+                managedPromptTicks++;
+                if (managedPromptTicks == 1 || managedPromptTicks % 10 == 0) {
+                    if (DAI_WorldLaunchConfirmation.acceptAffirmative(managedScreen)) {
+                        DAI_Core.LOGGER.info(
+                                "<DAI>: Auto-accepted DAI world-launch confirmation '{}' for experience '{}'; continuing without a backup wait.",
+                                managedScreen.getTitle().getString(),
+                                managedLaunch.definition().id()
+                        );
+                        // Keep the same screen recorded and add a short
+                        // cooldown so an asynchronous screen replacement cannot
+                        // cause the callback to fire repeatedly on consecutive
+                        // client ticks. If it truly remains stuck, retries resume.
+                        lastManagedPrompt = managedScreen;
+                        managedPromptTicks = -20;
+                    } else if (managedPromptTicks == 1) {
+                        DAI_Core.LOGGER.warn(
+                                "<DAI>: DAI world-launch confirmation '{}' was detected for experience '{}', but the affirmative action was not invokable yet; retrying.",
+                                managedScreen.getTitle().getString(),
+                                managedLaunch.definition().id()
+                        );
+                    }
+                }
+
+                // Never leave an uninvokable confirmation hidden forever.
+                if (!managedFallbackRevealed && managedPromptTicks >= 120) {
+                    managedFallbackRevealed = true;
+                    DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+                    DAI_Core.LOGGER.warn(
+                            "<DAI>: Confirmation for experience '{}' remained blocked after {} ticks; revealing Minecraft's screen instead of holding the loader at 50%.",
+                            managedLaunch.definition().id(),
+                            managedPromptTicks
+                    );
+                }
+                return;
+            } else {
+                lastManagedPrompt = null;
+                managedPromptTicks = 0;
+
+                if (managedLaunchTicks % 100 == 0) {
+                    DAI_Core.LOGGER.info(
+                            "<DAI>: Experience launch '{}' still waiting ({} ticks, screen='{}', sourceLevelSame={}, playerReady={}).",
+                            managedLaunch.definition().id(),
+                            managedLaunchTicks,
+                            managedScreen == null ? "<none>" : managedScreen.getClass().getName(),
+                            minecraft.level == managedSourceLevel,
+                            minecraft.player != null
+                    );
+                }
+
+                // The old veil asymptotically settles around 50% while the
+                // source shell remains attached. If Minecraft has stopped on an
+                // unexpected error/recovery screen, reveal it instead of hiding
+                // useful diagnostics indefinitely.
+                if (!managedFallbackRevealed
+                        && managedLaunchTicks >= 240
+                        && !isRecognizedWorldLoadingScreen(managedScreen)) {
+                    managedFallbackRevealed = true;
+                    DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+                    DAI_Core.LOGGER.warn(
+                            "<DAI>: Experience launch '{}' has not detached from its source world after {} ticks (screen='{}'); dropping the Safe Loading Veil so the blocking Minecraft UI is visible.",
+                            managedLaunch.definition().id(),
+                            managedLaunchTicks,
+                            managedScreen == null ? "<none>" : managedScreen.getClass().getName()
+                    );
+                }
+            }
+        } else {
+            clearManagedLaunchWatchdog();
+        }
+
         PendingFresh pending = pendingFresh;
         if (pending == null) return;
 
-        Minecraft minecraft = Minecraft.getInstance();
-        Screen screen = minecraft.gui.screen();
 
+        // Once a newly-created level actually replaces the source shell/world,
+        // the fresh-screen handoff has succeeded and no Create World watchdog
+        // state should survive into gameplay.
+        if (pending.createInvoked
+                && minecraft.level != null
+                && minecraft.level != pending.sourceLevel) {
+            pendingFresh = null;
+            return;
+        }
+
+        Screen screen = minecraft.gui.screen();
         if (screen == null) return;
+
+        /*
+         * Only Minecraft's explicit backup warning is safe to auto-accept.
+         * Generic ConfirmScreen instances may represent lifecycle, feature or
+         * validation decisions and must never be blindly pressed by DAI.
+         */
+        if (pending.createInvoked && DAI_WorldLaunchConfirmation.isBackupPrompt(screen)) {
+            if (!pending.confirmationAttempted) {
+                pending.ticksAfterCreate = 0;
+
+                if (acceptFreshExperienceConfirmation(screen)) {
+                    pending.confirmationAttempted = true;
+                    DAI_Core.LOGGER.info(
+                            "<DAI>: Accepted fresh experience-world confirmation '{}' for '{}'; continuing world creation.",
+                            screen.getTitle().getString(),
+                            pending.experience.id()
+                    );
+                } else {
+                    // Do not permanently suppress retries just because the
+                    // screen/callback was not fully initialized this tick.
+                    DAI_Core.LOGGER.debug(
+                            "<DAI>: Fresh experience-world confirmation '{}' for '{}' is not invokable yet; retrying next tick.",
+                            screen.getTitle().getString(),
+                            pending.experience.id()
+                    );
+                }
+            }
+            return;
+        }
+
+        if (screen instanceof DAI_ExperimentalFeaturesScreen) {
+            pending.experimentalWarningSeen = true;
+            DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+            return;
+        }
+
+        if (DAI_WorldCreationThemeRuntime.isExperimentalControllerScreen(screen)) {
+            pending.experimentalWarningSeen = true;
+            DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+            return;
+        }
+
+        // Dedicated Minecraft warning screens normally implement "No" by
+        // returning to CreateWorldScreen. In an Experience flow that is not the
+        // desired parent; unwind directly back to the Experience selector.
+        if (pending.experimentalWarningSeen && isCreateWorldScreen(screen)) {
+            cancelPendingFreshToParent();
+            return;
+        }
 
         if (!isCreateWorldScreen(screen)) {
             // Returning to the screen that launched the experience means the
             // player cancelled. Do not leave a first-join handoff armed.
             if (pending.screenSeen && screen == pending.parent) {
                 clearFreshLaunch();
+                transitionFailed();
             }
             return;
         }
@@ -344,37 +560,110 @@ public final class DAI_ExperienceLauncher {
             pending.configured = true;
         }
 
-        if (!pending.experience.autoCreate() || pending.createInvoked) return;
+        if (!pending.experience.autoCreate()) return;
+
+        if (pending.createInvoked) {
+            // Reflection can successfully call a mapped Create method without
+            // Minecraft accepting the transition (validation, changed mappings,
+            // or a disabled Create action). If we are still sitting on the
+            // Create World screen after a short grace period, drop the veil and
+            // expose the already-configured vanilla screen instead of trapping
+            // the player at ~42-52% forever.
+            pending.ticksAfterCreate++;
+            if (!pending.interactiveFallbackRevealed && pending.ticksAfterCreate >= 60) {
+                pending.interactiveFallbackRevealed = true;
+                DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Automatic world creation for experience '{}' did not leave Create World after {} ticks; revealing the configured screen for manual confirmation.",
+                        pending.experience.id(),
+                        pending.ticksAfterCreate
+                );
+            }
+            return;
+        }
 
         if (!pending.presetResolved) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Experience '{}' requested world preset '{}', but that preset is not currently available "
-                            + "to Minecraft's Create World registry. The configured Create World screen was left open instead of creating the wrong world.",
+                            + "to Minecraft's Create World registry. Revealing the configured Create World screen instead of creating the wrong world.",
                     pending.experience.id(),
                     pending.worldgen == null ? "" : pending.worldgen.worldPreset()
             );
             pending.createInvoked = true;
+            pending.interactiveFallbackRevealed = true;
+            DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
             return;
         }
 
         if (invokeCreate(screen)) {
             pending.createInvoked = true;
-            pendingFresh = null;
+            pending.ticksAfterCreate = 0;
             DAI_Core.LOGGER.info("<DAI>: Creating new experience world '{}'.", pending.experience.id());
         } else {
             pending.createInvoked = true;
+            pending.interactiveFallbackRevealed = true;
+            DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
             DAI_Core.LOGGER.warn(
-                    "<DAI>: Could not invoke Minecraft's Create action automatically for experience '{}'; the configured screen remains available.",
+                    "<DAI>: Could not invoke Minecraft's Create action automatically for experience '{}'; revealing the configured Create World screen.",
                     pending.experience.id()
             );
         }
+    }
+
+    private static boolean acceptFreshExperienceConfirmation(Screen screen) {
+        return DAI_WorldLaunchConfirmation.acceptAffirmative(screen);
     }
 
     public static boolean hasPendingFreshLaunch() {
         return pendingFresh != null;
     }
 
+    /**
+     * Cancels a fresh Experience world setup back to the DAI Experience picker.
+     * Minecraft's experimental-warning "No" normally returns to its underlying
+     * CreateWorldScreen; DAI instead unwinds the pending Experience launch and
+     * restores the screen that originally launched it.
+     */
+    public static boolean cancelPendingFreshToParent() {
+        PendingFresh pending = pendingFresh;
+        if (pending == null) return false;
+
+        Screen target = pending.parent;
+        Minecraft minecraft = Minecraft.getInstance();
+        clearFreshLaunch();
+        transitionFailed();
+
+        if (minecraft == null || minecraft.gui == null) return true;
+        if (minecraft.level == null && minecraft.player == null) {
+            DAI_ShellWorldRuntime.restartShellAfterDetachedCancellation(target);
+        } else if (target != null) {
+            minecraft.gui.setScreen(target);
+        }
+
+        DAI_Core.LOGGER.info(
+                "<DAI>: Cancelled fresh Experience world setup; returning to '{}'.",
+                target == null ? "DAI experience selector" : target.getClass().getSimpleName()
+        );
+        return true;
+    }
+
     private static boolean openExisting(Screen parent, String saveId) {
+        return DAI_ShellWorldRuntime.runAfterCleanWorldDetach(
+                "PREPARING EXPERIENCE",
+                parent,
+                () -> {
+                    if (!openExistingDetached(parent, saveId)) {
+                        DAI_ExperienceLaunchState.clear();
+                        transitionFailed();
+                        throw new IllegalStateException(
+                                "Minecraft could not open experience save " + saveId
+                        );
+                    }
+                }
+        );
+    }
+
+    private static boolean openExistingDetached(Screen parent, String saveId) {
         Minecraft minecraft = Minecraft.getInstance();
         try {
             Object flows = invokeNoArg(minecraft, "createWorldOpenFlows");
@@ -407,6 +696,29 @@ public final class DAI_ExperienceLauncher {
     }
 
     private static boolean openFresh(
+            Screen parent,
+            DAI_ExperienceDefinition experience,
+            DAI_WorldgenDefinition worldgen,
+            String requestedWorldName
+    ) {
+        return DAI_ShellWorldRuntime.runAfterCleanWorldDetach(
+                "PREPARING " + (experience == null
+                        ? "EXPERIENCE"
+                        : experience.saveName().toUpperCase(Locale.ROOT)),
+                parent,
+                () -> {
+                    if (!openFreshDetached(parent, experience, worldgen, requestedWorldName)) {
+                        clearFreshLaunch();
+                        transitionFailed();
+                        throw new IllegalStateException(
+                                "Minecraft fresh experience flow was unavailable after shell detach"
+                        );
+                    }
+                }
+        );
+    }
+
+    private static boolean openFreshDetached(
             Screen parent,
             DAI_ExperienceDefinition experience,
             DAI_WorldgenDefinition worldgen,
@@ -924,6 +1236,40 @@ public final class DAI_ExperienceLauncher {
         return Math.max(1, Math.abs(saveId.toLowerCase(Locale.ROOT).hashCode() % 999) + 1);
     }
 
+    private static void beginTransition(DAI_ExperienceDefinition experience, boolean hideIntermediaryScreens) {
+        if (!hideIntermediaryScreens || experience == null) return;
+        Minecraft minecraft = Minecraft.getInstance();
+        managedSourceLevel = minecraft == null ? null : minecraft.level;
+        managedLaunchTicks = 0;
+        managedPromptTicks = 0;
+        managedFallbackRevealed = false;
+        lastManagedPrompt = null;
+        String label = "PREPARING " + experience.saveName().toUpperCase(Locale.ROOT);
+        DAI_ShellWorldRuntime.prepareExperienceTransition(label);
+    }
+
+    private static void clearManagedLaunchWatchdog() {
+        managedSourceLevel = null;
+        managedLaunchTicks = 0;
+        managedPromptTicks = 0;
+        managedFallbackRevealed = false;
+        lastManagedPrompt = null;
+    }
+
+    private static boolean isRecognizedWorldLoadingScreen(Screen screen) {
+        if (screen == null) return false;
+        String name = screen.getClass().getSimpleName();
+        return "LevelLoadingScreen".equals(name)
+                || "ReceivingLevelScreen".equals(name)
+                || "ProgressScreen".equals(name)
+                || "GenericWaitingScreen".equals(name);
+    }
+
+    private static void transitionFailed() {
+        clearManagedLaunchWatchdog();
+        DAI_ShellWorldRuntime.resumeAfterCancelledTransition();
+    }
+
     private static void clearFreshLaunch() {
         pendingFresh = null;
         DAI_ExperienceLaunchState.clear();
@@ -949,11 +1295,16 @@ public final class DAI_ExperienceLauncher {
         private final DAI_ExperienceDefinition experience;
         private final DAI_WorldgenDefinition worldgen;
         private final String worldName;
+        private final Object sourceLevel;
         private int ticksOnScreen;
+        private int ticksAfterCreate;
         private boolean screenSeen;
         private boolean configured;
         private boolean presetResolved = true;
         private boolean createInvoked;
+        private boolean confirmationAttempted;
+        private boolean experimentalWarningSeen;
+        private boolean interactiveFallbackRevealed;
 
         private PendingFresh(
                 Screen parent,
@@ -965,6 +1316,8 @@ public final class DAI_ExperienceLauncher {
             this.experience = experience;
             this.worldgen = worldgen;
             this.worldName = worldName == null ? "" : worldName.trim();
+            Minecraft minecraft = Minecraft.getInstance();
+            this.sourceLevel = minecraft == null ? null : minecraft.level;
         }
     }
 }

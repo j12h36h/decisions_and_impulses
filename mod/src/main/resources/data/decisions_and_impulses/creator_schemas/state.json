@@ -12,7 +12,13 @@
       "label": "Value Type",
       "type": "text",
       "default": "string",
-      "level": 0
+      "level": 0,
+      "options": [
+        "string",
+        "number",
+        "boolean",
+        "json"
+      ]
     },
     {
       "path": "default",
@@ -26,7 +32,13 @@
       "label": "Scope",
       "type": "text",
       "default": "player",
-      "level": 0
+      "level": 0,
+      "options": [
+        "player",
+        "world",
+        "session",
+        "global"
+      ]
     },
     {
       "path": "persistent",

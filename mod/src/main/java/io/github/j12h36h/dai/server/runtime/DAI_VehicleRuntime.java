@@ -47,8 +47,12 @@ public final class DAI_VehicleRuntime {
             float pitch
     ) {}
 
+    private static final int INPUT_RATE_WINDOW_TICKS = 20;
+    private static final int INPUT_PACKETS_PER_WINDOW = 60;
+
     private static final Map<UUID, Input> INPUTS = new ConcurrentHashMap<>();
     private static final Map<UUID, MotorcycleState> MOTORCYCLE = new ConcurrentHashMap<>();
+    private static final Map<UUID, InputRateWindow> INPUT_RATE_WINDOWS = new ConcurrentHashMap<>();
     private static boolean initialized;
 
     private DAI_VehicleRuntime() {}
@@ -62,6 +66,12 @@ public final class DAI_VehicleRuntime {
 
     public static void accept(ServerPlayer player, DAI_VehicleInputPayload payload) {
         if (player == null || payload == null) return;
+        if (!allowInputPacket(player)) return;
+        if (!Float.isFinite(payload.forward()) || !Float.isFinite(payload.strafe())
+                || !Float.isFinite(payload.yaw()) || !Float.isFinite(payload.pitch())) {
+            DAI_Core.LOGGER.warn("<DAI>: Rejected non-finite vehicle input from player '{}'.", player.getUUID());
+            return;
+        }
         INPUTS.put(player.getUUID(), new Input(
                 Mth.clamp(payload.forward(), -1.0F, 1.0F),
                 Mth.clamp(payload.strafe(), -1.0F, 1.0F),
@@ -73,6 +83,54 @@ public final class DAI_VehicleRuntime {
                 payload.yaw(),
                 payload.pitch()
         ));
+    }
+
+    /**
+     * Vehicle input is expected once per client tick. Allowing three times
+     * that normal rate leaves room for jitter/bursts while preventing a
+     * modified client from turning the lightweight input channel into an
+     * unbounded packet flood.
+     */
+    private static boolean allowInputPacket(ServerPlayer player) {
+        if (player == null || player.level().getServer() == null) return false;
+        long tick = player.level().getServer().getTickCount();
+        UUID playerId = player.getUUID();
+        InputRateWindow window = INPUT_RATE_WINDOWS.computeIfAbsent(
+                playerId,
+                ignored -> new InputRateWindow(tick, 0)
+        );
+
+        synchronized (window) {
+            if (tick < window.startTick || tick - window.startTick >= INPUT_RATE_WINDOW_TICKS) {
+                window.startTick = tick;
+                window.count = 0;
+                window.warned = false;
+            }
+            if (window.count >= INPUT_PACKETS_PER_WINDOW) {
+                if (!window.warned) {
+                    window.warned = true;
+                    DAI_Core.LOGGER.warn(
+                            "<DAI>: Rate-limited vehicle input traffic from player '{}'.",
+                            playerId
+                    );
+                }
+                return false;
+            }
+            window.count++;
+            return true;
+        }
+    }
+
+    private static final class InputRateWindow {
+        private long startTick;
+        private int count;
+        private boolean warned;
+
+        private InputRateWindow(long startTick, int count) {
+            this.startTick = startTick;
+            this.count = count;
+            this.warned = false;
+        }
     }
 
     public static Input inputFor(ServerPlayer player) {

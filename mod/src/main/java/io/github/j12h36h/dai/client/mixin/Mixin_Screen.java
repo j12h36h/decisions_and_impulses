@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.branding.DAI_WorldLoadingBranding;
+import io.github.j12h36h.dai.client.branding.DAI_SafeLoadingVeil;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -66,5 +67,7 @@ public abstract class Mixin_Screen {
             CallbackInfo callbackInfo
     ) {
         DAI_OverlayManager.extractForScreen(graphics);
+        DAI_SafeLoadingVeil.extractForScreen(graphics);
+        DAI_WorldLoadingBranding.extractPostVeil((Screen)(Object)this, graphics);
     }
 }

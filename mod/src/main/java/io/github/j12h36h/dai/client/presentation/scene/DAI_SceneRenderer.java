@@ -13,12 +13,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generic data-driven scene graph renderer for screens and story panels.
@@ -29,6 +31,9 @@ import java.util.Map;
  * implemented here.
  */
 public final class DAI_SceneRenderer {
+    private static final Map<Identifier, ItemStack> ITEM_MODEL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, ItemStack> BLOCK_MODEL_CACHE = new ConcurrentHashMap<>();
+
     private DAI_SceneRenderer() {}
 
     public static boolean render(
@@ -68,6 +73,17 @@ public final class DAI_SceneRenderer {
             if (element == null || !element.isJsonObject()) continue;
             JsonObject object = element.getAsJsonObject();
             if (!DAI_SceneDefinition.bool(object, "enabled", true)) continue;
+
+            String type = DAI_SceneDefinition.string(object, "type", "sprite")
+                    .trim().toLowerCase(Locale.ROOT);
+            if (type.equals("block_structure") || type.equals("voxel_structure") || type.equals("block_scene")) {
+                for (JsonObject block : expandBlockStructure(object, variables)) {
+                    Projected p = project(block, camera, x, y, width, height, variables);
+                    if (p != null) projected.add(p);
+                }
+                continue;
+            }
+
             Projected p = project(object, camera, x, y, width, height, variables);
             if (p != null) projected.add(p);
         }
@@ -97,7 +113,7 @@ public final class DAI_SceneRenderer {
                     DAI_SceneDefinition.color(background, "color", top));
             case "texture", "image" -> {
                 String raw = DAI_TemplateEngine.resolve(DAI_SceneDefinition.string(background, "texture", ""), variables);
-                Identifier texture = Identifier.tryParse(raw);
+                Identifier texture = safeTextureId(raw);
                 if (texture != null) {
                     int tw = Math.max(1, DAI_SceneDefinition.integer(background, "texture_width", width));
                     int th = Math.max(1, DAI_SceneDefinition.integer(background, "texture_height", height));
@@ -239,6 +255,13 @@ public final class DAI_SceneRenderer {
         double maxScale = DAI_SceneDefinition.number(element, "max_pixels", 4096.0D);
         drawWidth = clamp(drawWidth, minScale, maxScale);
         drawHeight = clamp(drawHeight, minScale, maxScale);
+        double padding = 24.0D;
+        if (sx + drawWidth * 0.5D < viewportX - padding
+                || sx - drawWidth * 0.5D > viewportX + viewportWidth + padding
+                || sy + drawHeight * 0.5D < viewportY - padding
+                || sy - drawHeight * 0.5D > viewportY + viewportHeight + padding) {
+            return null;
+        }
         return new Projected(element, sx, sy, drawWidth, drawHeight, depth);
     }
 
@@ -256,17 +279,11 @@ public final class DAI_SceneRenderer {
                 String text = DAI_TemplateEngine.resolve(DAI_SceneDefinition.string(element, "text", ""), variables);
                 graphics.centeredText(Minecraft.getInstance().font, Component.literal(text), (int)Math.round(p.x()), y, color);
             }
-            case "item", "block" -> {
-                String raw = DAI_TemplateEngine.resolve(DAI_SceneDefinition.string(element, "item", "minecraft:air"), variables);
-                Identifier id = Identifier.tryParse(raw);
-                if (id != null) {
-                    var item = BuiltInRegistries.ITEM.getValue(id);
-                    if (item != null) graphics.item(new ItemStack(item), (int)Math.round(p.x()) - 8, (int)Math.round(p.y()) - 8);
-                }
-            }
+            case "item" -> renderItemModel(graphics, p, element, variables, false);
+            case "block" -> renderItemModel(graphics, p, element, variables, true);
             default -> {
                 String raw = DAI_TemplateEngine.resolve(DAI_SceneDefinition.string(element, "texture", ""), variables);
-                Identifier texture = Identifier.tryParse(raw);
+                Identifier texture = safeTextureId(raw);
                 if (texture == null) return;
                 int tw = Math.max(1, DAI_SceneDefinition.integer(element, "texture_width", 16));
                 int th = Math.max(1, DAI_SceneDefinition.integer(element, "texture_height", 16));
@@ -285,6 +302,282 @@ public final class DAI_SceneRenderer {
         }
     }
 
+
+    /**
+     * Renders a scene item or block through Minecraft's normal baked GUI item
+     * model. Block items therefore keep their actual 3-D model geometry and
+     * resource-pack/mod-provided model, while the scene camera determines the
+     * model's projected position and size.
+     */
+    private static void renderItemModel(
+            GuiGraphicsExtractor graphics,
+            Projected projected,
+            JsonObject element,
+            Map<String, ?> variables,
+            boolean block
+    ) {
+        String key = block ? "block" : "item";
+        String fallbackKey = block ? "item" : "block";
+        String raw = DAI_TemplateEngine.resolve(
+                DAI_SceneDefinition.string(element, key,
+                        DAI_SceneDefinition.string(element, fallbackKey, "minecraft:air")),
+                variables
+        );
+        Identifier id = Identifier.tryParse(raw);
+        if (id == null) return;
+
+        /* ItemStack GUI models are deliberately used here rather than a custom
+         * block mesh format. That means the active Minecraft/resource-pack/mod
+         * model is what DAI displays. The DAI shell boot binds registry
+         * components first; after that readiness boundary these models remain
+         * available across title and later world-transition screens. */
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null) return;
+
+        /*
+         * Do not construct ItemStacks during the bootstrap/title reload phase.
+         * Minecraft exposes registry holders before their component maps are
+         * bound in 26.2, and ItemStack(Item) will throw "Components not bound
+         * yet" in that window. DAI's bootstrap-safe universe renderer covers
+         * this period; model-backed scenes become available after the first
+         * client level has fully attached.
+         */
+        if (!DAI_SceneRenderSafety.registryModelsReady()) return;
+
+        ItemStack stack;
+        if (block) {
+            stack = BLOCK_MODEL_CACHE.get(id);
+            if (stack == null) {
+                var blockValue = BuiltInRegistries.BLOCK.getValue(id);
+                if (blockValue == null || blockValue.asItem() == Items.AIR) return;
+                stack = new ItemStack(blockValue.asItem());
+                BLOCK_MODEL_CACHE.put(id, stack);
+            }
+        } else {
+            stack = ITEM_MODEL_CACHE.get(id);
+            if (stack == null) {
+                var item = BuiltInRegistries.ITEM.getValue(id);
+                if (item == null || item == Items.AIR) return;
+                stack = new ItemStack(item);
+                ITEM_MODEL_CACHE.put(id, stack);
+            }
+        }
+
+        /*
+         * A baked GUI block model does not consume every pixel of its nominal
+         * 16x16 item cell: the isometric corners leave a small transparent
+         * margin. If scene blocks are scaled to the mathematical cell size
+         * without compensating for that margin, adjacent terrain reads as a
+         * collection of slightly shrunken cubes with bright seams between
+         * them. block_structure children therefore opt into grid fitting.
+         *
+         * The correction is intentionally small and author-overridable. It
+         * expands only the visual model; world-space block centers remain on
+         * the exact authored grid, so structures do not drift or accumulate
+         * positional error as they grow.
+         */
+        boolean gridFit = block && DAI_SceneDefinition.bool(element, "grid_fit", false);
+        double fit = Math.max(0.01D, DAI_SceneDefinition.number(
+                element, "model_fit", gridFit ? 1.115D : 1.0D));
+        double seamOverlapPixels = Math.max(0.0D, DAI_SceneDefinition.number(
+                element, "seam_overlap_pixels", gridFit ? 0.65D : 0.0D));
+        double targetPixels = Math.min(projected.width(), projected.height()) + seamOverlapPixels;
+
+        float scale = (float)Math.max(0.02D, targetPixels / 16.0D);
+        scale *= (float)Math.max(0.01D, DAI_SceneDefinition.number(element, "model_scale", 1.0D));
+        scale *= (float)fit;
+        float rotation = (float)Math.toRadians(DAI_SceneDefinition.number(element, "screen_rotation", 0.0D));
+
+        // Half-pixel snapping keeps neighboring block icons on the same raster
+        // phase while the camera moves, reducing shimmer and one-pixel cracks.
+        float centerX = gridFit ? snapHalf(projected.x()) : (float)projected.x();
+        float centerY = gridFit ? snapHalf(projected.y()) : (float)projected.y();
+
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(centerX, centerY);
+        if (rotation != 0.0F) graphics.pose().rotate(rotation);
+        graphics.pose().scale(scale, scale);
+        graphics.item(stack, -8, -8);
+        graphics.pose().popMatrix();
+    }
+
+    /**
+     * Expands a compact JSON voxel/block structure into ordinary projected
+     * block scene elements. This intentionally resolves only registry ids at
+     * render time, so vanilla blocks, modded blocks and DAI-generated blocks
+     * all use the same format.
+     *
+     * Supported authoring forms:
+     *  - explicit blocks: {"blocks":[{"block":"minecraft:stone","pos":[0,0,0]}]}
+     *  - layered palette maps: {"palette":{"#":"minecraft:stone"},"layers":[["###","# #","###"]]}
+     */
+    private static List<JsonObject> expandBlockStructure(
+            JsonObject structure,
+            Map<String, ?> variables
+    ) {
+        List<JsonObject> out = new ArrayList<>();
+        if (structure == null) return out;
+
+        int limit = Math.max(1, Math.min(16384,
+                DAI_SceneDefinition.integer(structure, "max_blocks", 8192)));
+        double blockSize = Math.max(0.001D,
+                DAI_SceneDefinition.number(structure, "block_size", 1.0D));
+        double scaleX = DAI_SceneDefinition.number(structure, "scale_x", 1.0D);
+        double scaleY = DAI_SceneDefinition.number(structure, "scale_y", 1.0D);
+        double scaleZ = DAI_SceneDefinition.number(structure, "scale_z", 1.0D);
+        double yaw = Math.toRadians(DAI_SceneDefinition.number(structure, "yaw", 0.0D));
+        boolean centered = DAI_SceneDefinition.bool(structure, "centered", true);
+        Vec3 base = vec(structure, "position",
+                DAI_SceneDefinition.number(structure, "x", 0.0D),
+                DAI_SceneDefinition.number(structure, "y", 0.0D),
+                DAI_SceneDefinition.number(structure, "z", 0.0D));
+
+        JsonObject palette = DAI_SceneDefinition.object(structure, "palette");
+        JsonArray explicit = array(structure, "blocks");
+        for (JsonElement entry : explicit) {
+            if (out.size() >= limit) break;
+            if (entry == null || !entry.isJsonObject()) continue;
+            JsonObject block = entry.getAsJsonObject();
+            String rawBlock = DAI_TemplateEngine.resolve(
+                    DAI_SceneDefinition.string(block, "block", DAI_SceneDefinition.string(block, "id", "")),
+                    variables
+            );
+            rawBlock = paletteValue(palette, rawBlock, variables);
+            if (rawBlock.isBlank() || rawBlock.equals("minecraft:air") || Identifier.tryParse(rawBlock) == null) continue;
+
+            Vec3 local = vec(block, "pos",
+                    DAI_SceneDefinition.number(block, "x", 0.0D),
+                    DAI_SceneDefinition.number(block, "y", 0.0D),
+                    DAI_SceneDefinition.number(block, "z", 0.0D));
+            out.add(blockElement(structure, block, rawBlock,
+                    transformStructurePoint(base, local, blockSize, scaleX, scaleY, scaleZ, yaw),
+                    blockSize));
+        }
+
+        JsonArray layers = array(structure, "layers");
+        if (layers.size() > 0 && out.size() < limit) {
+            int layerCount = layers.size();
+            int maxRows = 0;
+            int maxColumns = 0;
+            for (JsonElement layerElement : layers) {
+                JsonArray rows = layerElement != null && layerElement.isJsonArray()
+                        ? layerElement.getAsJsonArray() : new JsonArray();
+                maxRows = Math.max(maxRows, rows.size());
+                for (JsonElement rowElement : rows) {
+                    if (rowElement != null && rowElement.isJsonPrimitive()) {
+                        maxColumns = Math.max(maxColumns, rowElement.getAsString().length());
+                    }
+                }
+            }
+
+            double centerX = centered ? (maxColumns - 1) * 0.5D : 0.0D;
+            double centerY = centered ? (layerCount - 1) * 0.5D : 0.0D;
+            double centerZ = centered ? (maxRows - 1) * 0.5D : 0.0D;
+
+            for (int ly = 0; ly < layers.size() && out.size() < limit; ly++) {
+                JsonElement layerElement = layers.get(ly);
+                if (layerElement == null || !layerElement.isJsonArray()) continue;
+                JsonArray rows = layerElement.getAsJsonArray();
+                for (int rz = 0; rz < rows.size() && out.size() < limit; rz++) {
+                    JsonElement rowElement = rows.get(rz);
+                    if (rowElement == null || !rowElement.isJsonPrimitive()) continue;
+                    String row = rowElement.getAsString();
+                    for (int cx = 0; cx < row.length() && out.size() < limit; cx++) {
+                        String token = String.valueOf(row.charAt(cx));
+                        if (token.isBlank()) continue;
+                        String rawBlock = paletteValue(palette, token, variables);
+                        if (rawBlock.isBlank() || rawBlock.equals("minecraft:air") || Identifier.tryParse(rawBlock) == null) continue;
+
+                        Vec3 local = new Vec3(cx - centerX, ly - centerY, rz - centerZ);
+                        out.add(blockElement(structure, null, rawBlock,
+                                transformStructurePoint(base, local, blockSize, scaleX, scaleY, scaleZ, yaw),
+                                blockSize));
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    private static JsonObject blockElement(
+            JsonObject structure,
+            JsonObject override,
+            String blockId,
+            Vec3 point,
+            double blockSize
+    ) {
+        JsonObject child = new JsonObject();
+        child.addProperty("type", "block");
+        child.addProperty("block", blockId);
+        JsonArray position = new JsonArray();
+        position.add(point.x());
+        position.add(point.y());
+        position.add(point.z());
+        child.add("position", position);
+        child.addProperty("width", blockSize * DAI_SceneDefinition.number(structure, "model_width", 1.0D));
+        child.addProperty("height", blockSize * DAI_SceneDefinition.number(structure, "model_height", 1.0D));
+        child.addProperty("grid_fit", DAI_SceneDefinition.bool(structure, "grid_fit", true));
+        copyNumber(structure, child, "model_fit");
+        copyNumber(structure, child, "seam_overlap_pixels");
+        copyNumber(structure, child, "near");
+        copyNumber(structure, child, "far");
+        copyNumber(structure, child, "min_pixels");
+        copyNumber(structure, child, "max_pixels");
+        copyNumber(structure, child, "model_scale");
+        copyNumber(structure, child, "screen_rotation");
+        if (override != null) {
+            copyNumber(override, child, "model_scale");
+            copyNumber(override, child, "screen_rotation");
+        }
+        return child;
+    }
+
+    private static void copyNumber(JsonObject source, JsonObject target, String key) {
+        if (source != null && source.has(key) && source.get(key).isJsonPrimitive()) {
+            try { target.addProperty(key, source.get(key).getAsDouble()); }
+            catch (RuntimeException ignored) { }
+        }
+    }
+
+    private static String paletteValue(JsonObject palette, String token, Map<String, ?> variables) {
+        String resolved = token == null ? "" : token.trim();
+        if (palette != null && palette.has(resolved)) {
+            try { resolved = palette.get(resolved).getAsString(); }
+            catch (RuntimeException ignored) { return ""; }
+        }
+        return DAI_TemplateEngine.resolve(resolved, variables).trim();
+    }
+
+    private static Vec3 transformStructurePoint(
+            Vec3 base,
+            Vec3 local,
+            double blockSize,
+            double scaleX,
+            double scaleY,
+            double scaleZ,
+            double yaw
+    ) {
+        double x = local.x() * blockSize * scaleX;
+        double y = local.y() * blockSize * scaleY;
+        double z = local.z() * blockSize * scaleZ;
+        if (yaw != 0.0D) {
+            double cos = Math.cos(yaw);
+            double sin = Math.sin(yaw);
+            double rotatedX = x * cos - z * sin;
+            double rotatedZ = x * sin + z * cos;
+            x = rotatedX;
+            z = rotatedZ;
+        }
+        return new Vec3(base.x() + x, base.y() + y, base.z() + z);
+    }
+
+    private static Identifier safeTextureId(String raw) {
+        if (raw == null) return null;
+        String value = raw.trim();
+        if (value.isEmpty() || value.endsWith(":")) return null;
+        return Identifier.tryParse(value);
+    }
+
     private static JsonArray array(JsonObject root, String key) {
         if (root == null || key == null || !root.has(key)) return new JsonArray();
         JsonElement value = root.get(key);
@@ -300,6 +593,10 @@ public final class DAI_SceneRenderer {
             }
         }
         return new Vec3(x, y, z);
+    }
+
+    private static float snapHalf(double value) {
+        return (float)(Math.rint(value * 2.0D) * 0.5D);
     }
 
     private static double positiveMod(double value, double modulus) {

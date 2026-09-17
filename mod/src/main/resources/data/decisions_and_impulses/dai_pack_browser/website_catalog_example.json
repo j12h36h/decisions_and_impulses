@@ -1,27 +1,67 @@
 {
-  "schema": 1,
+  "schema": 3,
   "packs": [
     {
-      "id": "example_namespace:combo_pack",
-      "name": "Example Combo Pack",
-      "summary": "One browser card can install any number of datapack and resource-pack components together.",
-      "version": "1.0",
+      "id": "example_namespace:example_world",
+      "public_type": "experience_pack",
+      "name": "Example DAI Experience Pack",
+      "summary": "A complete DAI experience delivered by ERAS without requiring a DAI Engine update.",
+      "version": "1.2.0",
       "type": "combo",
-      "info_url": "https://example.invalid/pack-info",
-      "icon_item": "minecraft:bundle",
+      "featured": true,
+      "experience": "example_namespace:experience",
+      "creator": "Example Creator",
+      "category": "Adventure",
+      "tags": [
+        "story",
+        "singleplayer"
+      ],
+      "engine": {
+        "minimum": "4.0"
+      },
+      "presentation": "example_namespace:default",
+      "updated": "2026-09-12T00:00:00Z",
+      "info_url": "https://example.invalid/world-info",
+      "icon_item": "minecraft:filled_map",
       "components": [
         {
           "id": "data",
           "type": "datapack",
-          "curseforge_file_id": 1234567,
+          "download_url": "https://example.invalid/Example_Data.zip",
           "file_name": "Example_Data.zip",
           "sha256": ""
         },
         {
           "id": "resources",
           "type": "resource_pack",
-          "curseforge_file_id": 1234568,
+          "download_url": "https://example.invalid/Example_Resources.zip",
           "file_name": "Example_Resources.zip",
+          "sha256": ""
+        }
+      ]
+    },
+    {
+      "id": "example_namespace:weather_addon",
+      "public_type": "addon",
+      "name": "Example Weather Addon",
+      "summary": "Optional content that can layer onto Minecraft + DAI or Experience Packs that allow it.",
+      "version": "2.4.1",
+      "type": "datapack",
+      "featured": false,
+      "creator": "Example Creator",
+      "category": "Environment",
+      "tags": [
+        "weather"
+      ],
+      "engine": {
+        "minimum": "4.0"
+      },
+      "components": [
+        {
+          "id": "data",
+          "type": "datapack",
+          "download_url": "https://example.invalid/Weather_Addon.zip",
+          "file_name": "Weather_Addon_v2.4.1.zip",
           "sha256": ""
         }
       ]

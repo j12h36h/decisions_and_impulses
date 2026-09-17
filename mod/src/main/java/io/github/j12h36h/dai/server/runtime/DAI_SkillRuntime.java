@@ -37,6 +37,24 @@ public final class DAI_SkillRuntime {
 
     private DAI_SkillRuntime() {}
 
+    /**
+     * Network capability check for client-originated skill casts.
+     *
+     * Skill definitions are trusted server-loaded content, but a connected
+     * client is not. A skill therefore has to opt in explicitly with:
+     *
+     *   "flags": { "client_callable": true }
+     *
+     * Internal server systems continue to call cast()/executeTrusted()
+     * directly and are not restricted by this network capability marker.
+     */
+    public static boolean isClientCallable(String rawId) {
+        if (rawId == null || rawId.isBlank()) return false;
+        String id = normalize(rawId);
+        var entry = DAI_GameCustomizationRegistry.get(DAI_GameCustomizationKind.SKILL, id);
+        return entry != null && entry.definition().flag("client_callable", false);
+    }
+
     public static synchronized boolean cast(ServerPlayer actor, String rawId) {
         if (actor == null || rawId == null || rawId.isBlank()) return false;
 

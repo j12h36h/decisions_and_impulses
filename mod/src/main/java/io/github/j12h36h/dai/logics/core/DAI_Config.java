@@ -6,6 +6,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.Map;
  */
 public final class DAI_Config {
 
-    public static final int CURRENT_CONFIG_VERSION = 5;
+    public static final int CURRENT_CONFIG_VERSION = 6;
 
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
@@ -269,7 +270,69 @@ public final class DAI_Config {
                 "fluids", "interactive", "portals", "worldgen", "reactions", "state", "creator", "managed_packs",
                 "title_branding", "particles", "screen_overrides", "scene_environments", "story_archives", "story_viewer", "input_profiles"
         }) out.put(id, featureModuleEnabled(id));
-        return Map.copyOf(out);
+        return Collections.unmodifiableMap(out);
+    }
+
+
+    public static void save() {
+        try { SPEC.save(); } catch (RuntimeException ignored) { }
+    }
+
+    public static boolean setFeatureModule(String moduleId, boolean enabled) {
+        ModConfigSpec.BooleanValue value = moduleValue(moduleId);
+        if (value == null) return false;
+        try {
+            value.set(enabled);
+            save();
+            return true;
+        } catch (RuntimeException exception) {
+            DAI_Core.LOGGER.warn("<DAI>: Could not update feature module '{}'.", moduleId, exception);
+            return false;
+        }
+    }
+
+    private static ModConfigSpec.BooleanValue moduleValue(String moduleId) {
+        return switch (normalizeModule(moduleId)) {
+            case "automation" -> MODULE_AUTOMATION;
+            case "navigation" -> MODULE_NAVIGATION;
+            case "combat" -> MODULE_COMBAT;
+            case "world_editing" -> MODULE_WORLD_EDITING;
+            case "interaction" -> MODULE_INTERACTION;
+            case "inventory" -> MODULE_INVENTORY;
+            case "creative" -> MODULE_CREATIVE;
+            case "overlays" -> MODULE_OVERLAYS;
+            case "data_screens" -> MODULE_DATA_SCREENS;
+            case "animations" -> MODULE_ANIMATIONS;
+            case "cinematics" -> MODULE_CINEMATICS;
+            case "experience" -> MODULE_EXPERIENCE;
+            case "learning" -> MODULE_LEARNING;
+            case "customization" -> MODULE_CUSTOMIZATION;
+            case "physics" -> MODULE_PHYSICS;
+            case "content" -> MODULE_CONTENT;
+            case "entities" -> MODULE_ENTITIES;
+            case "blocks" -> MODULE_BLOCKS;
+            case "items" -> MODULE_ITEMS;
+            case "vehicles" -> MODULE_VEHICLES;
+            case "projectiles" -> MODULE_PROJECTILES;
+            case "effects" -> MODULE_EFFECTS;
+            case "audio" -> MODULE_AUDIO;
+            case "fluids" -> MODULE_FLUIDS;
+            case "interactive" -> MODULE_INTERACTIVE;
+            case "portals" -> MODULE_PORTALS;
+            case "worldgen" -> MODULE_WORLDGEN;
+            case "reactions" -> MODULE_REACTIONS;
+            case "state" -> MODULE_STATE;
+            case "creator" -> MODULE_CREATOR;
+            case "managed_packs" -> MODULE_MANAGED_PACKS;
+            case "title_branding" -> MODULE_TITLE_BRANDING;
+            case "particles" -> MODULE_PARTICLES;
+            case "screen_overrides" -> MODULE_SCREEN_OVERRIDES;
+            case "scene_environments" -> MODULE_SCENE_ENVIRONMENTS;
+            case "story_archives" -> MODULE_STORY_ARCHIVES;
+            case "story_viewer" -> MODULE_STORY_VIEWER;
+            case "input_profiles" -> MODULE_INPUT_PROFILES;
+            default -> null;
+        };
     }
 
     private static ModConfigSpec.BooleanValue module(String key, String description) {

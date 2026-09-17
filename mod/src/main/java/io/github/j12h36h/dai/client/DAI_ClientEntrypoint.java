@@ -2,6 +2,7 @@ package io.github.j12h36h.dai.client;
 
 import io.github.j12h36h.dai.client.bootstrap.DAI_ClientBootstrap;
 import io.github.j12h36h.dai.client.data.DAI_ClientDataBootstrap;
+import io.github.j12h36h.dai.client.network.DAI_ClientDatapackSyncRuntime;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionHandler;
 import io.github.j12h36h.dai.client.logics.condition.DAI_ConditionHandler;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -43,6 +44,7 @@ public final class DAI_ClientEntrypoint {
         DAI_ActionHandler.initialize();
         DAI_RecognitionHandler.initialize();
         DAI_ClientDataBootstrap.initialize();
+        DAI_ClientDatapackSyncRuntime.initialize();
         DAI_ClientBootstrap.initialize(modBus, container);
 
         DAI_Core.LOGGER.info("<DAI>: Physical-client layer initialized.");

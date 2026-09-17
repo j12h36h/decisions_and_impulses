@@ -82,7 +82,7 @@ public abstract class Mixin_Minecraft {
             }
         }
 
-        dai$attackInputReactionSession = DAI_ReactionDispatcher.begin(
+        dai$attackInputReactionSession = DAI_ReactionDispatcher.beginHook(
                 DAI_ReactionEventRegistry.PLAYER_ATTACK_INPUT,
                 entity,
                 blockPos,

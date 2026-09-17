@@ -6,6 +6,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
+import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
+import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
@@ -59,22 +63,18 @@ public final class DAI_CompanionResourcePackPreferences {
 
     /**
      * Must be safe during client bootstrap, before Minecraft has finished
-     * constructing its live Options object.
+     * constructing its live Options object. Experience-specific companion
+     * packs are deliberately omitted when no experience owns the session.
      */
     public static synchronized void reconcileSavedSelectionEarly() {
         if (!DAI_Config.autoEnableManagedResourcePacks()) return;
 
         try {
-            Map<String, Companion> desiredByKey = discoverCompanions();
+            Map<String, Companion> desiredByKey = desiredCompanionsForCurrentContext();
             Map<String, String> previousByKey = readState();
 
-            LinkedHashSet<String> desiredIds = new LinkedHashSet<>();
-            desiredByKey.values().stream()
-                    .sorted(Comparator.comparing(Companion::key))
-                    .forEach(companion -> desiredIds.add(companion.packId()));
-
-            LinkedHashSet<String> previousIds =
-                    new LinkedHashSet<>(previousByKey.values());
+            LinkedHashSet<String> desiredIds = packIds(desiredByKey);
+            LinkedHashSet<String> previousIds = new LinkedHashSet<>(previousByKey.values());
 
             Path options = gameDirectory().resolve("options.txt");
             List<String> lines = Files.isRegularFile(options)
@@ -91,51 +91,37 @@ public final class DAI_CompanionResourcePackPreferences {
             }
 
             LinkedHashSet<String> nextEnabled = new LinkedHashSet<>(enabled.values());
-
-            // Remove the old filename owned by each stable companion key.
-            // Do not touch unrelated user-selected file/... packs.
             nextEnabled.removeAll(previousIds);
             nextEnabled.addAll(desiredIds);
 
-            LinkedHashSet<String> nextIncompatible =
-                    new LinkedHashSet<>(incompatible.values());
+            LinkedHashSet<String> nextIncompatible = new LinkedHashSet<>(incompatible.values());
             nextIncompatible.removeAll(previousIds);
             nextIncompatible.removeAll(desiredIds);
 
             boolean changed = false;
             changed |= write(lines, RESOURCE_PACKS, enabled.index(), nextEnabled);
-            changed |= write(
-                    lines,
-                    INCOMPATIBLE_RESOURCE_PACKS,
-                    incompatible.index(),
-                    nextIncompatible
-            );
+            changed |= write(lines, INCOMPATIBLE_RESOURCE_PACKS, incompatible.index(), nextIncompatible);
 
             if (changed) {
                 Files.createDirectories(options.getParent());
                 Path temp = options.resolveSibling(options.getFileName() + ".dai.tmp");
                 Files.write(temp, lines, StandardCharsets.UTF_8);
                 try {
-                    Files.move(
-                            temp,
-                            options,
-                            StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.ATOMIC_MOVE
-                    );
+                    Files.move(temp, options, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
                 } catch (Exception atomicMoveUnavailable) {
                     Files.move(temp, options, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
 
+            // State follows the active context, not every discovered companion.
+            // This is what lets the next transition remove the prior
+            // experience's file/... id without touching unrelated user packs.
             writeState(desiredByKey);
 
-            if (!desiredIds.isEmpty()) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Auto-selected {} companion resource pack(s): {}.",
-                        desiredIds.size(),
-                        String.join(", ", desiredIds)
-                );
-            }
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Companion resource-pack context reconciled (enabled={}).",
+                    desiredIds.isEmpty() ? "none" : String.join(", ", desiredIds)
+            );
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Could not reconcile companion resource-pack selection.",
@@ -147,68 +133,99 @@ public final class DAI_CompanionResourcePackPreferences {
     /** Keep the in-memory Options copy from restoring the stale filename. */
     public static void reconcileLiveSelection() {
         if (!DAI_Config.autoEnableManagedResourcePacks()) return;
-
         try {
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft == null) return;
-
-            minecraft.execute(() -> {
-                try {
-                    if (minecraft.options == null) return;
-
-                    Map<String, Companion> desiredByKey = discoverCompanions();
-                    Map<String, String> previousByKey = readState();
-
-                    LinkedHashSet<String> desiredIds = new LinkedHashSet<>();
-                    desiredByKey.values().stream()
-                            .sorted(Comparator.comparing(Companion::key))
-                            .forEach(companion -> desiredIds.add(companion.packId()));
-
-                    LinkedHashSet<String> ownedIds =
-                            new LinkedHashSet<>(previousByKey.values());
-                    ownedIds.addAll(desiredIds);
-
-                    LinkedHashSet<String> enabled =
-                            new LinkedHashSet<>(minecraft.options.resourcePacks);
-                    enabled.removeAll(ownedIds);
-                    enabled.addAll(desiredIds);
-
-                    LinkedHashSet<String> incompatible =
-                            new LinkedHashSet<>(minecraft.options.incompatibleResourcePacks);
-                    incompatible.removeAll(ownedIds);
-
-                    List<String> nextEnabled = new ArrayList<>(enabled);
-                    List<String> nextIncompatible = new ArrayList<>(incompatible);
-                    if (nextEnabled.equals(minecraft.options.resourcePacks)
-                            && nextIncompatible.equals(
-                            minecraft.options.incompatibleResourcePacks
-                    )) {
-                        return;
-                    }
-
-                    minecraft.options.resourcePacks = nextEnabled;
-                    minecraft.options.incompatibleResourcePacks = nextIncompatible;
-                    minecraft.options.save();
-                    writeState(desiredByKey);
-
-                    if (!desiredIds.isEmpty()) {
-                        DAI_Core.LOGGER.info(
-                                "<DAI>: Persisted {} companion resource pack(s) into live Minecraft options.",
-                                desiredIds.size()
-                        );
-                    }
-                } catch (Exception exception) {
-                    DAI_Core.LOGGER.warn(
-                            "<DAI>: Could not reconcile live companion resource-pack selection.",
-                            exception
-                    );
-                }
-            });
+            minecraft.execute(() -> reconcileLiveSelectionNow(minecraft));
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Could not schedule companion resource-pack reconciliation.",
                     exception
             );
+        }
+    }
+
+    /**
+     * Reconciles an experience's normal /resourcepacks companion and reloads
+     * client assets when the selected stack actually changed. This is paired
+     * with DAI_ManagedResourcePackPreferences so both managed Official Packs
+     * and traditional file/... companions follow the same lifecycle.
+     */
+    public static void applyExperiencePolicyAndReload() {
+        if (!DAI_Config.autoEnableManagedResourcePacks()) return;
+        reconcileSavedSelectionEarly();
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft == null) return;
+            minecraft.execute(() -> {
+                boolean changed = reconcileLiveSelectionNow(minecraft);
+                if (!changed) return;
+                minecraft.reloadResourcePacks().whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        DAI_Core.LOGGER.warn(
+                                "<DAI>: Resource reload failed while switching experience companion packs.",
+                                error
+                        );
+                    } else {
+                        DAI_Core.LOGGER.info(
+                                "<DAI>: Applied experience companion resource-pack context."
+                        );
+                    }
+                });
+            });
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Could not schedule experience companion resource-pack policy reload.",
+                    exception
+            );
+        }
+    }
+
+    static boolean reconcileLiveSelectionNow(Minecraft minecraft) {
+        try {
+            if (minecraft == null || minecraft.options == null) return false;
+
+            Map<String, Companion> desiredByKey = DAI_Config.autoEnableManagedResourcePacks()
+                    ? desiredCompanionsForCurrentContext()
+                    : Map.of();
+            Map<String, String> previousByKey = readState();
+            LinkedHashSet<String> desiredIds = packIds(desiredByKey);
+
+            LinkedHashSet<String> ownedIds = new LinkedHashSet<>(previousByKey.values());
+            ownedIds.addAll(desiredIds);
+
+            LinkedHashSet<String> enabled = new LinkedHashSet<>(minecraft.options.resourcePacks);
+            enabled.removeAll(ownedIds);
+            enabled.addAll(desiredIds);
+
+            LinkedHashSet<String> incompatible = new LinkedHashSet<>(minecraft.options.incompatibleResourcePacks);
+            incompatible.removeAll(ownedIds);
+
+            List<String> nextEnabled = new ArrayList<>(enabled);
+            List<String> nextIncompatible = new ArrayList<>(incompatible);
+            boolean changed = !nextEnabled.equals(minecraft.options.resourcePacks)
+                    || !nextIncompatible.equals(minecraft.options.incompatibleResourcePacks);
+
+            if (changed) {
+                minecraft.options.resourcePacks = nextEnabled;
+                minecraft.options.incompatibleResourcePacks = nextIncompatible;
+                minecraft.options.save();
+            }
+            writeState(desiredByKey);
+
+            if (changed) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Live companion resource-pack stack -> {}.",
+                        desiredIds.isEmpty() ? "none" : String.join(", ", desiredIds)
+                );
+            }
+            return changed;
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Could not reconcile live companion resource-pack selection.",
+                    exception
+            );
+            return false;
         }
     }
 
@@ -261,7 +278,20 @@ public final class DAI_CompanionResourcePackPreferences {
     }
 
     private static Map<String, Companion> discoverCompanions() {
-        Set<String> daiNamespaces = discoverGlobalDatapackNamespaces();
+        LinkedHashSet<String> daiNamespaces = new LinkedHashSet<>(discoverGlobalDatapackNamespaces());
+
+        // Experience Packs can be installed through DAI's managed library
+        // instead of the legacy global /datapacks directory. Include every
+        // authored experience namespace as a discovery hint so a companion
+        // resource pack such as BoxHead is still recognized by its assets
+        // namespace even when its data half is managed elsewhere.
+        try {
+            for (DAI_ExperienceDefinition definition : DAI_ExperienceRepository.all().values()) {
+                addExperienceNamespace(daiNamespaces, definition);
+            }
+        } catch (RuntimeException ignored) { }
+        addExperienceNamespace(daiNamespaces, currentExperience());
+
         Path root = gameDirectory().resolve("resourcepacks");
         if (!Files.isDirectory(root)) return Map.of();
 
@@ -275,7 +305,10 @@ public final class DAI_CompanionResourcePackPreferences {
                         candidate.key(),
                         "file/" + path.getFileName(),
                         path,
-                        modified(path)
+                        modified(path),
+                        candidate.explicitId(),
+                        candidate.assetNamespaces(),
+                        candidate.autoEnable()
                 );
 
                 Companion old = chosen.get(next.key());
@@ -291,6 +324,100 @@ public final class DAI_CompanionResourcePackPreferences {
         }
 
         return new LinkedHashMap<>(chosen);
+    }
+
+
+    private static void addExperienceNamespace(Set<String> namespaces, DAI_ExperienceDefinition definition) {
+        if (namespaces == null || definition == null || definition.id() == null) return;
+        String id = definition.id().trim().toLowerCase(Locale.ROOT);
+        int colon = id.indexOf(':');
+        String namespace = colon > 0 ? id.substring(0, colon) : id;
+        if (!namespace.isBlank() && !namespace.equals("minecraft")) namespaces.add(namespace);
+    }
+
+    /** File/... companion pack ids that should be active for the current context. */
+    static Set<String> desiredPackIdsForCurrentContext() {
+        return Set.copyOf(packIds(desiredCompanionsForCurrentContext()));
+    }
+
+    private static Map<String, Companion> desiredCompanionsForCurrentContext() {
+        Map<String, Companion> discovered = discoverCompanions();
+        if (discovered.isEmpty()) return Map.of();
+
+        DAI_ExperienceDefinition current = currentExperience();
+        Map<String, DAI_ExperienceDefinition> knownExperiences;
+        try {
+            knownExperiences = DAI_ExperienceRepository.all();
+        } catch (RuntimeException unavailable) {
+            knownExperiences = Map.of();
+        }
+
+        LinkedHashMap<String, Companion> desired = new LinkedHashMap<>();
+        for (Companion companion : discovered.values()) {
+            boolean experienceSpecific = false;
+            boolean matchesCurrent = false;
+            for (DAI_ExperienceDefinition definition : knownExperiences.values()) {
+                if (!matchesExperience(companion, definition)) continue;
+                experienceSpecific = true;
+                if (current != null && definition.id().equalsIgnoreCase(current.id())) {
+                    matchesCurrent = true;
+                }
+            }
+
+            // Pending/save-local experiences may not be present in the early
+            // repository view. Always test the current definition directly.
+            if (current != null && matchesExperience(companion, current)) {
+                experienceSpecific = true;
+                matchesCurrent = true;
+            }
+
+            if (experienceSpecific) {
+                if (matchesCurrent) desired.put(companion.key(), companion);
+            } else {
+                // Generic DAI/addon companions keep the old auto-enable
+                // behavior outside experiences. Experience-specific packs do
+                // not leak into the shell or other worlds.
+                desired.put(companion.key(), companion);
+            }
+        }
+        return desired;
+    }
+
+    private static DAI_ExperienceDefinition currentExperience() {
+        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+        if (pending != null && pending.definition() != null) return pending.definition();
+        return DAI_ExperienceRuntime.active();
+    }
+
+    private static boolean matchesExperience(Companion companion, DAI_ExperienceDefinition experience) {
+        if (companion == null || experience == null) return false;
+        String namespace = experience.id() == null ? "" : experience.id().trim().toLowerCase(Locale.ROOT);
+        int colon = namespace.indexOf(':');
+        if (colon >= 0) namespace = namespace.substring(0, colon);
+
+        String configuredCompanion = experience.branding() == null
+                ? ""
+                : experience.branding().companionId();
+        String expectedId = configuredCompanion == null || configuredCompanion.isBlank()
+                ? ""
+                : normalizeKey(configuredCompanion);
+        boolean explicitMatch = !expectedId.isBlank()
+                && companion.explicitId() != null
+                && !companion.explicitId().isBlank()
+                && expectedId.equals(normalizeKey(companion.explicitId()));
+        boolean namespaceMatch = !namespace.isBlank()
+                && companion.assetNamespaces() != null
+                && companion.assetNamespaces().contains(namespace);
+        return explicitMatch || namespaceMatch;
+    }
+
+    private static LinkedHashSet<String> packIds(Map<String, Companion> companions) {
+        LinkedHashSet<String> ids = new LinkedHashSet<>();
+        if (companions == null) return ids;
+        companions.values().stream()
+                .sorted(Comparator.comparing(Companion::key))
+                .forEach(companion -> ids.add(companion.packId()));
+        return ids;
     }
 
     private static Candidate inspectResourcePack(
@@ -377,8 +504,9 @@ public final class DAI_CompanionResourcePackPreferences {
 
         return new Candidate(
                 key,
-                normalizeKey(explicitId),
-                Set.copyOf(assetNamespaces)
+                explicitId.isBlank() ? "" : normalizeKey(explicitId),
+                Set.copyOf(assetNamespaces),
+                explicit
         );
     }
 
@@ -588,7 +716,8 @@ public final class DAI_CompanionResourcePackPreferences {
     private record Candidate(
             String key,
             String explicitId,
-            Set<String> assetNamespaces
+            Set<String> assetNamespaces,
+            boolean autoEnable
     ) {
         public Candidate {
             key = key == null ? "" : key;
@@ -601,7 +730,10 @@ public final class DAI_CompanionResourcePackPreferences {
             String key,
             String packId,
             Path path,
-            long modified
+            long modified,
+            String explicitId,
+            Set<String> assetNamespaces,
+            boolean autoEnable
     ) {}
 
     private record Selection(int index, List<String> values, boolean valid) {}

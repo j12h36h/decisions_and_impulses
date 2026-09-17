@@ -3,15 +3,24 @@ package io.github.j12h36h.dai.client.entity;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.entity.mesh.DAI_MeshModelLibrary;
 import io.github.j12h36h.dai.client.entity.mesh.DAI_NativeMeshEntityRenderer;
+import io.github.j12h36h.dai.client.player.DAI_PlayerPresentationLibrary;
+import io.github.j12h36h.dai.client.player.DAI_PlayerPresentationRenderer;
 import io.github.j12h36h.dai.registry.DAI_DynamicRegistryBootstrap;
 import io.github.j12h36h.dai.registry.DAI_RegistrySpec;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import net.neoforged.neoforge.client.renderstate.AvatarRenderStateModifier;
+import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
+import net.minecraft.client.entity.ClientAvatarEntity;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.world.entity.Avatar;
 
 import java.lang.reflect.Constructor;
 
@@ -23,6 +32,9 @@ public final class DAI_EntityClientBootstrap {
     public static void initialize(IEventBus modBus) {
         modBus.addListener(DAI_EntityClientBootstrap::registerRenderers);
         modBus.addListener(DAI_EntityClientBootstrap::registerReloadListeners);
+        modBus.addListener(DAI_EntityClientBootstrap::registerRenderStateModifiers);
+        NeoForge.EVENT_BUS.addListener(RenderPlayerEvent.Pre.class, DAI_PlayerPresentationRenderer::onRenderPlayer);
+        NeoForge.EVENT_BUS.addListener(DAI_PlayerPresentationRenderer::onRenderHand);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -54,10 +66,24 @@ public final class DAI_EntityClientBootstrap {
     }
 
 
+    private static void registerRenderStateModifiers(RegisterRenderStateModifiersEvent event) {
+        event.registerAvatarEntityModifier(new AvatarRenderStateModifier() {
+            @Override
+            public <T extends Avatar & ClientAvatarEntity> void accept(T avatar, AvatarRenderState renderState) {
+                io.github.j12h36h.dai.client.player.DAI_PlayerPresentationContext.capture(avatar, renderState);
+            }
+        });
+    }
+
+
     private static void registerReloadListeners(AddClientReloadListenersEvent event) {
         event.addListener(
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "native_mesh_models"),
                 new DAI_MeshModelLibrary()
+        );
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, "player_presentations"),
+                new DAI_PlayerPresentationLibrary()
         );
     }
 

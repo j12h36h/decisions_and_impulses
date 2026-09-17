@@ -1,0 +1,22 @@
+{
+  "schema": 3,
+  "packs": [
+    {
+      "id": "example:weather_addon",
+      "public_type": "addon",
+      "name": "Weather Addon",
+      "version": "2.4.1",
+      "category": "Environment",
+      "components": []
+    },
+    {
+      "id": "example:adventure",
+      "public_type": "experience_pack",
+      "name": "Example Adventure",
+      "version": "1.0.0",
+      "experience": "example:adventure",
+      "category": "Adventure",
+      "components": []
+    }
+  ]
+}

@@ -12,6 +12,38 @@ public final class DAI_ReactionDispatcher {
         // Utility class.
     }
 
+    /**
+     * Starts the logical event currently bound to a stable engine hook.
+     * Datapacks may remap the hook to another event id or disable it entirely.
+     */
+    public static DAI_ReactionDispatchSession beginHook(
+            String hook,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId,
+            String itemModel
+    ) {
+        DAI_ReactionEventDefinition definition = DAI_ReactionEventRegistry.resolveHook(hook);
+        if (definition == null) return null;
+        return new DAI_ReactionDispatchSession(definition, entity, blockPos, itemId, itemModel);
+    }
+
+    public static DAI_ReactionDispatchSession beginHook(
+            String hook,
+            Entity entity,
+            BlockPos blockPos,
+            String itemId
+    ) {
+        return beginHook(hook, entity, blockPos, itemId, "");
+    }
+
+    public static DAI_ReactionDispatchSession beginHook(
+            String hook,
+            Entity entity
+    ) {
+        return beginHook(hook, entity, null, "", "");
+    }
+
     public static DAI_ReactionDispatchSession begin(
             String event,
             Entity entity

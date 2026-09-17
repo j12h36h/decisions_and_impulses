@@ -16,7 +16,9 @@ import io.github.j12h36h.dai.server.runtime.DAI_BlockRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_PhysicsRuntime;
 import io.github.j12h36h.dai.server.creator.DAI_CreatorServerRuntime;
 import io.github.j12h36h.dai.server.network.DAI_ServerNetworkBootstrap;
+import io.github.j12h36h.dai.server.network.DAI_ClientDatapackSyncRuntime;
 import io.github.j12h36h.dai.server.state.DAI_ServerStateRuntime;
+import io.github.j12h36h.dai.server.gamerules.DAI_WorldGameRuleRuntime;
 import io.github.j12h36h.dai.server.worldgen.DAI_WorldgenRuntime;
 import io.github.j12h36h.dai.server.worldgen.DAI_NaturalGenerationRuntime;
 import net.neoforged.bus.api.IEventBus;
@@ -36,6 +38,7 @@ public final class DAI_ServerBootstrap {
          * safely load and report pack definitions even when gameplay modules
          * are selectively disabled. */
         DAI_RegistryWorldStore.initialize();
+        DAI_WorldGameRuleRuntime.initialize();
 
         if (enabled("worldgen")) {
             DAI_WorldgenRuntime.initialize();
@@ -56,6 +59,7 @@ public final class DAI_ServerBootstrap {
         if (enabled("state")) DAI_ServerStateRuntime.initialize();
 
         DAI_ServerNetworkBootstrap.initialize(modBus);
+        DAI_ClientDatapackSyncRuntime.initialize();
         DAI_ServerDataBootstrap.initialize();
 
         DAI_Core.LOGGER.info("<DAI>: Server bootstrap initialized with feature-module gating.");

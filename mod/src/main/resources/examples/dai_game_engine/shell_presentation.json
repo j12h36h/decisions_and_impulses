@@ -1,0 +1,44 @@
+{
+  "enabled": true,
+  "priority": 100,
+  "fallback": "vanilla",
+  "stages": {
+    "safe_loading": "default",
+    "title": {
+      "mode": "data_screen",
+      "screen": "your_pack:main_menu"
+    },
+    "world_loading": {
+      "mode": "default",
+      "scene": "your_pack:world_transition"
+    },
+    "settings": {
+      "mode": "data_screen",
+      "screen": "your_pack:settings"
+    },
+    "play": {
+      "mode": "default"
+    },
+    "singleplayer_create": {
+      "mode": "default"
+    },
+    "minecraft_dai_create": {
+      "mode": "default"
+    },
+    "experience_create": {
+      "mode": "default"
+    },
+    "world_options": {
+      "mode": "vanilla"
+    }
+  },
+  "safe_loading": {
+    "background_top": "#050818",
+    "background_bottom": "#140723",
+    "primary": "#F1C84B",
+    "secondary": "#8A66FF",
+    "text": "#FFFFFF",
+    "show_percentage": true,
+    "stage_text": "CONNECTING TO YOUR UNIVERSE"
+  }
+}

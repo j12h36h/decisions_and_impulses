@@ -35,6 +35,14 @@ public final class DAI_CreatorRuntime {
     private static String id = "creator:untitled";
     private static JsonObject draft = new JsonObject();
 
+    // Preview camera/state is runtime-owned so rebuilding the schema-driven
+    // screen never throws away the author's viewport orientation.
+    private static boolean preview3d = true;
+    private static boolean previewPlaying;
+    private static float previewYaw = 32.0F;
+    private static float previewPitch = -14.0F;
+    private static float previewZoom = 1.0F;
+
     private DAI_CreatorRuntime() {}
 
     public static void open(Entity player) {
@@ -46,6 +54,7 @@ public final class DAI_CreatorRuntime {
     public static void close() {
         open = false;
         test = false;
+        previewPlaying = false;
         mode = EditorMode.CREATE;
     }
 
@@ -55,6 +64,27 @@ public final class DAI_CreatorRuntime {
     public static void setMode(EditorMode next) {
         mode = next == null ? EditorMode.CREATE : next;
         test = mode == EditorMode.SIMULATE;
+    }
+
+    public static boolean preview3d() { return preview3d; }
+    public static boolean previewPlaying() { return previewPlaying; }
+    public static float previewYaw() { return previewYaw; }
+    public static float previewPitch() { return previewPitch; }
+    public static float previewZoom() { return previewZoom; }
+
+    public static void togglePreview3d() { preview3d = !preview3d; }
+    public static void setPreviewPlaying(boolean value) { previewPlaying = value; }
+    public static void rotatePreview(float yawDelta, float pitchDelta) {
+        previewYaw += yawDelta;
+        previewPitch = Math.max(-85.0F, Math.min(85.0F, previewPitch + pitchDelta));
+    }
+    public static void zoomPreview(float delta) {
+        previewZoom = Math.max(0.35F, Math.min(4.0F, previewZoom + delta));
+    }
+    public static void resetPreviewCamera() {
+        previewYaw = 32.0F;
+        previewPitch = -14.0F;
+        previewZoom = 1.0F;
     }
 
     /** Compatibility name: kind is now the selected schema's output folder. */
@@ -103,6 +133,7 @@ public final class DAI_CreatorRuntime {
         draft = schema == null ? new JsonObject() : schema.template();
         applyCreateContext(schema, pos == null ? Vec3.ZERO : pos);
         test = false;
+        previewPlaying = false;
         mode = EditorMode.CREATE;
     }
 
@@ -122,6 +153,7 @@ public final class DAI_CreatorRuntime {
         id = requestedId;
         draft = loaded.deepCopy();
         test = false;
+        previewPlaying = false;
         mode = EditorMode.BUILD;
         return true;
     }

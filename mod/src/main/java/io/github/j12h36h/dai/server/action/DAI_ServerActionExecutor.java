@@ -18,6 +18,9 @@ import io.github.j12h36h.dai.api.DAI_StateValue;
 import io.github.j12h36h.dai.content.DAI_ItemComponentRuntime;
 import io.github.j12h36h.dai.content.DAI_JsonBlockEntity;
 import io.github.j12h36h.dai.logics.action.DAI_ActionArguments;
+import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
+import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
+import io.github.j12h36h.dai.logics.action.DAI_ActionReference;
 import io.github.j12h36h.dai.state.DAI_StateRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,8 +35,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Logical-server implementation of DAI's authoritative action vocabulary.
@@ -43,6 +50,10 @@ import java.util.Optional;
  * permission, reach, selected slot, or local client implementation.
  */
 public final class DAI_ServerActionExecutor {
+
+    private static final int CLIENT_ACTION_WINDOW_TICKS = 20;
+    private static final int CLIENT_ACTIONS_PER_WINDOW = 200;
+    private static final ConcurrentHashMap<UUID, ClientRateWindow> CLIENT_RATE_WINDOWS = new ConcurrentHashMap<>();
 
     private DAI_ServerActionExecutor() {}
 
@@ -64,23 +75,105 @@ public final class DAI_ServerActionExecutor {
 
         String operation = normalize(payload.operation());
 
+        if (!allowClientRequestRate(sender, server)) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Rate-limited authoritative action traffic from player '{}'.",
+                    sender.getUUID()
+            );
+            return false;
+        }
+
+        if (!validClientPayload(payload)) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Rejected malformed/oversized server action '{}' from player '{}'.",
+                    payload.operation(), sender.getUUID()
+            );
+            return false;
+        }
+
         /*
-         * 1.9 customization events are safe for ordinary players because the
-         * client only names a server-loaded definition + event. Any command or
-         * function that ultimately runs is sourced from the trusted datapack,
-         * never from arbitrary client text.
+         * Client-originated customization dispatch is capability-based. The
+         * datapack must explicitly expose the exact event through
+         * flags.client_callable + properties.client_events. Trusted content is
+         * not automatically callable by an untrusted network peer.
          */
-        if (operation.equals("customization_event")
-                || operation.equals("skill_cast")
-                || operation.equals("server_skill_cast")) {
+        if (operation.equals("customization_event")) {
+            DAI_ServerActionPayload sanitized = sanitizeClientCustomization(payload);
+            if (sanitized == null) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Rejected non-client-callable customization event '{}:{}' from player '{}'.",
+                        payload.action(), payload.state(), sender.getUUID()
+                );
+                return false;
+            }
+            return executeTrusted(sender, sanitized);
+        }
+
+        if (operation.equals("skill_cast") || operation.equals("server_skill_cast")) {
+            if (!DAI_SkillRuntime.isClientCallable(payload.action())
+                    && !DAI_ServerAccessPolicy.allowServerOwnerClient(sender)) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Rejected non-client-callable skill '{}' from player '{}'.",
+                        payload.action(), sender.getUUID()
+                );
+                return false;
+            }
+            return executeTrusted(sender, payload);
+        }
+
+        if (operation.equals("experience_startup_dispatched")) {
             return executeTrusted(sender, payload);
         }
 
         if (operation.startsWith("state_")) {
             var definition = DAI_StateRegistry.get(payload.action());
             if (definition != null && definition.serverOwned() && definition.clientWritable()) {
+                String scope = definition.scope();
+                boolean selfScoped = scope.equals("player") || scope.equals("entity");
+                if (selfScoped || DAI_ServerAccessPolicy.allowPrivilegedClient(sender)) {
+                    return executeTrusted(sender, payload);
+                }
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Rejected client write to shared '{}' state '{}' from player '{}'.",
+                        scope, payload.action(), sender.getUUID()
+                );
+                return false;
+            }
+        }
+
+        /*
+         * Arbitrary command text is always server-owner authority. Function
+         * execution is also owner-only UNLESS the server-loaded datapack has
+         * explicitly exposed that exact function as a client capability by
+         * placing {"client_callable":true} in the atomic action's arguments.
+         *
+         * This is the crucial trust split: datapacks are trusted server
+         * content, network peers are not. A client may request only a
+         * capability the server itself loaded and intentionally exposed.
+         */
+        if (isFunctionOperation(operation)) {
+            if (isClientCallableFunction(payload.action())) {
                 return executeTrusted(sender, payload);
             }
+            if (!DAI_ServerAccessPolicy.allowServerOwnerClient(sender)) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Rejected undeclared server function capability '{}' from player '{}'.",
+                        payload.action(), sender.getUUID()
+                );
+                return false;
+            }
+            return executeTrusted(sender, payload);
+        }
+
+        if (isCommandOperation(operation)) {
+            if (!DAI_ServerAccessPolicy.allowServerOwnerClient(sender)) {
+                DAI_Core.LOGGER.warn(
+                        "<DAI>: Rejected arbitrary server command request from player '{}'.",
+                        sender.getUUID()
+                );
+                return false;
+            }
+            return executeTrusted(sender, payload);
         }
 
         if (!DAI_ServerAccessPolicy.allowPrivilegedClient(sender)) {
@@ -93,6 +186,172 @@ public final class DAI_ServerActionExecutor {
         }
 
         return executeTrusted(sender, payload);
+    }
+
+    private static DAI_ServerActionPayload sanitizeClientCustomization(DAI_ServerActionPayload payload) {
+        DAI_GameCustomizationKind kind = DAI_GameCustomizationKind.parse(payload.action());
+        if (kind == null) return null;
+        DAI_GameCustomizationRegistry.Entry entry = DAI_GameCustomizationRegistry.get(kind, payload.target());
+        if (entry == null) return null;
+
+        String rawEvent = payload.state() == null ? "" : payload.state();
+        String[] eventParts = rawEvent.split("\n", 2);
+        String eventName = eventParts.length == 0 ? "" : eventParts[0].trim().toLowerCase(Locale.ROOT);
+        if (eventName.isBlank()) eventName = "run";
+
+        DAI_GameCustomizationDefinition definition = entry.definition();
+        if (!definition.clientCallable(eventName)) return null;
+
+        // Network peers do not get to choose arbitrary command placeholders by
+        // default. Datapacks may opt in to these fields independently.
+        String runtimeTarget = definition.flag("client_accept_runtime_target", false)
+                && eventParts.length > 1
+                ? eventParts[1].trim()
+                : "";
+        double value = definition.flag("client_accept_value", false)
+                ? payload.value()
+                : definition.number("client_value", definition.number("amount", 0.0D));
+
+        return new DAI_ServerActionPayload(
+                payload.operation(),
+                payload.action(),
+                payload.target(),
+                eventName + "\n" + runtimeTarget,
+                value,
+                "{}"
+        );
+    }
+
+    /**
+     * Keeps an otherwise valid self-scoped/client-callable capability from
+     * becoming an unbounded packet or disk/state spam primitive. Vehicle input
+     * uses its own packet family and is intentionally not subject to this UI /
+     * action rate window.
+     */
+    private static boolean allowClientRequestRate(ServerPlayer sender, MinecraftServer server) {
+        long tick = server.getTickCount();
+        UUID playerId = sender.getUUID();
+        ClientRateWindow window = CLIENT_RATE_WINDOWS.computeIfAbsent(
+                playerId,
+                ignored -> new ClientRateWindow(tick, 0)
+        );
+
+        synchronized (window) {
+            if (tick < window.startTick || tick - window.startTick >= CLIENT_ACTION_WINDOW_TICKS) {
+                window.startTick = tick;
+                window.count = 0;
+            }
+            if (window.count >= CLIENT_ACTIONS_PER_WINDOW) return false;
+            window.count++;
+            return true;
+        }
+    }
+
+    private static final class ClientRateWindow {
+        private long startTick;
+        private int count;
+
+        private ClientRateWindow(long startTick, int count) {
+            this.startTick = startTick;
+            this.count = count;
+        }
+    }
+
+    private static boolean validClientPayload(DAI_ServerActionPayload payload) {
+        if (payload == null || !Double.isFinite(payload.value())) return false;
+        return length(payload.operation(), 64)
+                && length(payload.action(), 1024)
+                && length(payload.target(), 4096)
+                && length(payload.state(), 4096)
+                && length(payload.argumentsJson(), 65_536);
+    }
+
+    private static boolean isFunctionOperation(String operation) {
+        return operation.equals("function") || operation.equals("server_run_function");
+    }
+
+    private static boolean isCommandOperation(String operation) {
+        return operation.equals("command")
+                || operation.equals("server_command")
+                || operation.equals("run_server_command");
+    }
+
+    /**
+     * Returns true only when an atomic action loaded by the logical server
+     * explicitly exposes the requested function as a normal-player network
+     * capability. Merely knowing a function id is never enough.
+     *
+     * Capability declaration is intentionally stored in open-ended action
+     * arguments rather than widening the core action schema:
+     *
+     *   "arguments": { "client_callable": true }
+     *
+     * The marker belongs on the exact server_run_function/function node that
+     * may be called. Placing it on a surrounding sequence does not implicitly
+     * expose every privileged child.
+     */
+    private static boolean isClientCallableFunction(String rawFunction) {
+        String requested = normalizeFunctionId(rawFunction);
+        if (requested.isBlank() || Identifier.tryParse(requested) == null) return false;
+
+        Set<Identifier> resolving = new HashSet<>();
+        for (var entry : DAI_ActionLibrary.actions().entrySet()) {
+            Identifier rootId = entry.getKey();
+            if (rootId != null) resolving.add(rootId);
+            try {
+                if (containsClientCallableFunction(entry.getValue(), requested, resolving, 0)) {
+                    return true;
+                }
+            } finally {
+                if (rootId != null) resolving.remove(rootId);
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsClientCallableFunction(
+            DAI_ActionDefinition action,
+            String requested,
+            Set<Identifier> resolving,
+            int depth
+    ) {
+        if (action == null || depth > 64) return false;
+
+        if (action.hasType()) {
+            String type = normalize(action.type());
+            if (isFunctionOperation(type)
+                    && action.arguments().bool("client_callable", false)
+                    && requested.equals(normalizeFunctionId(action.action()))) {
+                return true;
+            }
+        }
+
+        for (DAI_ActionDefinition child : action.sequence()) {
+            if (containsClientCallableFunction(child, requested, resolving, depth + 1)) return true;
+        }
+
+        if (!action.hasType() && action.hasAction()) {
+            Identifier id = DAI_ActionReference.parse(action.action());
+            if (id != null && resolving.add(id)) {
+                try {
+                    return containsClientCallableFunction(DAI_ActionLibrary.get(id), requested, resolving, depth + 1);
+                } finally {
+                    resolving.remove(id);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static String normalizeFunctionId(String raw) {
+        String id = normalize(raw);
+        if (id.startsWith("function ")) id = id.substring("function ".length()).trim();
+        return id;
+    }
+
+    private static boolean length(String value, int max) {
+        return value == null || value.length() <= max;
     }
 
     public static boolean executeTrusted(
@@ -142,10 +401,8 @@ public final class DAI_ServerActionExecutor {
                 case "take_item", "server_take_item" ->
                         takeItem(actor, payload.action(), count(payload.value()));
 
-                case "experience_startup_dispatched" -> {
-                    DAI_WorldgenRuntime.markFirstJoinDispatched(payload.action());
-                    yield true;
-                }
+                case "experience_startup_dispatched" ->
+                        DAI_WorldgenRuntime.markFirstJoinDispatched(actor, payload.action());
 
                 case "state_set" ->
                         DAI_ServerStateRuntime.mutate(actor, payload.action(), "set", stateValue(payload.target(), payload.state(), payload.value()), actor);

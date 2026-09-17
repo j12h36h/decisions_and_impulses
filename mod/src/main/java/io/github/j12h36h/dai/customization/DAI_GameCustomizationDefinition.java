@@ -128,6 +128,23 @@ public record DAI_GameCustomizationDefinition(
         return fallback;
     }
 
+    /**
+     * Explicit capability gate for client-originated server events. Merely
+     * loading a trusted datapack does not mean every connected client may call
+     * every command/function stored in it. Both the definition and exact event
+     * name must opt in.
+     */
+    public boolean clientCallable(String eventName) {
+        if (!flag("client_callable", false)) return false;
+        String allowed = property("client_events");
+        if (allowed.isBlank() || eventName == null || eventName.isBlank()) return false;
+        String normalized = eventName.trim().toLowerCase(Locale.ROOT);
+        for (String raw : allowed.split("[,;\\s]+")) {
+            if (normalized.equals(raw.trim().toLowerCase(Locale.ROOT))) return true;
+        }
+        return false;
+    }
+
     private static String text(String value) {
         return value == null ? "" : value.trim();
     }

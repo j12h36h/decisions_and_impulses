@@ -5,6 +5,7 @@ import io.github.j12h36h.dai.network.DAI_ServerActionPayload;
 import io.github.j12h36h.dai.network.DAI_StateSyncPayload;
 import io.github.j12h36h.dai.network.DAI_VehicleInputPayload;
 import io.github.j12h36h.dai.network.DAI_CreatorActionPayload;
+import io.github.j12h36h.dai.network.DAI_ClientDatapackSyncPayload;
 import io.github.j12h36h.dai.server.creator.DAI_CreatorServerRuntime;
 import io.github.j12h36h.dai.server.runtime.DAI_VehicleRuntime;
 import io.github.j12h36h.dai.server.action.DAI_ServerActionExecutor;
@@ -51,6 +52,10 @@ public final class DAI_ServerNetworkBootstrap {
                 DAI_StateSyncPayload.TYPE,
                 DAI_StateSyncPayload.STREAM_CODEC
         );
+        registrar.playToClient(
+                DAI_ClientDatapackSyncPayload.TYPE,
+                DAI_ClientDatapackSyncPayload.STREAM_CODEC
+        );
         registrar.playToServer(
                 DAI_VehicleInputPayload.TYPE,
                 DAI_VehicleInputPayload.STREAM_CODEC,
@@ -73,6 +78,21 @@ public final class DAI_ServerNetworkBootstrap {
         if (!DAI_CreatorAccess.allows(sender, automationCreator)) {
             DAI_Core.LOGGER.warn("<DAI>: Rejected {} Creator request from player '{}'.", automationCreator ? "Automation" : "DAI", sender.getUUID());
             sender.sendSystemMessage(Component.literal("[DAI] Creator access is disabled for this player/server."));
+            return;
+        }
+        if (DAI_CreatorAccess.requiresPrivileged(payload)
+                && !DAI_CreatorAccess.allowsPrivileged(sender, automationCreator)) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Rejected privileged Creator operation '{}' from player '{}'.",
+                    payload.operation(), sender.getUUID()
+            );
+            sender.sendSystemMessage(Component.literal(
+                    "[DAI] This Creator operation requires server-owner/explicit privileged authority."
+            ));
+            return;
+        }
+        if (!validCreatorPayload(payload)) {
+            DAI_Core.LOGGER.warn("<DAI>: Rejected malformed/oversized Creator payload from player '{}'.", sender.getUUID());
             return;
         }
         DAI_CreatorServerRuntime.handle(sender, payload);
@@ -100,6 +120,10 @@ public final class DAI_ServerNetworkBootstrap {
             IPayloadContext context
     ) {
         if (!(context.player() instanceof ServerPlayer sender)) return;
+        if (!Double.isFinite(payload.value())) {
+            DAI_Core.LOGGER.warn("<DAI>: Rejected non-finite server mutation from player '{}'.", sender.getUUID());
+            return;
+        }
 
         if (!DAI_ServerAccessPolicy.allowPrivilegedClient(sender)) {
             DAI_Core.LOGGER.warn(
@@ -227,4 +251,23 @@ public final class DAI_ServerNetworkBootstrap {
             );
         }
     }
+
+    private static boolean validCreatorPayload(DAI_CreatorActionPayload payload) {
+        if (payload == null) return false;
+        return finite(payload.x()) && finite(payload.y()) && finite(payload.z())
+                && length(payload.operation(), 64)
+                && length(payload.kind(), 256)
+                && length(payload.id(), 512)
+                && length(payload.key(), 1024)
+                && length(payload.value(), 262_144);
+    }
+
+    private static boolean finite(double value) {
+        return Double.isFinite(value);
+    }
+
+    private static boolean length(String value, int max) {
+        return value == null || value.length() <= max;
+    }
+
 }

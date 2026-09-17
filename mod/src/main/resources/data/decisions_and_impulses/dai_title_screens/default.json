@@ -1,88 +1,35 @@
 {
   "enabled": true,
   "priority": 100,
-  "title": "DECISIONS & IMPULSES",
-  "subtitle": "The interface between humanity and automation.",
+  "title": "DAI ENGINE",
+  "subtitle": "WORLDS \u00b7 CREATE \u00b7 PLAY \u00b7 PUBLISH",
   "background": {
-    "top": "#FF061018",
-    "bottom": "#FF142A38"
+    "top": "#FF08050D",
+    "bottom": "#FF12091A",
+    "scene": "decisions_and_impulses:dai_universe_landscape"
   },
-  "title_color": "#FFF2F7FA",
-  "subtitle_color": "#FF9CB7C7",
+  "title_color": "#FFF7F0FF",
+  "subtitle_color": "#FFA855F7",
   "buttons": [
     {
-      "id": "singleplayer",
-      "label": "SINGLEPLAYER",
-      "action": "open_singleplayer",
-      "anchor": "center",
-      "x": 0,
-      "y": -74,
-      "width": 230,
-      "height": 24,
+      "id": "discover",
+      "label": "DISCOVER",
+      "action": "open_dai_worlds",
+      "anchor": "left",
+      "x": 30,
+      "y": -70,
+      "width": 100,
+      "height": 54,
       "icon": {
         "type": "item",
-        "id": "minecraft:wooden_pickaxe",
-        "scale": 1.0,
-        "offset_x": 9
+        "id": "minecraft:spyglass",
+        "scale": 1.15
       },
       "style": {
-        "background": "#B8182A32",
-        "hover": "#E02F5A43",
-        "border": "#FF5E9770",
-        "text": "#FFFFFFFF"
-      },
-      "hover_animation": {
-        "type": "bob",
-        "speed": 1.2,
-        "amount": 2.0
-      }
-    },
-    {
-      "id": "multiplayer",
-      "label": "MULTIPLAYER",
-      "action": "open_multiplayer",
-      "anchor": "center",
-      "x": 0,
-      "y": -44,
-      "width": 230,
-      "height": 24,
-      "icon": {
-        "type": "item",
-        "id": "minecraft:ender_pearl",
-        "scale": 1.0,
-        "offset_x": 9
-      },
-      "style": {
-        "background": "#B8172936",
-        "hover": "#E028536D",
-        "border": "#FF5685A0",
-        "text": "#FFFFFFFF"
-      },
-      "hover_animation": {
-        "type": "orbit",
-        "speed": 0.65,
-        "amount": 1.5
-      }
-    },
-    {
-      "id": "official_packs",
-      "label": "OFFICIAL PACKS",
-      "action": "open_official_packs",
-      "anchor": "center",
-      "x": 0,
-      "y": -14,
-      "width": 230,
-      "height": 24,
-      "icon": {
-        "type": "item",
-        "id": "minecraft:paper",
-        "scale": 1.0,
-        "offset_x": 9
-      },
-      "style": {
-        "background": "#B82E2718",
-        "hover": "#E05D4D22",
-        "border": "#FFB59A4D",
+        "shape": "node",
+        "background": "#B8181022",
+        "hover": "#E05D2D87",
+        "border": "#FFFF8428",
         "text": "#FFFFFFFF"
       },
       "hover_animation": {
@@ -92,113 +39,159 @@
       }
     },
     {
-      "id": "mods",
-      "label": "MODS",
-      "action": "open_mods",
-      "anchor": "center",
-      "x": 0,
-      "y": 16,
-      "width": 230,
-      "height": 24,
+      "id": "create",
+      "label": "CREATE",
+      "action": "open_dai_creator",
+      "anchor": "right",
+      "x": 30,
+      "y": -70,
+      "width": 100,
+      "height": 54,
       "icon": {
         "type": "item",
-        "id": "minecraft:carrot",
-        "scale": 1.0,
-        "offset_x": 9
+        "id": "minecraft:writable_book",
+        "scale": 1.15
       },
       "style": {
-        "background": "#B82D2118",
-        "hover": "#E06B3D1B",
-        "border": "#FFE8893E",
+        "shape": "node",
+        "background": "#B8121826",
+        "hover": "#E03B356F",
+        "border": "#FFA855F7",
         "text": "#FFFFFFFF"
       },
       "hover_animation": {
-        "type": "spin",
-        "speed": 0.85,
-        "amount": 1.0
-      }
-    },
-    {
-      "id": "options",
-      "label": "OPTIONS",
-      "action": "open_options",
-      "anchor": "center",
-      "x": 0,
-      "y": 46,
-      "width": 230,
-      "height": 24,
-      "icon": {
-        "type": "item",
-        "id": "minecraft:redstone",
-        "scale": 1.0,
-        "offset_x": 9
-      },
-      "style": {
-        "background": "#B82C1A21",
-        "hover": "#E05E2D42",
-        "border": "#FFA65B78",
-        "text": "#FFFFFFFF"
-      },
-      "hover_animation": {
-        "type": "bob",
-        "speed": 1.8,
+        "type": "orbit",
+        "speed": 0.7,
         "amount": 1.5
       }
     },
     {
-      "id": "website",
-      "label": "DAI WEBSITE",
-      "action": "open_url",
-      "url": "https://j12h36h.github.io/dai/",
+      "id": "play",
+      "label": "PLAY",
+      "action": "open_dai_play",
       "anchor": "center",
       "x": 0,
-      "y": 76,
-      "width": 230,
-      "height": 24,
+      "y": -14,
+      "width": 96,
+      "height": 48,
       "icon": {
         "type": "item",
-        "id": "minecraft:book",
-        "scale": 1.0,
-        "offset_x": 9
+        "id": "minecraft:nether_star",
+        "scale": 1.15
       },
       "style": {
-        "background": "#B81E2130",
-        "hover": "#E0384268",
-        "border": "#FF6C7BB5",
+        "shape": "node",
+        "background": "#C01A1224",
+        "hover": "#E0613B91",
+        "border": "#FFFFA33C",
         "text": "#FFFFFFFF"
       },
       "hover_animation": {
         "type": "pulse",
-        "speed": 0.8,
-        "amount": 1.3
+        "speed": 1.0,
+        "amount": 1.4
+      }
+    },
+    {
+      "id": "library",
+      "label": "LIBRARY",
+      "action": "open_dai_library",
+      "anchor": "left",
+      "x": 58,
+      "y": 36,
+      "width": 100,
+      "height": 44,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:book",
+        "scale": 1.0
+      },
+      "style": {
+        "shape": "node",
+        "background": "#B80E1D1B",
+        "hover": "#E0245F4D",
+        "border": "#FF5ED9A1",
+        "text": "#FFFFFFFF"
+      }
+    },
+    {
+      "id": "settings",
+      "label": "SETTINGS",
+      "action": "open_dai_settings",
+      "anchor": "right",
+      "x": 58,
+      "y": 36,
+      "width": 100,
+      "height": 44,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:comparator",
+        "scale": 1.0
+      },
+      "style": {
+        "shape": "node",
+        "background": "#B8151020",
+        "hover": "#E03E315D",
+        "border": "#FFB993FF",
+        "text": "#FFFFFFFF"
+      }
+    },
+    {
+      "id": "eras",
+      "label": "ERAS NETWORK",
+      "action": "open_url",
+      "url": "https://j12h36h.github.io/dai/",
+      "anchor": "bottom",
+      "x": -76,
+      "y": 8,
+      "width": 96,
+      "height": 42,
+      "icon": {
+        "type": "item",
+        "id": "minecraft:ender_eye",
+        "scale": 0.9
+      },
+      "style": {
+        "shape": "node",
+        "background": "#B8141521",
+        "hover": "#E0323B67",
+        "border": "#FF7C8CFF",
+        "text": "#FFFFFFFF"
       }
     },
     {
       "id": "quit",
-      "label": "QUIT",
+      "label": "QUIT GAME",
       "action": "quit",
-      "anchor": "center",
-      "x": 0,
-      "y": 106,
-      "width": 230,
-      "height": 24,
+      "anchor": "bottom",
+      "x": 76,
+      "y": 8,
+      "width": 96,
+      "height": 42,
       "icon": {
         "type": "item",
         "id": "minecraft:barrier",
-        "scale": 1.0,
-        "offset_x": 9
+        "scale": 0.9
       },
       "style": {
-        "background": "#B82C1616",
-        "hover": "#E0632929",
-        "border": "#FFB65B5B",
+        "shape": "node",
+        "background": "#B8200C11",
+        "hover": "#E05D202A",
+        "border": "#FFFF6B76",
         "text": "#FFFFFFFF"
-      },
-      "hover_animation": {
-        "type": "spin",
-        "speed": 0.35,
-        "amount": 1.0
       }
     }
-  ]
+  ],
+  "orbit": {
+    "enabled": true,
+    "center_button": "play",
+    "radius_x": 180,
+    "radius_y": 92,
+    "speed_degrees_per_second": 2.4,
+    "start_angle_degrees": -180,
+    "margin": 10,
+    "min_node_scale": 0.72,
+    "connector_color": "#703A216B",
+    "pause_on_hover": true
+  }
 }

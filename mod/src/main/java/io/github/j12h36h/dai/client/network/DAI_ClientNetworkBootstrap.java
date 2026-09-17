@@ -3,6 +3,7 @@ package io.github.j12h36h.dai.client.network;
 import io.github.j12h36h.dai.api.DAI_StateStore;
 import io.github.j12h36h.dai.api.DAI_StateValue;
 import io.github.j12h36h.dai.network.DAI_StateSyncPayload;
+import io.github.j12h36h.dai.network.DAI_ClientDatapackSyncPayload;
 import io.github.j12h36h.dai.state.DAI_StateDefinition;
 import io.github.j12h36h.dai.state.DAI_StateRegistry;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
@@ -13,6 +14,7 @@ public final class DAI_ClientNetworkBootstrap {
 
     public static void register(RegisterClientPayloadHandlersEvent event) {
         event.register(DAI_StateSyncPayload.TYPE, DAI_ClientNetworkBootstrap::handleStateSync);
+        event.register(DAI_ClientDatapackSyncPayload.TYPE, DAI_ClientNetworkBootstrap::handleClientDatapackSync);
     }
 
     private static void handleStateSync(DAI_StateSyncPayload payload, net.neoforged.neoforge.network.handling.IPayloadContext context) {
@@ -32,5 +34,9 @@ public final class DAI_ClientNetworkBootstrap {
             default -> DAI_StateValue.bool(payload.booleanValue());
         };
         DAI_StateStore.set(payload.key(), value);
+    }
+
+    private static void handleClientDatapackSync(DAI_ClientDatapackSyncPayload payload, net.neoforged.neoforge.network.handling.IPayloadContext context) {
+        DAI_ClientDatapackSyncRuntime.handle(payload);
     }
 }

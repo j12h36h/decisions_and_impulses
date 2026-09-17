@@ -1,5 +1,6 @@
 package io.github.j12h36h.dai.client.title;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -18,7 +19,7 @@ public final class DAI_TitleIconTextures {
         String normalizedType = type == null ? "none" : type.trim().toLowerCase();
         String path = authored.getPath();
 
-        return switch (normalizedType) {
+        Identifier resolved = switch (normalizedType) {
             case "item" -> Identifier.fromNamespaceAndPath(
                     authored.getNamespace(),
                     "textures/item/" + stripTextureWrapper(path) + ".png"
@@ -33,10 +34,28 @@ public final class DAI_TitleIconTextures {
             );
             default -> null;
         };
+
+        return resourceExists(resolved) ? resolved : null;
     }
 
     public static Identifier item(String rawId) {
         return resolve("item", rawId);
+    }
+
+    private static boolean resourceExists(Identifier identifier) {
+        if (identifier == null) return false;
+
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            return minecraft != null
+                    && minecraft.getResourceManager() != null
+                    && minecraft.getResourceManager().getResource(identifier).isPresent();
+        } catch (Throwable ignored) {
+            // Title/presentation rendering must never surface Minecraft's
+            // missing-texture checkerboard because a pack referenced a bad
+            // icon. Treat unavailable resources as no icon instead.
+            return false;
+        }
     }
 
     private static String stripTextureWrapper(String path) {

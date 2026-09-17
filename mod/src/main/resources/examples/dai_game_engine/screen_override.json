@@ -1,11 +1,9 @@
 {
   "enabled": true,
   "priority": 100,
+  "mode": "replace",
   "target": {
-    "class": "net.minecraft.client.gui.screens.*",
-    "simple_class": "*Screen"
+    "class": "net.minecraft.client.gui.screens.*"
   },
-  "mode": "skin",
-  "background_scene": "example:screen_background",
-  "foreground_scene": "example:screen_foreground"
+  "screen": "your_pack:your_screen"
 }

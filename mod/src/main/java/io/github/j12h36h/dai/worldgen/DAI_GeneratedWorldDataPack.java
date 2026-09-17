@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.j12h36h.dai.experience.DAI_EarlyJsonRepository;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
+import io.github.j12h36h.dai.runtime.DAI_StandaloneLaunchState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
@@ -229,6 +230,13 @@ public final class DAI_GeneratedWorldDataPack {
     private static void addPackFinder(AddPackFindersEvent event) {
         if (event.getPackType() != PackType.SERVER_DATA) return;
 
+        /*
+         * IMPORTANT: AddPackFindersEvent is fired during client/mod bootstrap,
+         * long before the player chooses Vanilla Minecraft. Do not decide
+         * whether the generated pack exists here. Register a repository source
+         * once, then evaluate the one-shot launch state every time Minecraft
+         * actually builds/reloads a SERVER_DATA PackRepository.
+         */
         Path root = root();
         if (!Files.isDirectory(root.resolve("data"))) return;
 
@@ -257,10 +265,19 @@ public final class DAI_GeneratedWorldDataPack {
         );
 
         Pack pack = new Pack(location, resources, metadata, selection);
-        event.addRepositorySource(output -> output.accept(pack));
+        event.addRepositorySource(output -> {
+            if (DAI_StandaloneLaunchState.explicitEmptySelection()) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Explicit vanilla launch active; omitting generated server-data pack '{}' from this world repository.",
+                        PACK_ID
+                );
+                return;
+            }
+            output.accept(pack);
+        });
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Added required generated server-data pack '{}'.",
+                "<DAI>: Registered conditional generated server-data pack source '{}'.",
                 PACK_ID
         );
     }

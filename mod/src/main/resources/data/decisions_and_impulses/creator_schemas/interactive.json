@@ -33,7 +33,12 @@
       "label": "Shape",
       "type": "text",
       "default": "box",
-      "level": 1
+      "level": 1,
+      "options": [
+        "box",
+        "sphere",
+        "cylinder"
+      ]
     },
     {
       "path": "numbers.x",

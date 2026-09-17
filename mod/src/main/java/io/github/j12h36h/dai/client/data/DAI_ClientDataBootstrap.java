@@ -15,6 +15,10 @@ import io.github.j12h36h.dai.learning.DAI_LearningAgentLoader;
 import io.github.j12h36h.dai.state.DAI_StateDefinition;
 import io.github.j12h36h.dai.state.DAI_StateLoader;
 import io.github.j12h36h.dai.state.DAI_StateRegistry;
+import io.github.j12h36h.dai.reactions.DAI_ReactionDefinition;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventDefinition;
+import io.github.j12h36h.dai.reactions.DAI_ReactionEventRegistry;
+import io.github.j12h36h.dai.reactions.DAI_ReactionLibrary;
 import io.github.j12h36h.dai.client.logics.input.DAI_KeybindDefinition;
 import io.github.j12h36h.dai.client.logics.input.DAI_KeybindLoader;
 import io.github.j12h36h.dai.client.logics.input.DAI_KeybindRegistry;
@@ -90,7 +94,8 @@ public final class DAI_ClientDataBootstrap {
         // These definitions affect presentation/perception/automation only.
         // On an integrated server the physical client can consume the same
         // world datapack ResourceManager directly. Dedicated-server clients
-        // keep their local library unless a later sync layer supplies data.
+        // begin with this local library and then receive the active server
+        // datapack presentation/reaction overlay through DAI client-data sync.
         event.addListener(
                 Identifier.fromNamespaceAndPath(DAI_Core.MODID, "client_recognition_groups"),
                 new DAI_RecogGroupLoader()
@@ -166,6 +171,8 @@ public final class DAI_ClientDataBootstrap {
         mergeExternal(logics, "logics/definitions", DAI_ActionDefinition.CODEC);
         DAI_ActionLoader.applyDefinitions(logics, false, "client:logics/definitions");
 
+        loadReactionEvents(builtIn);
+        loadReactions(builtIn);
         loadRecognitionGroups(builtIn);
         loadRecognitions(builtIn);
         loadMenus(builtIn);
@@ -196,6 +203,25 @@ public final class DAI_ClientDataBootstrap {
                 DAI_RecipeRegistry.size(),
                 DAI_GameCustomizationRegistry.totalSize()
         );
+    }
+
+    private static void loadReactionEvents(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_ReactionEventDefinition> definitions =
+                decodeFolder(builtIn, "reaction_events", DAI_ReactionEventDefinition.CODEC);
+        mergeExternal(definitions, "reaction_events", DAI_ReactionEventDefinition.CODEC);
+        DAI_ReactionEventRegistry.resetToFallbacks();
+        definitions.forEach((sourceId, definition) -> {
+            String id = definition.id().isBlank() ? sourceId.toString() : definition.id();
+            DAI_ReactionEventRegistry.register(definition.withId(id));
+        });
+    }
+
+    private static void loadReactions(Map<String, JsonObject> builtIn) {
+        Map<Identifier, DAI_ReactionDefinition> definitions =
+                decodeFolder(builtIn, "reactions", DAI_ReactionDefinition.CODEC);
+        mergeExternal(definitions, "reactions", DAI_ReactionDefinition.CODEC);
+        DAI_ReactionLibrary.clear();
+        definitions.forEach(DAI_ReactionLibrary::register);
     }
 
     private static void loadRecognitionGroups(Map<String, JsonObject> builtIn) {

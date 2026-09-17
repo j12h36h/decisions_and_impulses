@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "model": "example:operator_body",
+  "texture": "example:textures/entity/player/operator.png",
+  "third_person": {
+    "scale": 1.0,
+    "offset": [0.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0]
+  },
+  "first_person": {
+    "enabled": true,
+    "model": "example:operator_first_person",
+    "texture": "example:textures/entity/player/operator.png",
+    "hand": "main",
+    "scale": 1.0,
+    "offset": [0.0, 0.0, 0.0],
+    "rotation": [0.0, 0.0, 0.0]
+  }
+}

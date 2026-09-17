@@ -4,6 +4,9 @@ import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderSafety;
+import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseShellRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -44,6 +47,15 @@ public final class DAI_TitleScreen extends Screen {
     private List<DAI_ExperienceLauncher.ExperienceSave> browserSaves = List.of();
     private BrowserBounds browserBounds;
     private ContentBounds titleButtonBounds;
+    private final List<TitleWidgetEntry> titleWidgets = new ArrayList<>();
+    private final List<OrbitNode> orbitNodes = new ArrayList<>();
+    private DAI_TitleButton orbitCenterButton;
+    private int orbitCenterX;
+    private int orbitCenterY;
+    private double orbitRadiusX;
+    private double orbitRadiusY;
+    private double orbitPhaseRadians;
+    private long orbitLastNanos;
 
     public DAI_TitleScreen(DAI_TitleScreenDefinition definition) {
         super(Component.literal("Decisions & Impulses"));
@@ -59,6 +71,16 @@ public final class DAI_TitleScreen extends Screen {
         animationStartNanos = System.nanoTime();
         acceptClicksAfterNanos = animationStartNanos + TRANSITION_CLICK_GUARD_NANOS;
         titleButtonBounds = null;
+        titleWidgets.clear();
+        orbitNodes.clear();
+        orbitCenterButton = null;
+        orbitCenterX = 0;
+        orbitCenterY = 0;
+        orbitRadiusX = 0.0D;
+        orbitRadiusY = 0.0D;
+        orbitPhaseRadians = 0.0D;
+        orbitLastNanos = animationStartNanos;
+
         DAI_TitleScreenDefinition.SaveBrowserDefinition saveBrowser = definition.saveBrowser();
         if (saveBrowser.enabled() && !saveBrowser.experience().isBlank()) {
             browserSaves = DAI_ExperienceLauncher.listSaves(saveBrowser.experience());
@@ -69,10 +91,30 @@ public final class DAI_TitleScreen extends Screen {
         wideSaveLayout = canShowSideSaveBrowser();
         browserBounds = wideSaveLayout ? resolveBrowserBounds() : null;
 
-        CompactLayout compact = buildCompactLayout();
+        OrbitLayout orbit = buildOrbitLayout();
+        if (orbit != null) {
+            orbitCenterX = orbit.centerX();
+            orbitCenterY = orbit.centerY();
+            orbitRadiusX = orbit.radiusX();
+            orbitRadiusY = orbit.radiusY();
+        }
+
+        CompactLayout compact = orbit == null ? buildCompactLayout() : null;
         int centeredIndex = 0;
 
         for (DAI_TitleScreenDefinition.ButtonDefinition button : definition.buttons()) {
+            OrbitPlacement orbital = orbit == null ? null : orbit.placement(button.id());
+            if (orbital != null) {
+                DAI_TitleScreenDefinition.ButtonDefinition fitted = withSize(
+                        button,
+                        orbital.width(),
+                        orbital.height()
+                );
+                DAI_TitleButton widget = addTitleButton(orbital.x(), orbital.y(), fitted);
+                orbitNodes.add(new OrbitNode(widget, fitted, orbital.baseAngleRadians()));
+                continue;
+            }
+
             if (compact != null && isCentered(button)) {
                 DAI_TitleScreenDefinition.ButtonDefinition fitted = withHeight(
                         button,
@@ -84,15 +126,25 @@ public final class DAI_TitleScreen extends Screen {
                         + centeredIndex * (compact.buttonHeight() + compact.gap());
 
                 centeredIndex++;
-                addTitleButton(x, y, fitted);
+                DAI_TitleButton widget = addTitleButton(x, y, fitted);
+                if (orbit != null && fitted.id().equals(definition.orbit().centerButton())) {
+                    orbitCenterButton = widget;
+                }
                 continue;
             }
 
-            addTitleButton(
+            DAI_TitleButton widget = addTitleButton(
                     resolveX(button),
                     resolveY(button),
                     button
             );
+            if (orbit != null && button.id().equals(definition.orbit().centerButton())) {
+                orbitCenterButton = widget;
+            }
+        }
+
+        if (orbit != null) {
+            updateOrbitPositions(-1, -1, true);
         }
 
         if (wideSaveLayout) {
@@ -102,16 +154,17 @@ public final class DAI_TitleScreen extends Screen {
         }
 
         DAI_Core.debug(
-                "<DAI>: Initialized JSON title screen '{}' with {} button(s), compactLayout={}, saveBrowser={}, sideBySide={}.",
+                "<DAI>: Initialized JSON title screen '{}' with {} button(s), compactLayout={}, orbit={}, saveBrowser={}, sideBySide={}.",
                 definition.id(),
                 definition.buttons().size(),
                 compact != null,
+                orbit != null,
                 saveBrowser.enabled(),
                 wideSaveLayout
         );
     }
 
-    private void addTitleButton(
+    private DAI_TitleButton addTitleButton(
             int x,
             int y,
             DAI_TitleScreenDefinition.ButtonDefinition button
@@ -127,7 +180,9 @@ public final class DAI_TitleScreen extends Screen {
         );
 
         addRenderableWidget(widget);
+        titleWidgets.add(new TitleWidgetEntry(widget, button));
         trackTitleButtonBounds(x, y, button.width(), button.height());
+        return widget;
     }
 
     private void trackTitleButtonBounds(int x, int y, int width, int height) {
@@ -250,7 +305,8 @@ public final class DAI_TitleScreen extends Screen {
                         browser.entryBackground(),
                         browser.entryHover(),
                         browser.entryBorder(),
-                        browser.textColor()
+                        browser.textColor(),
+                        "panel"
                 ),
                 DAI_TitleScreenDefinition.HoverAnimation.NONE
         );
@@ -283,20 +339,40 @@ public final class DAI_TitleScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        if (DAI_Config.featureModuleEnabled("scene_environments") && !definition.backgroundScene().isBlank()) {
-            DAI_SceneRenderer.render(graphics, definition.backgroundScene(), 0, 0, width, height, partialTick, java.util.Map.of("title.id", definition.id()));
-        } else {
+        updateOrbitPositions(mouseX, mouseY, false);
+        boolean defaultShell = "decisions_and_impulses:default".equals(definition.id());
+        boolean sceneRendered = false;
+        boolean defaultSceneReady = !defaultShell || DAI_SceneRenderSafety.registryModelsReady();
+        if (defaultSceneReady
+                && DAI_Config.featureModuleEnabled("scene_environments")
+                && !definition.backgroundScene().isBlank()) {
+            sceneRendered = DAI_SceneRenderer.render(
+                    graphics, definition.backgroundScene(), 0, 0, width, height, partialTick,
+                    java.util.Map.of("title.id", definition.id())
+            );
+        }
+        if (!sceneRendered && defaultShell) {
+            DAI_PresentationProfileService.Profile profile = DAI_PresentationProfileService.selected();
+            DAI_UniverseShellRenderer.render(graphics, width, height, profile, System.nanoTime());
+        } else if (!sceneRendered) {
             graphics.fillGradient(0, 0, width, height, definition.backgroundTop(), definition.backgroundBottom());
+        }
+        if (defaultShell) {
+            renderUniverseConnections(graphics, DAI_PresentationProfileService.selected());
         }
         renderSaveBrowserPanel(graphics);
         renderDecorations(graphics);
 
+        boolean daiDefaultPresentation = "decisions_and_impulses:default".equals(definition.id());
+        DAI_PresentationProfileService.Profile titleProfile = daiDefaultPresentation
+                ? DAI_PresentationProfileService.selected()
+                : null;
         graphics.centeredText(
                 font,
                 Component.literal(definition.title()),
                 width / 2,
                 titleY(),
-                definition.titleColor()
+                titleProfile == null ? definition.titleColor() : titleProfile.text()
         );
 
         graphics.centeredText(
@@ -304,10 +380,186 @@ public final class DAI_TitleScreen extends Screen {
                 Component.literal(definition.subtitle()),
                 width / 2,
                 subtitleY(),
-                definition.subtitleColor()
+                titleProfile == null ? definition.subtitleColor() : titleProfile.secondary()
         );
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderUniverseConnections(
+            GuiGraphicsExtractor graphics,
+            DAI_PresentationProfileService.Profile profile
+    ) {
+        int centerX = orbitCenterButton == null
+                ? width / 2
+                : orbitCenterButton.getX() + orbitCenterButton.getWidth() / 2;
+        int centerY = orbitCenterButton == null
+                ? height / 2
+                : orbitCenterButton.getY() + orbitCenterButton.getHeight() / 2;
+        int color = definition.orbit().enabled()
+                ? definition.orbit().connectorColor()
+                : (profile.secondary() & 0x00FFFFFF) | 0x33000000;
+
+        for (TitleWidgetEntry entry : titleWidgets) {
+            if (!"node".equals(entry.definition().style().shape())) continue;
+            if (entry.widget() == orbitCenterButton) continue;
+            int bx = entry.widget().getX() + entry.widget().getWidth() / 2;
+            int by = entry.widget().getY() + entry.widget().getHeight() / 2 - 5;
+            DAI_UniverseShellRenderer.drawConnection(graphics, centerX, centerY, bx, by, color);
+        }
+        graphics.fill(centerX - 3, centerY - 3, centerX + 4, centerY + 4, profile.primary());
+    }
+
+    private OrbitLayout buildOrbitLayout() {
+        DAI_TitleScreenDefinition.OrbitDefinition config = definition.orbit();
+        if (!config.enabled() || wideSaveLayout) return null;
+
+        DAI_TitleScreenDefinition.ButtonDefinition center = null;
+        List<DAI_TitleScreenDefinition.ButtonDefinition> candidates = new ArrayList<>();
+        for (DAI_TitleScreenDefinition.ButtonDefinition button : definition.buttons()) {
+            if (button.id().equals(config.centerButton())) {
+                center = button;
+            } else if ("node".equals(button.style().shape())) {
+                candidates.add(button);
+            }
+        }
+        if (center == null || candidates.size() < 2) return null;
+
+        int centerX = resolveX(center) + center.width() / 2;
+        int centerY = resolveY(center) + center.height() / 2;
+        int safeTop = subtitleY() + font.lineHeight + 10;
+
+        float adaptive = Math.min(1.0F, Math.min(width / 520.0F, height / 300.0F));
+        float scale = Math.max(config.minNodeScale(), adaptive);
+        OrbitGeometry geometry = null;
+
+        while (scale + 0.0001F >= config.minNodeScale()) {
+            int maxWidth = 1;
+            int maxHeight = 1;
+            for (DAI_TitleScreenDefinition.ButtonDefinition button : candidates) {
+                maxWidth = Math.max(maxWidth, Math.max(40, Math.round(button.width() * scale)));
+                maxHeight = Math.max(maxHeight, Math.max(MIN_BUTTON_HEIGHT, Math.round(button.height() * scale)));
+            }
+
+            double maxRadiusX = Math.min(
+                    centerX - config.margin() - maxWidth * 0.5D,
+                    width - centerX - config.margin() - maxWidth * 0.5D
+            );
+            double maxRadiusY = Math.min(
+                    centerY - safeTop - maxHeight * 0.5D,
+                    height - config.margin() - centerY - maxHeight * 0.5D
+            );
+            double radiusX = Math.min(config.radiusX(), maxRadiusX);
+            double radiusY = Math.min(config.radiusY(), maxRadiusY);
+
+            if (radiusX > 24.0D && radiusY > 18.0D
+                    && orbitFits(candidates.size(), radiusX, radiusY, maxWidth, maxHeight,
+                    center.width(), center.height(), config.startAngleDegrees())) {
+                geometry = new OrbitGeometry(scale, radiusX, radiusY);
+                break;
+            }
+
+            if (scale <= config.minNodeScale() + 0.001F) break;
+            scale = Math.max(config.minNodeScale(), scale - 0.04F);
+        }
+
+        if (geometry == null) return null;
+
+        List<OrbitPlacement> placements = new ArrayList<>();
+        double start = Math.toRadians(config.startAngleDegrees());
+        double step = Math.PI * 2.0D / candidates.size();
+        for (int i = 0; i < candidates.size(); i++) {
+            DAI_TitleScreenDefinition.ButtonDefinition button = candidates.get(i);
+            int nodeWidth = Math.max(40, Math.round(button.width() * geometry.scale()));
+            int nodeHeight = Math.max(MIN_BUTTON_HEIGHT, Math.round(button.height() * geometry.scale()));
+            double angle = start + step * i;
+            int x = (int)Math.round(centerX + Math.cos(angle) * geometry.radiusX() - nodeWidth * 0.5D);
+            int y = (int)Math.round(centerY + Math.sin(angle) * geometry.radiusY() - nodeHeight * 0.5D);
+            placements.add(new OrbitPlacement(button.id(), x, y, nodeWidth, nodeHeight, angle));
+        }
+
+        return new OrbitLayout(centerX, centerY, geometry.radiusX(), geometry.radiusY(), placements);
+    }
+
+    private boolean orbitFits(
+            int count,
+            double radiusX,
+            double radiusY,
+            int nodeWidth,
+            int nodeHeight,
+            int centerWidth,
+            int centerHeight,
+            float startAngleDegrees
+    ) {
+        if (count < 2) return true;
+        double step = Math.PI * 2.0D / count;
+        double start = Math.toRadians(startAngleDegrees);
+        double nodeHalfW = nodeWidth * 0.5D + 3.0D;
+        double nodeHalfH = nodeHeight * 0.5D + 3.0D;
+        double centerHalfW = centerWidth * 0.5D + nodeHalfW + 4.0D;
+        double centerHalfH = centerHeight * 0.5D + nodeHalfH + 4.0D;
+
+        for (int sample = 0; sample < 72; sample++) {
+            double phase = sample * (Math.PI * 2.0D / 72.0D);
+            double[] xs = new double[count];
+            double[] ys = new double[count];
+            for (int i = 0; i < count; i++) {
+                double angle = start + phase + step * i;
+                xs[i] = Math.cos(angle) * radiusX;
+                ys[i] = Math.sin(angle) * radiusY;
+                if (Math.abs(xs[i]) < centerHalfW && Math.abs(ys[i]) < centerHalfH) return false;
+            }
+            for (int a = 0; a < count; a++) {
+                for (int b = a + 1; b < count; b++) {
+                    if (Math.abs(xs[a] - xs[b]) < nodeHalfW * 2.0D
+                            && Math.abs(ys[a] - ys[b]) < nodeHalfH * 2.0D) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private void updateOrbitPositions(int mouseX, int mouseY, boolean force) {
+        if (orbitNodes.isEmpty()) return;
+        long now = System.nanoTime();
+        double delta = Math.max(0L, now - orbitLastNanos) / 1_000_000_000.0D;
+        orbitLastNanos = now;
+
+        boolean hovered = false;
+        if (!force && definition.orbit().pauseOnHover() && mouseX >= 0 && mouseY >= 0) {
+            for (OrbitNode node : orbitNodes) {
+                DAI_TitleButton widget = node.widget();
+                if (mouseX >= widget.getX() && mouseX < widget.getRight()
+                        && mouseY >= widget.getY() && mouseY < widget.getBottom()) {
+                    hovered = true;
+                    break;
+                }
+            }
+        }
+
+        if (!force && !hovered) {
+            orbitPhaseRadians += Math.toRadians(definition.orbit().speedDegreesPerSecond()) * delta;
+            orbitPhaseRadians %= Math.PI * 2.0D;
+        }
+
+        for (OrbitNode node : orbitNodes) {
+            double angle = node.baseAngleRadians() + orbitPhaseRadians;
+            int x = (int)Math.round(orbitCenterX + Math.cos(angle) * orbitRadiusX - node.widget().getWidth() * 0.5D);
+            int y = (int)Math.round(orbitCenterY + Math.sin(angle) * orbitRadiusY - node.widget().getHeight() * 0.5D);
+            node.widget().setX(x);
+            node.widget().setY(y);
+        }
+        recomputeTitleButtonBounds();
+    }
+
+    private void recomputeTitleButtonBounds() {
+        titleButtonBounds = null;
+        for (TitleWidgetEntry entry : titleWidgets) {
+            DAI_TitleButton widget = entry.widget();
+            trackTitleButtonBounds(widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight());
+        }
     }
 
     private void renderDecorations(GuiGraphicsExtractor graphics) {
@@ -507,8 +759,17 @@ public final class DAI_TitleScreen extends Screen {
     }
 
     @Override
+    public void onClose() {
+        // The DAI universe is a paused reserved shell world, not gameplay.
+        // Escape therefore remains inside the shell instead of exposing the
+        // hidden Minecraft world/HUD beneath the title presentation.
+        if (DAI_ShellWorldRuntime.isShellActive()) return;
+        super.onClose();
+    }
+
+    @Override
     public boolean isPauseScreen() {
-        return false;
+        return DAI_ShellWorldRuntime.isShellActive();
     }
 
     private int titleY() {
@@ -673,8 +934,75 @@ public final class DAI_TitleScreen extends Screen {
         );
     }
 
+    private static DAI_TitleScreenDefinition.ButtonDefinition withSize(
+            DAI_TitleScreenDefinition.ButtonDefinition button,
+            int width,
+            int height
+    ) {
+        return new DAI_TitleScreenDefinition.ButtonDefinition(
+                button.id(),
+                button.label(),
+                button.action(),
+                button.url(),
+                button.experience(),
+                button.anchor(),
+                button.x(),
+                button.y(),
+                width,
+                height,
+                button.icon(),
+                button.style(),
+                button.hoverAnimation()
+        );
+    }
+
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private record TitleWidgetEntry(
+            DAI_TitleButton widget,
+            DAI_TitleScreenDefinition.ButtonDefinition definition
+    ) {
+    }
+
+    private record OrbitNode(
+            DAI_TitleButton widget,
+            DAI_TitleScreenDefinition.ButtonDefinition definition,
+            double baseAngleRadians
+    ) {
+    }
+
+    private record OrbitGeometry(
+            float scale,
+            double radiusX,
+            double radiusY
+    ) {
+    }
+
+    private record OrbitPlacement(
+            String id,
+            int x,
+            int y,
+            int width,
+            int height,
+            double baseAngleRadians
+    ) {
+    }
+
+    private record OrbitLayout(
+            int centerX,
+            int centerY,
+            double radiusX,
+            double radiusY,
+            List<OrbitPlacement> placements
+    ) {
+        private OrbitPlacement placement(String id) {
+            for (OrbitPlacement placement : placements) {
+                if (placement.id().equals(id)) return placement;
+            }
+            return null;
+        }
     }
 
     private record CompactLayout(

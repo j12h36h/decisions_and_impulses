@@ -55,7 +55,7 @@ public abstract class Mixin_MultiPlayerGameMode {
     ) {
 
         dai$attackReactionSession =
-                DAI_ReactionDispatcher.begin(
+                DAI_ReactionDispatcher.beginHook(
                         DAI_ReactionEventRegistry.PLAYER_ATTACK_ENTITY,
                         target,
                         null,
@@ -129,7 +129,7 @@ public abstract class Mixin_MultiPlayerGameMode {
             CallbackInfoReturnable<Boolean> callback
     ) {
         Player player = Minecraft.getInstance().player;
-        dai$breakBlockReactionSession = DAI_ReactionDispatcher.begin(
+        dai$breakBlockReactionSession = DAI_ReactionDispatcher.beginHook(
                 DAI_ReactionEventRegistry.PLAYER_START_BREAK_BLOCK,
                 null,
                 pos,
@@ -167,7 +167,7 @@ public abstract class Mixin_MultiPlayerGameMode {
             BlockHitResult hit,
             CallbackInfoReturnable<InteractionResult> callback
     ) {
-        dai$useBlockReactionSession = DAI_ReactionDispatcher.begin(
+        dai$useBlockReactionSession = DAI_ReactionDispatcher.beginHook(
                 DAI_ReactionEventRegistry.PLAYER_USE_BLOCK,
                 null,
                 hit.getBlockPos(),
@@ -205,7 +205,7 @@ public abstract class Mixin_MultiPlayerGameMode {
             InteractionHand hand,
             CallbackInfoReturnable<InteractionResult> callback
     ) {
-        dai$useItemReactionSession = DAI_ReactionDispatcher.begin(
+        dai$useItemReactionSession = DAI_ReactionDispatcher.beginHook(
                 DAI_ReactionEventRegistry.PLAYER_USE_ITEM,
                 null,
                 null,
@@ -244,7 +244,7 @@ public abstract class Mixin_MultiPlayerGameMode {
             InteractionHand hand,
             CallbackInfoReturnable<InteractionResult> callback
     ) {
-        dai$interactEntityReactionSession = DAI_ReactionDispatcher.begin(
+        dai$interactEntityReactionSession = DAI_ReactionDispatcher.beginHook(
                 DAI_ReactionEventRegistry.PLAYER_INTERACT_ENTITY,
                 target,
                 null,

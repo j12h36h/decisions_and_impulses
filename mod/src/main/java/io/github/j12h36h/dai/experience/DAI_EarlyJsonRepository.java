@@ -54,6 +54,37 @@ public final class DAI_EarlyJsonRepository {
     }
 
     /**
+     * Main-pack scan used by the new-world experience picker. Only content
+     * installed at the game/modpack level is included. Existing save-local
+     * datapacks are deliberately excluded so opening an old world can never
+     * make that world's private experience appear as a template for new saves.
+     */
+    public static Map<String, JsonObject> scanSelectableMainPacks(String dataDirectory) {
+        LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        scanModDatapacks(result, dataDirectory, true);
+        scanGlobalDatapacks(result, dataDirectory, true);
+        return result;
+    }
+
+    /** Reads one concrete datapack/mod archive without consulting other saves. */
+    public static Map<String, JsonObject> scanPack(Path pack, String dataDirectory) {
+        if (pack == null || !Files.exists(pack)) return Map.of();
+
+        LinkedHashMap<String, JsonObject> result = new LinkedHashMap<>();
+        if (Files.isDirectory(pack)) {
+            scanDirectoryPack(result, pack, dataDirectory);
+        } else {
+            String name = pack.getFileName() == null
+                    ? ""
+                    : pack.getFileName().toString().toLowerCase(Locale.ROOT);
+            if (name.endsWith(".zip") || name.endsWith(".jar")) {
+                scanZipPack(result, pack, dataDirectory);
+            }
+        }
+        return Map.copyOf(result);
+    }
+
+    /**
      * Client-local data scan used when no DAI server is present. World packs
      * are intentionally excluded so an unrelated save cannot leak automation
      * definitions into a multiplayer connection.

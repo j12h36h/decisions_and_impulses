@@ -54,7 +54,12 @@
       "label": "Viewer Layout",
       "type": "text",
       "default": "book",
-      "level": 1
+      "level": 1,
+      "options": [
+        "book",
+        "panels",
+        "timeline"
+      ]
     },
     {
       "path": "viewer.scene_renderer",

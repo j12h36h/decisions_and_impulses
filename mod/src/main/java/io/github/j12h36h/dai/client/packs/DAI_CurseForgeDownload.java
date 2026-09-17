@@ -3,7 +3,7 @@ package io.github.j12h36h.dai.client.packs;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-/** Converts an official CurseForge file id + filename into its ForgeCDN URL. */
+/** Resolves trusted public pack download sources (CurseForge/ForgeCDN or HTTPS GitHub). */
 public final class DAI_CurseForgeDownload {
 
     private DAI_CurseForgeDownload() {}
@@ -12,8 +12,12 @@ public final class DAI_CurseForgeDownload {
         if (component == null) return null;
 
         if (!component.downloadUrl().isBlank()) {
-            URI uri = URI.create(component.downloadUrl());
-            return isAllowed(uri) ? uri : null;
+            try {
+                URI uri = URI.create(component.downloadUrl());
+                return isAllowed(uri) ? uri : null;
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
         }
 
         int fileId = component.curseForgeFileId();
@@ -41,7 +45,13 @@ public final class DAI_CurseForgeDownload {
         return normalized.equals("curseforge.com")
                 || normalized.endsWith(".curseforge.com")
                 || normalized.equals("forgecdn.net")
-                || normalized.endsWith(".forgecdn.net");
+                || normalized.endsWith(".forgecdn.net")
+                // DAI's public network is mirrored from GitHub. Keep this
+                // explicit rather than accepting arbitrary HTTPS hosts.
+                || normalized.equals("github.com")
+                || normalized.equals("raw.githubusercontent.com")
+                || normalized.equals("githubusercontent.com")
+                || normalized.endsWith(".githubusercontent.com");
     }
 
     private static String encodePathSegment(String value) {

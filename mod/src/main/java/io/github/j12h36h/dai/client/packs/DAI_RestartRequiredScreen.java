@@ -1,6 +1,10 @@
 package io.github.j12h36h.dai.client.packs;
 
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.client.title.DAI_TitleActionDispatcher;
+import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseButton;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseShellRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -26,19 +30,14 @@ public final class DAI_RestartRequiredScreen extends Screen {
         int center = width / 2;
         int y = height / 2 + 35;
 
-        addRenderableWidget(Button.builder(
-                        Component.literal("RETURN TO PACKS"),
-                        button -> Minecraft.getInstance().gui.setScreen(browser)
-                )
-                .bounds(center - 155, y, 145, 22)
-                .build());
+        var profile = DAI_PresentationProfileService.selected();
+        addRenderableWidget(new DAI_UniverseButton(center - 155, y, 145, 22, Component.literal("RETURN TO WORLDS"),
+                button -> Minecraft.getInstance().gui.setScreen(browser),
+                DAI_UniverseButton.Shape.CHIP, profile.secondary()));
 
-        addRenderableWidget(Button.builder(
-                        Component.literal("EXIT MINECRAFT"),
-                        button -> DAI_TitleActionDispatcher.stopMinecraft()
-                )
-                .bounds(center + 10, y, 145, 22)
-                .build());
+        addRenderableWidget(new DAI_UniverseButton(center + 10, y, 145, 22, Component.literal("QUIT GAME"),
+                button -> DAI_TitleActionDispatcher.stopMinecraft(),
+                DAI_UniverseButton.Shape.CHIP, 0xFFFF5F70));
     }
 
     @Override
@@ -48,7 +47,8 @@ public final class DAI_RestartRequiredScreen extends Screen {
             int mouseY,
             float partialTick
     ) {
-        graphics.fillGradient(0, 0, width, height, 0xFF100B0B, 0xFF2A1715);
+        DAI_UniverseShellRenderer.render(graphics, width, height, DAI_PresentationProfileService.selected(), System.nanoTime());
+        graphics.fill(width / 2 - 190, height / 2 - 82, width / 2 + 190, height / 2 + 78, 0xB80A070C);
         graphics.centeredText(font, Component.literal("RESTART REQUIRED"), width / 2, height / 2 - 45, 0xFFFFC27D);
         graphics.centeredText(
                 font,
@@ -89,6 +89,6 @@ public final class DAI_RestartRequiredScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() {
-        return false;
+        return DAI_ShellWorldRuntime.isShellActive();
     }
 }

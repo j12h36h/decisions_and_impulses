@@ -4,40 +4,67 @@
   "folder": "screen_overrides",
   "rail": "experience",
   "category": "PRESENTATION",
-  "description": "Replace or skin any matching vanilla/modded screen through data instead of Java.",
+  "description": "Replace, skin, overlay or hide matching vanilla/modded screens with DAI screens and scene layers.",
   "priority": 105,
   "fields": [
     {
       "path": "enabled",
       "label": "Enabled",
-      "type": "text",
+      "type": "boolean",
       "default": "true",
       "level": 0
     },
     {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 2
+    },
+    {
       "path": "target.class",
-      "label": "Target Screen Class",
+      "label": "Target Full Class",
       "type": "text",
       "default": "",
       "level": 0
     },
     {
-      "path": "target.role",
-      "label": "Target Role",
+      "path": "target.simple_class",
+      "label": "Target Simple Class",
       "type": "text",
       "default": "",
       "level": 0
+    },
+    {
+      "path": "target.title",
+      "label": "Target Title Pattern",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "target.exclude_class",
+      "label": "Exclude Class Pattern",
+      "type": "text",
+      "default": "",
+      "level": 2
     },
     {
       "path": "mode",
-      "label": "Mode",
+      "label": "Override Mode",
       "type": "text",
       "default": "replace",
-      "level": 0
+      "level": 0,
+      "options": [
+        "replace",
+        "skin",
+        "overlay",
+        "hide"
+      ]
     },
     {
       "path": "screen",
-      "label": "DAI Screen ID",
+      "label": "Replacement DAI Screen",
       "type": "text",
       "default": "",
       "level": 0
@@ -50,22 +77,26 @@
       "level": 1
     },
     {
-      "path": "priority",
-      "label": "Priority",
-      "type": "number",
-      "default": "0",
-      "level": 2
+      "path": "foreground_scene",
+      "label": "Foreground Scene",
+      "type": "text",
+      "default": "",
+      "level": 1
     }
   ],
   "template": {
     "enabled": true,
     "priority": 0,
     "target": {
-      "class": ""
+      "class": "",
+      "simple_class": "",
+      "title": "",
+      "exclude_class": ""
     },
     "mode": "replace",
     "screen": "",
-    "background_scene": ""
+    "background_scene": "",
+    "foreground_scene": ""
   },
   "variations": [],
   "preview": {

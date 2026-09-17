@@ -140,13 +140,22 @@ public final class DAI_DataScreen extends Screen {
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         int right = Math.min(width, left + definition.width());
         int bottom = Math.min(height, top + definition.height());
+        DAI_DataScreenDefinition.Style style = definition.style();
         if (!definition.backgroundScene().isBlank()) {
-            DAI_SceneRenderer.render(graphics, definition.backgroundScene(), left, top, Math.max(1, right-left), Math.max(1, bottom-top), partialTick, screenVariables());
-        } else {
-            graphics.fill(left, top, right, bottom, 0xD00B0710);
-            graphics.outline(left, top, Math.max(1, right - left), Math.max(1, bottom - top), 0xFFFF8B32);
+            if (style.sceneFullscreen()) {
+                DAI_SceneRenderer.render(graphics, definition.backgroundScene(), 0, 0, Math.max(1, width), Math.max(1, height), partialTick, screenVariables());
+            } else {
+                DAI_SceneRenderer.render(graphics, definition.backgroundScene(), left, top, Math.max(1, right-left), Math.max(1, bottom-top), partialTick, screenVariables());
+            }
+        } else if (style.drawPanel()) {
+            graphics.fill(left, top, right, bottom, style.panelColor());
         }
-        graphics.text(font, Component.literal(definition.title()), left + 8, top + 7, 0xFFFFB06A);
+        if (style.drawBorder()) {
+            graphics.outline(left, top, Math.max(1, right - left), Math.max(1, bottom - top), style.borderColor());
+        }
+        if (style.drawTitle() && !definition.title().isBlank()) {
+            graphics.text(font, Component.literal(definition.title()), left + style.titleX(), top + style.titleY(), style.titleColor());
+        }
 
         for (DAI_DataScreenDefinition.Widget widget : visualWidgets) renderVisual(graphics, widget);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);

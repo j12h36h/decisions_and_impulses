@@ -1,7 +1,11 @@
 package io.github.j12h36h.dai.client.title;
 
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseButton;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseShellRenderer;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -96,31 +100,23 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
         }
 
         int navY = height - 42;
-        addRenderableWidget(Button.builder(
-                        Component.literal("BACK"),
-                        button -> Minecraft.getInstance().gui.setScreen(parent)
-                )
-                .bounds(width / 2 - 56, navY, 112, 24)
-                .build());
+        addRenderableWidget(shellButton(width / 2 - 56, navY, 112, 24, "BACK",
+                button -> Minecraft.getInstance().gui.setScreen(parent), false));
 
         if (pages > 1) {
-            addRenderableWidget(Button.builder(
-                            Component.literal("< PREV"),
-                            button -> Minecraft.getInstance().gui.setScreen(
-                                    new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.max(0, page - 1))
-                            )
-                    )
-                    .bounds(width / 2 - 154, navY, 86, 24)
-                    .build());
-            addRenderableWidget(Button.builder(
-                            Component.literal("NEXT >"),
-                            button -> Minecraft.getInstance().gui.setScreen(
-                                    new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.min(pages - 1, page + 1))
-                            )
-                    )
-                    .bounds(width / 2 + 68, navY, 86, 24)
-                    .build());
+            addRenderableWidget(shellButton(width / 2 - 154, navY, 86, 24, "◀ PREV",
+                    button -> Minecraft.getInstance().gui.setScreen(
+                            new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.max(0, page - 1))), false));
+            addRenderableWidget(shellButton(width / 2 + 68, navY, 86, 24, "NEXT ▶",
+                    button -> Minecraft.getInstance().gui.setScreen(
+                            new DAI_ExperienceSaveBrowserScreen(parent, titleDefinition, Math.min(pages - 1, page + 1))), false));
         }
+    }
+
+    private DAI_UniverseButton shellButton(int x, int y, int w, int h, String label, Button.OnPress press, boolean primary) {
+        var profile = DAI_PresentationProfileService.selected();
+        return new DAI_UniverseButton(x, y, w, h, Component.literal(label), press,
+                DAI_UniverseButton.Shape.CHIP, primary ? profile.primary() : profile.secondary());
     }
 
     private void confirmDelete(DAI_ExperienceLauncher.ExperienceSave save) {
@@ -185,6 +181,8 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
     private void renderPackBackground(GuiGraphicsExtractor graphics, float partialTick) {
         if (DAI_Config.featureModuleEnabled("scene_environments") && !titleDefinition.backgroundScene().isBlank()) {
             DAI_SceneRenderer.render(graphics, titleDefinition.backgroundScene(), 0, 0, width, height, partialTick, java.util.Map.of("title.id", titleDefinition.id()));
+        } else if ("decisions_and_impulses:default".equals(titleDefinition.id())) {
+            DAI_UniverseShellRenderer.render(graphics, width, height, DAI_PresentationProfileService.selected(), System.nanoTime());
         } else {
             graphics.fillGradient(0, 0, width, height, titleDefinition.backgroundTop(), titleDefinition.backgroundBottom());
         }
@@ -207,6 +205,6 @@ public final class DAI_ExperienceSaveBrowserScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() {
-        return false;
+        return DAI_ShellWorldRuntime.isShellActive();
     }
 }

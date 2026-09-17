@@ -4,35 +4,79 @@
   "folder": "reaction_events",
   "rail": "experience",
   "category": "SYSTEMS",
-  "description": "Declare reusable event channels and contextual data for reactions.",
+  "description": "Bind a logical JSON reaction event to a stable DAI gameplay hook. Built-in hook definitions are fallbacks and may be replaced, disabled or remapped.",
   "priority": 88,
   "fields": [
     {
+      "path": "id",
+      "label": "Logical Event ID (optional)",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "hook",
+      "label": "Engine Hook",
+      "type": "text",
+      "default": "",
+      "level": 0,
+      "options": [
+        "player_attack_input",
+        "player_input_tick",
+        "player_attack_entity",
+        "player_use_block",
+        "player_use_item",
+        "player_interact_entity",
+        "player_start_break_block"
+      ]
+    },
+    {
       "path": "enabled",
       "label": "Enabled",
-      "type": "text",
+      "type": "boolean",
       "default": "true",
       "level": 0
     },
     {
-      "path": "description",
-      "label": "Description",
-      "type": "text",
-      "default": "",
+      "path": "priority",
+      "label": "Hook Priority",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "phases",
+      "label": "Supported Phases",
+      "type": "json",
+      "default": "[\"pre\",\"during\",\"post\"]",
       "level": 0
     },
     {
-      "path": "scope",
-      "label": "Scope",
-      "type": "text",
-      "default": "client",
+      "path": "cancellable",
+      "label": "Can Cancel Vanilla Event",
+      "type": "boolean",
+      "default": "true",
+      "level": 0
+    },
+    {
+      "path": "overrideable",
+      "label": "Can Override Vanilla Event",
+      "type": "boolean",
+      "default": "true",
       "level": 0
     }
   ],
   "template": {
+    "hook": "",
     "enabled": true,
-    "description": "",
-    "scope": "client"
+    "priority": 0,
+    "phases": [
+      "pre",
+      "during",
+      "post"
+    ],
+    "cancellable": true,
+    "overrideable": true
   },
   "variations": [],
   "preview": {

@@ -26,6 +26,7 @@ public record DAI_TitleScreenDefinition(
         int backgroundBottom,
         int titleColor,
         int subtitleColor,
+        OrbitDefinition orbit,
         SaveBrowserDefinition saveBrowser,
         List<ButtonDefinition> buttons,
         List<DecorationDefinition> decorations
@@ -37,6 +38,7 @@ public record DAI_TitleScreenDefinition(
         subtitle = safe(subtitle, "The interface between humanity and automation.");
         theme = safe(theme, "gradient").trim().toLowerCase(Locale.ROOT);
         backgroundScene = safe(backgroundScene, "").trim();
+        orbit = orbit == null ? OrbitDefinition.DISABLED : orbit;
         saveBrowser = saveBrowser == null ? SaveBrowserDefinition.DISABLED : saveBrowser;
         buttons = buttons == null ? List.of() : List.copyOf(buttons);
         decorations = decorations == null ? List.of() : List.copyOf(decorations);
@@ -52,6 +54,7 @@ public record DAI_TitleScreenDefinition(
 
         JsonObject background = object(root, "background");
         JsonObject saveBrowser = object(root, "experience_save_browser");
+        JsonObject orbit = object(root, "orbit");
         JsonArray buttonArray = array(root, "buttons");
         JsonArray decorationArray = array(root, "decorations");
         List<ButtonDefinition> buttons = new ArrayList<>();
@@ -91,6 +94,7 @@ public record DAI_TitleScreenDefinition(
                 color(background, "bottom", 0xFF101E29),
                 color(root, "title_color", 0xFFFFFFFF),
                 color(root, "subtitle_color", 0xFF9EB6C7),
+                parseOrbit(orbit),
                 parseSaveBrowser(saveBrowser),
                 buttons,
                 decorations
@@ -110,10 +114,53 @@ public record DAI_TitleScreenDefinition(
                 0xFF101E29,
                 0xFFFFFFFF,
                 0xFF9EB6C7,
+                OrbitDefinition.DISABLED,
                 SaveBrowserDefinition.DISABLED,
                 List.of(),
                 List.of()
         );
+    }
+
+    private static OrbitDefinition parseOrbit(JsonObject object) {
+        if (object == null) return OrbitDefinition.DISABLED;
+        return new OrbitDefinition(
+                bool(object, "enabled", false),
+                string(object, "center_button", "play"),
+                decimal(object, "radius_x", 180.0F),
+                decimal(object, "radius_y", 92.0F),
+                decimal(object, "speed_degrees_per_second", 2.4F),
+                decimal(object, "start_angle_degrees", -180.0F),
+                integer(object, "margin", 10),
+                decimal(object, "min_node_scale", 0.72F),
+                color(object, "connector_color", 0x703A216B),
+                bool(object, "pause_on_hover", true)
+        );
+    }
+
+    public record OrbitDefinition(
+            boolean enabled,
+            String centerButton,
+            float radiusX,
+            float radiusY,
+            float speedDegreesPerSecond,
+            float startAngleDegrees,
+            int margin,
+            float minNodeScale,
+            int connectorColor,
+            boolean pauseOnHover
+    ) {
+        static final OrbitDefinition DISABLED = new OrbitDefinition(
+                false, "play", 180.0F, 92.0F, 2.4F, -180.0F, 10, 0.72F, 0x703A216B, true
+        );
+
+        public OrbitDefinition {
+            centerButton = safe(centerButton, "play").trim();
+            radiusX = Math.max(24.0F, Math.min(2048.0F, radiusX));
+            radiusY = Math.max(18.0F, Math.min(2048.0F, radiusY));
+            speedDegreesPerSecond = Math.max(-90.0F, Math.min(90.0F, speedDegreesPerSecond));
+            margin = Math.max(4, Math.min(128, margin));
+            minNodeScale = Math.max(0.50F, Math.min(1.0F, minNodeScale));
+        }
     }
 
     private static SaveBrowserDefinition parseSaveBrowser(JsonObject object) {
@@ -184,7 +231,8 @@ public record DAI_TitleScreenDefinition(
                         color(style, "background", 0xB8182734),
                         color(style, "hover", 0xE02C4A5D),
                         color(style, "border", 0xFF4E7389),
-                        color(style, "text", 0xFFFFFFFF)
+                        color(style, "text", 0xFFFFFFFF),
+                        string(style, "shape", "panel")
                 ),
                 new HoverAnimation(
                         string(hover, "type", "none").toLowerCase(Locale.ROOT),
@@ -359,10 +407,15 @@ public record DAI_TitleScreenDefinition(
             int background,
             int hover,
             int border,
-            int text
+            int text,
+            String shape
     ) {
         static final StyleDefinition DEFAULT =
-                new StyleDefinition(0xB8182734, 0xE02C4A5D, 0xFF4E7389, 0xFFFFFFFF);
+                new StyleDefinition(0xB8182734, 0xE02C4A5D, 0xFF4E7389, 0xFFFFFFFF, "panel");
+
+        public StyleDefinition {
+            shape = safe(shape, "panel").trim().toLowerCase(Locale.ROOT);
+        }
     }
 
     public record HoverAnimation(

@@ -18,11 +18,13 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +34,8 @@ public final class DAI_ServerStateRuntime {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, DAI_StateValue> VALUES = new LinkedHashMap<>();
     private static Path stateFile;
+    private static boolean stateDirty;
+    private static long lastSaveTick;
     private static boolean initialized;
 
     private DAI_ServerStateRuntime() {}
@@ -42,6 +46,7 @@ public final class DAI_ServerStateRuntime {
         NeoForge.EVENT_BUS.addListener(DAI_ServerStateRuntime::onServerStarted);
         NeoForge.EVENT_BUS.addListener(DAI_ServerStateRuntime::onServerStopping);
         NeoForge.EVENT_BUS.addListener(DAI_ServerStateRuntime::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(DAI_ServerStateRuntime::onServerTick);
     }
 
     private static void onServerStarted(ServerStartedEvent event) {
@@ -51,6 +56,15 @@ public final class DAI_ServerStateRuntime {
     }
 
     private static void onServerStopping(ServerStoppingEvent event) { save(); }
+
+    private static void onServerTick(ServerTickEvent.Post event) {
+        if (!stateDirty) return;
+        long now = event.getServer().getTickCount();
+        if (now - lastSaveTick >= 20L) {
+            lastSaveTick = now;
+            save();
+        }
+    }
 
     private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) syncAllVisible(player);
@@ -74,7 +88,7 @@ public final class DAI_ServerStateRuntime {
         };
         if (!operation.equals("clear") && next == null) return false;
         if (next == null) VALUES.remove(storageKey); else VALUES.put(storageKey, next);
-        if (definition.persistent()) save();
+        if (definition.persistent()) stateDirty = true;
         syncVisible(actor, normalized, definition, next == null ? definition.defaultValue() : next, next != null);
         return true;
     }
@@ -121,6 +135,8 @@ public final class DAI_ServerStateRuntime {
 
     private static synchronized void load() {
         VALUES.clear();
+        stateDirty = false;
+        lastSaveTick = 0L;
         if (stateFile == null || !Files.isRegularFile(stateFile)) return;
         try {
             JsonObject root = JsonParser.parseString(Files.readString(stateFile, StandardCharsets.UTF_8)).getAsJsonObject();
@@ -139,6 +155,7 @@ public final class DAI_ServerStateRuntime {
                     if (value != null) VALUES.put(entry.getKey(), value);
                 } catch (RuntimeException ignored) {}
             });
+            stateDirty = false;
             DAI_Core.LOGGER.info("<DAI>: Loaded {} persistent scoped state value(s).", VALUES.size());
         } catch (Exception exception) {
             DAI_Core.LOGGER.error("<DAI>: Could not load persistent scoped state.", exception);
@@ -166,7 +183,14 @@ public final class DAI_ServerStateRuntime {
             }
             root.add("values", values);
             Files.createDirectories(stateFile.getParent());
-            Files.writeString(stateFile, GSON.toJson(root), StandardCharsets.UTF_8);
+            Path temporary = stateFile.resolveSibling(stateFile.getFileName() + ".tmp");
+            Files.writeString(temporary, GSON.toJson(root), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, stateFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception ignored) {
+                Files.move(temporary, stateFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+            stateDirty = false;
         } catch (Exception exception) {
             DAI_Core.LOGGER.error("<DAI>: Could not save persistent scoped state.", exception);
         }

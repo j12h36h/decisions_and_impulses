@@ -4,36 +4,36 @@
   "folder": "dai_screens",
   "rail": "experience",
   "category": "PRESENTATION",
-  "description": "Build a complete JSON-driven DAI screen with widgets, actions and scene views.",
+  "description": "Build a complete DAI screen: dimensions, pause/input behavior, scene background and dynamic widgets/actions.",
   "priority": 100,
   "fields": [
     {
       "path": "title",
-      "label": "Title",
+      "label": "Screen Title",
       "type": "text",
       "default": "Custom Screen",
       "level": 0
     },
     {
       "path": "width",
-      "label": "Width",
+      "label": "Canvas Width",
       "type": "number",
       "default": "320",
-      "level": 1
+      "level": 0
     },
     {
       "path": "height",
-      "label": "Height",
+      "label": "Canvas Height",
       "type": "number",
-      "default": "180",
-      "level": 1
+      "default": "220",
+      "level": 0
     },
     {
       "path": "background_scene",
       "label": "Background Scene",
       "type": "text",
       "default": "",
-      "level": 1
+      "level": 0
     },
     {
       "path": "close_on_escape",
@@ -43,20 +43,102 @@
       "level": 1
     },
     {
-      "path": "pause",
+      "path": "pause_game",
       "label": "Pause Game",
       "type": "boolean",
       "default": "false",
+      "level": 1
+    },
+    {
+      "path": "style.draw_panel",
+      "label": "Draw Default Panel",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    },
+    {
+      "path": "style.draw_border",
+      "label": "Draw Default Border",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    },
+    {
+      "path": "style.draw_title",
+      "label": "Draw Default Title",
+      "type": "boolean",
+      "default": "true",
+      "level": 1
+    },
+    {
+      "path": "style.scene_fullscreen",
+      "label": "Background Scene Fullscreen",
+      "type": "boolean",
+      "default": "false",
+      "level": 1
+    },
+    {
+      "path": "style.panel_color",
+      "label": "Panel ARGB Color",
+      "type": "number",
+      "default": "-804583664",
       "level": 2
+    },
+    {
+      "path": "style.border_color",
+      "label": "Border ARGB Color",
+      "type": "number",
+      "default": "-29902",
+      "level": 2
+    },
+    {
+      "path": "style.title_color",
+      "label": "Title ARGB Color",
+      "type": "number",
+      "default": "-20374",
+      "level": 2
+    },
+    {
+      "path": "style.title_x",
+      "label": "Title X Offset",
+      "type": "number",
+      "default": "8",
+      "level": 2
+    },
+    {
+      "path": "style.title_y",
+      "label": "Title Y Offset",
+      "type": "number",
+      "default": "7",
+      "level": 2
+    },
+    {
+      "path": "widgets",
+      "label": "Widgets / Controls",
+      "type": "json",
+      "default": "[]",
+      "level": 0
     }
   ],
   "template": {
     "title": "Custom Screen",
     "width": 320,
-    "height": 180,
+    "height": 220,
+    "background_scene": "",
     "close_on_escape": true,
-    "pause": false,
-    "widgets": []
+    "pause_game": false,
+    "widgets": [],
+    "style": {
+      "draw_panel": true,
+      "draw_border": true,
+      "draw_title": true,
+      "scene_fullscreen": false,
+      "panel_color": -804583664,
+      "border_color": -29902,
+      "title_color": -20374,
+      "title_x": 8,
+      "title_y": 7
+    }
   },
   "variations": [],
   "preview": {

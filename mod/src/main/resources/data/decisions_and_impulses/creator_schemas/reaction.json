@@ -25,7 +25,11 @@
       "label": "Phase",
       "type": "text",
       "default": "post",
-      "level": 0
+      "level": 0,
+      "options": [
+        "pre",
+        "post"
+      ]
     },
     {
       "path": "priority",

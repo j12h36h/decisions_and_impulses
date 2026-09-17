@@ -3,7 +3,7 @@ package io.github.j12h36h.dai.client.branding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.packs.DAI_CompanionResourcePackPreferences;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
-import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
+import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -56,6 +55,9 @@ public final class DAI_ClientBranding {
         DAI_ExperienceDefinition experience = preferredExperience();
         if (experience == null) {
             DAI_FmlEarlyBranding.sync(null, null);
+            long handle = windowHandle(minecraft);
+            if (handle != 0L) GLFW.glfwSetWindowTitle(handle, "D.A.I. Engine");
+            appliedKey = "";
             return;
         }
 
@@ -96,12 +98,12 @@ public final class DAI_ClientBranding {
         DAI_ExperienceDefinition active = DAI_ExperienceRuntime.active();
         if (active != null) return active;
 
-        return DAI_ExperienceRepository.all().values().stream()
-                .filter(DAI_ExperienceDefinition::enabled)
-                .max(Comparator
-                        .comparingInt(DAI_ExperienceDefinition::priority)
-                        .thenComparing(DAI_ExperienceDefinition::id))
-                .orElse(null);
+        // Installed MAIN packs are templates, not globally active experiences.
+        // Only the experience explicitly being launched may brand the app before
+        // its ClientLevel activates. Without this guard, installing one MAIN pack
+        // could hijack the DAI shell branding/title before the player selected it.
+        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+        return pending == null ? null : pending.definition();
     }
 
     public static DAI_ExperienceDefinition.Branding currentBranding() {
@@ -123,13 +125,18 @@ public final class DAI_ClientBranding {
     }
 
     public static Identifier loadingBackgroundTexture() {
-        String value = currentBranding().loadingBackgroundTexture();
-        return value.isBlank() ? null : Identifier.tryParse(value);
+        return safeTextureId(currentBranding().loadingBackgroundTexture());
     }
 
     public static Identifier loadingLogo() {
-        String value = currentBranding().loadingLogo();
-        return value.isBlank() ? null : Identifier.tryParse(value);
+        return safeTextureId(currentBranding().loadingLogo());
+    }
+
+    private static Identifier safeTextureId(String raw) {
+        if (raw == null) return null;
+        String value = raw.trim();
+        if (value.isEmpty() || value.endsWith(":")) return null;
+        return Identifier.tryParse(value);
     }
 
     /**

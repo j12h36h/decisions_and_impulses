@@ -3,6 +3,9 @@ package io.github.j12h36h.dai.client.packs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
+import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.client.Minecraft;
@@ -22,11 +25,10 @@ import java.util.Set;
  * Keeps Minecraft's persisted resource-pack selection in sync with DAI-owned
  * managed packs.
  *
- * DAI also exposes managed packs as required repository entries. That makes
- * them active for the current client, but vanilla only persists its visible
- * enabled-pack list when Options updates the resource-pack selection (normally
- * after leaving the Resource Packs screen). Rewriting only the two pack-list
- * fields here closes that gap without touching any unrelated option.
+ * DAI exposes managed packs as optional repository entries and keeps their
+ * vanilla selection synchronized automatically. Optional registration is
+ * important because an Experience Pack may disable or whitelist ADDON resource
+ * companions without affecting unrelated player-selected resource packs.
  */
 public final class DAI_ManagedResourcePackPreferences {
 
@@ -81,9 +83,9 @@ public final class DAI_ManagedResourcePackPreferences {
                 nextEnabled.addAll(desired);
             }
 
-            // A managed pack is deliberately registered as required and is
-            // validated by DAI before installation. Never let an old vanilla
-            // incompatibility choice keep an updated managed pack disabled.
+            // Managed packs are validated by DAI before installation. Never
+            // let an old vanilla incompatibility choice keep an allowed,
+            // updated managed pack disabled.
             LinkedHashSet<String> nextIncompatible =
                     new LinkedHashSet<>(incompatible.values());
             nextIncompatible.removeIf(DAI_ManagedResourcePackPreferences::isManaged);
@@ -120,7 +122,7 @@ public final class DAI_ManagedResourcePackPreferences {
             );
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn(
-                    "<DAI>: Could not persist managed resource-pack selection; required-pack registration will still be used.",
+                    "<DAI>: Could not persist managed resource-pack selection; repository registration will still be available.",
                     exception
             );
         }
@@ -136,50 +138,7 @@ public final class DAI_ManagedResourcePackPreferences {
         try {
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft == null) return;
-
-            minecraft.execute(() -> {
-                try {
-                    if (minecraft.options == null) return;
-
-                    Set<String> desired = installedManagedPackIds();
-                    boolean autoEnable = DAI_Config.autoEnableManagedResourcePacks();
-
-                    LinkedHashSet<String> enabled =
-                            new LinkedHashSet<>(minecraft.options.resourcePacks);
-                    enabled.removeIf(id -> isManaged(id)
-                            && (!desired.contains(id) || !autoEnable));
-                    if (autoEnable) enabled.addAll(desired);
-
-                    LinkedHashSet<String> incompatible =
-                            new LinkedHashSet<>(minecraft.options.incompatibleResourcePacks);
-                    incompatible.removeIf(DAI_ManagedResourcePackPreferences::isManaged);
-
-                    List<String> nextEnabled = new ArrayList<>(enabled);
-                    List<String> nextIncompatible = new ArrayList<>(incompatible);
-
-                    boolean changed =
-                            !nextEnabled.equals(minecraft.options.resourcePacks)
-                                    || !nextIncompatible.equals(
-                                    minecraft.options.incompatibleResourcePacks
-                            );
-
-                    if (!changed) return;
-
-                    minecraft.options.resourcePacks = nextEnabled;
-                    minecraft.options.incompatibleResourcePacks = nextIncompatible;
-                    minecraft.options.save();
-
-                    DAI_Core.LOGGER.info(
-                            "<DAI>: Persisted {} managed resource pack(s) into the live Minecraft options selection.",
-                            autoEnable ? desired.size() : 0
-                    );
-                } catch (Exception exception) {
-                    DAI_Core.LOGGER.warn(
-                            "<DAI>: Could not reconcile the live Minecraft resource-pack selection.",
-                            exception
-                    );
-                }
-            });
+            minecraft.execute(() -> reconcileLiveSelectionNow(minecraft));
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Could not schedule managed resource-pack option reconciliation.",
@@ -188,10 +147,167 @@ public final class DAI_ManagedResourcePackPreferences {
         }
     }
 
+    /**
+     * Re-applies the active/pending experience ADDON policy to managed resource
+     * packs and reloads client resources. This keeps combo ADDON packs from
+     * leaking visual overrides into experiences that disable or do not
+     * whitelist them.
+     */
+    public static void applyExperiencePolicyAndReload() {
+        reconcileSavedSelection();
+
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft == null) return;
+            minecraft.execute(() -> {
+                boolean changed = reconcileLiveSelectionNow(minecraft);
+                if (!changed) return;
+                minecraft.reloadResourcePacks().whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        DAI_Core.LOGGER.warn(
+                                "<DAI>: Resource reload failed while applying experience ADDON policy.",
+                                error
+                        );
+                    } else {
+                        DAI_Core.LOGGER.info(
+                                "<DAI>: Applied experience ADDON resource-pack policy."
+                        );
+                    }
+                });
+            });
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Could not schedule experience ADDON resource-pack policy reload.",
+                    exception
+            );
+        }
+    }
+
+    static boolean reconcileLiveSelectionNow(Minecraft minecraft) {
+        try {
+            if (minecraft == null || minecraft.options == null) return false;
+
+            Set<String> desired = installedManagedPackIds();
+            boolean autoEnable = DAI_Config.autoEnableManagedResourcePacks();
+
+            LinkedHashSet<String> enabled =
+                    new LinkedHashSet<>(minecraft.options.resourcePacks);
+            enabled.removeIf(id -> isManaged(id)
+                    && (!desired.contains(id) || !autoEnable));
+            if (autoEnable) enabled.addAll(desired);
+
+            LinkedHashSet<String> incompatible =
+                    new LinkedHashSet<>(minecraft.options.incompatibleResourcePacks);
+            incompatible.removeIf(DAI_ManagedResourcePackPreferences::isManaged);
+
+            List<String> nextEnabled = new ArrayList<>(enabled);
+            List<String> nextIncompatible = new ArrayList<>(incompatible);
+
+            boolean changed =
+                    !nextEnabled.equals(minecraft.options.resourcePacks)
+                            || !nextIncompatible.equals(
+                            minecraft.options.incompatibleResourcePacks
+                    );
+
+            if (!changed) return false;
+
+            minecraft.options.resourcePacks = nextEnabled;
+            minecraft.options.incompatibleResourcePacks = nextIncompatible;
+            minecraft.options.save();
+
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Persisted {} managed resource pack(s) into the live Minecraft options selection.",
+                    autoEnable ? desired.size() : 0
+            );
+            return true;
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Could not reconcile the live Minecraft resource-pack selection.",
+                    exception
+            );
+            return false;
+        }
+    }
+
+    /**
+     * True when this installed public pack belongs in the current visual stack.
+     *
+     * Experience Pack companions are mutually isolated: installing ten games
+     * does not globally enable all ten resource packs. Only the pack owning the
+     * pending/active experience is selected. ADDON companions retain the
+     * experience's allow/whitelist policy and remain available to ordinary
+     * Minecraft + DAI worlds when no authored experience is active.
+     */
+    public static boolean allowedForCurrentExperience(DAI_PackInstallManager.InstalledPack installed) {
+        if (installed == null) return false;
+
+        DAI_ExperienceDefinition experience = null;
+        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+        if (pending != null) experience = pending.definition();
+        if (experience == null) experience = DAI_ExperienceRuntime.active();
+
+        if (installed.isExperiencePack()) {
+            return experience != null && (installed.ownsExperience(experience.id())
+                    || identityFallbackOwnsExperience(installed, experience.id()));
+        }
+
+        if (!installed.isAddon()) {
+            // Preserve compatibility for old manifest entries that predate the
+            // public Experience Pack / Addon classification.
+            return true;
+        }
+
+        if (experience == null) return true;
+
+        DAI_ExperienceDefinition.AddonPolicy policy = experience.addons();
+        return policy != null && policy.allows(installed.id());
+    }
+
+    /**
+     * Older installed manifests can predate experience_ids. Keep official
+     * Experience Packs usable by matching their stable public-pack id against
+     * the authored experience namespace/path. This is deliberately a fallback;
+     * explicit scanned ownership always wins when available.
+     */
+    private static boolean identityFallbackOwnsExperience(
+            DAI_PackInstallManager.InstalledPack installed,
+            String experienceId
+    ) {
+        if (installed == null || experienceId == null || experienceId.isBlank()) return false;
+        String packToken = localToken(installed.id());
+        String normalized = experienceId.trim().toLowerCase(Locale.ROOT);
+        int colon = normalized.indexOf(':');
+        String namespace = colon > 0 ? normalized.substring(0, colon) : normalized;
+        String path = colon >= 0 && colon + 1 < normalized.length()
+                ? normalized.substring(colon + 1)
+                : normalized;
+        String namespaceToken = localToken(namespace);
+        String pathToken = localToken(path);
+        if (packToken.length() < 4) return false;
+        return packToken.equals(namespaceToken)
+                || packToken.equals(pathToken)
+                || pathToken.startsWith(packToken)
+                || pathToken.endsWith(packToken);
+    }
+
+    private static String localToken(String raw) {
+        if (raw == null) return "";
+        String value = raw.trim().toLowerCase(Locale.ROOT);
+        int colon = value.lastIndexOf(':');
+        if (colon >= 0 && colon + 1 < value.length()) value = value.substring(colon + 1);
+        return value.replaceAll("[^a-z0-9]+", "");
+    }
+
+    /** Pack ids that should be active for the current pending/active experience context. */
+    static Set<String> desiredPackIdsForCurrentContext() {
+        return Set.copyOf(installedManagedPackIds());
+    }
+
     private static Set<String> installedManagedPackIds() {
         LinkedHashSet<String> ids = new LinkedHashSet<>();
         for (DAI_PackInstallManager.InstalledPack installed
                 : DAI_PackInstallManager.installedPacks()) {
+            if (!allowedForCurrentExperience(installed)) continue;
             for (DAI_PackInstallManager.InstalledComponent component
                     : installed.components()) {
                 if (!"resource_pack".equals(component.type())) continue;

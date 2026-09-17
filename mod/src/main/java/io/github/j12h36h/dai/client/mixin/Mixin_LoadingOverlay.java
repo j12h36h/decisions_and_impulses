@@ -1,8 +1,10 @@
 package io.github.j12h36h.dai.client.mixin;
 
 import io.github.j12h36h.dai.client.branding.DAI_ClientBranding;
-import io.github.j12h36h.dai.client.branding.DAI_UniverseLoadingRenderer;
+import io.github.j12h36h.dai.client.branding.DAI_VanillaVillageSplashRenderer;
+import io.github.j12h36h.dai.client.branding.DAI_SafeLoadingVeil;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -54,11 +56,31 @@ public abstract class Mixin_LoadingOverlay {
         int height = minecraft.getWindow().getGuiScaledHeight();
         if (width <= 0 || height <= 0) return;
 
-        // Experience branding always wins. DAI's universe presentation is the
+        /*
+         * Full-shell startup is the hard safety boundary: while Minecraft is
+         * reloading resources and binding registries, render only DAI's
+         * resource-independent vanilla village splash. Experience/presentation-pack
+         * textures resume after the client runtime is fully initialized.
+         */
+        if (DAI_ClientConfig.fullGameShell()
+                && DAI_ClientConfig.loadingScreens()
+                && !DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.SAFE_LOADING)
+                && !DAI_ShellScreenRouter.none(DAI_ShellScreenRouter.SAFE_LOADING)) {
+            float progress = DAI_ClientBranding.reloadProgress(this);
+            if (DAI_SafeLoadingVeil.renderExperienceBootstrap(graphics, width, height, progress)) {
+                return;
+            }
+            DAI_VanillaVillageSplashRenderer.render(graphics, width, height, progress);
+            return;
+        }
+
+        // Experience branding always wins. DAI's vanilla village splash is the
         // low-priority fallback when no Experience supplies its own screen.
         if (experience == null || !branding.customLoadingScreen()) {
             if (!DAI_ClientConfig.loadingScreens()) return;
-            DAI_UniverseLoadingRenderer.render(graphics, width, height, DAI_ClientBranding.reloadProgress(this));
+            DAI_VanillaVillageSplashRenderer.render(
+                    graphics, width, height, DAI_ClientBranding.reloadProgress(this)
+            );
             return;
         }
 

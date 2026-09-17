@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-/** Auto-enables resource packs installed through D.A.I.'s Official Packs browser. */
+/** Registers resource packs installed through D.A.I.'s public packs browser. */
 public final class DAI_ManagedResourcePackBootstrap {
 
     private static boolean initialized;
@@ -40,9 +40,10 @@ public final class DAI_ManagedResourcePackBootstrap {
     private static void addPackFinders(AddPackFindersEvent event) {
         if (event.getPackType() != PackType.CLIENT_RESOURCES) return;
 
-        // Required repository entries make managed packs active immediately.
-        // Persist the same stable ids into vanilla's saved pack selection so
-        // installs/updates remain enabled without visiting the pack screen.
+        // Managed packs are optional repository entries whose selection is
+        // controlled by DAI's saved/live preference reconciler. Keeping them
+        // optional is required so an Experience Pack can disable or whitelist
+        // ADDON resource-pack companions at runtime.
         DAI_ManagedResourcePackPreferences.reconcileSavedSelection();
         DAI_ManagedResourcePackPreferences.reconcileLiveSelection();
         DAI_CompanionResourcePackPreferences.reconcileSavedSelectionEarly();
@@ -96,7 +97,7 @@ public final class DAI_ManagedResourcePackBootstrap {
                 );
 
                 PackSelectionConfig selection = new PackSelectionConfig(
-                        true,
+                        false,
                         Pack.Position.TOP,
                         true
                 );
@@ -109,7 +110,7 @@ public final class DAI_ManagedResourcePackBootstrap {
 
         if (count[0] > 0) {
             DAI_Core.LOGGER.info(
-                    "<DAI>: Auto-enabled {} D.A.I.-managed resource pack(s).",
+                    "<DAI>: Registered {} D.A.I.-managed resource pack(s).",
                     count[0]
             );
         }

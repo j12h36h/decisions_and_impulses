@@ -9,17 +9,12 @@ import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.util.Map;
 
+/** Loads replaceable logical event definitions from datapack reaction_events JSON resources. */
 public final class DAI_ReactionEventLoader
         extends SimpleJsonResourceReloadListener<DAI_ReactionEventDefinition> {
 
     public DAI_ReactionEventLoader() {
-
-        super(
-                DAI_ReactionEventDefinition.CODEC,
-                FileToIdConverter.json(
-                        "reaction_events"
-                )
-        );
+        super(DAI_ReactionEventDefinition.CODEC, FileToIdConverter.json("reaction_events"));
     }
 
     @Override
@@ -28,41 +23,15 @@ public final class DAI_ReactionEventLoader
             ResourceManager resourceManager,
             ProfilerFiller profiler
     ) {
+        DAI_ReactionEventRegistry.resetToFallbacks();
 
-        DAI_ReactionEventRegistry.clearCustom();
-
-        definitions.forEach(
-                (sourceId, definition) -> {
-
-                    String eventId =
-                            definition.id().isBlank()
-                                    ? sourceId.toString()
-                                    : definition.id();
-
-                    if (
-                            DAI_ReactionEventRegistry.isBuiltIn(
-                                    eventId
-                            )
-                    ) {
-
-                        DAI_Core.LOGGER.warn(
-                                "<DAI>: Ignoring datapack reaction event '{}' because it is a built-in event.",
-                                eventId
-                        );
-
-                        return;
-                    }
-
-                    DAI_ReactionEventRegistry.register(
-                            definition.withId(
-                                    eventId
-                            )
-                    );
-                }
-        );
+        definitions.forEach((sourceId, definition) -> {
+            String eventId = definition.id().isBlank() ? sourceId.toString() : definition.id();
+            DAI_ReactionEventRegistry.register(definition.withId(eventId));
+        });
 
         DAI_Core.LOGGER.info(
-                "<DAI>: Loaded {} datapack reaction event definition(s).",
+                "<DAI>: Loaded {} datapack reaction event definition(s); engine hooks remain replaceable fallbacks.",
                 definitions.size()
         );
     }

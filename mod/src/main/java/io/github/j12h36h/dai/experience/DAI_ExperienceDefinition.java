@@ -3,6 +3,10 @@ package io.github.j12h36h.dai.experience;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
 /** JSON-backed launch profile for a complete DAI-authored game experience. */
 public record DAI_ExperienceDefinition(
         String id,
@@ -18,6 +22,8 @@ public record DAI_ExperienceDefinition(
         String onJoin,
         Ui ui,
         Controls controls,
+        AddonPolicy addons,
+        PlayerPresentation playerPresentation,
         Branding branding
 ) {
     public DAI_ExperienceDefinition {
@@ -29,12 +35,17 @@ public record DAI_ExperienceDefinition(
         onJoin = normalize(onJoin);
         ui = ui == null ? Ui.DEFAULT : ui;
         controls = controls == null ? Controls.DEFAULT : controls;
+        addons = addons == null ? AddonPolicy.DEFAULT : addons;
+        playerPresentation = playerPresentation == null ? PlayerPresentation.DEFAULT : playerPresentation;
         branding = branding == null ? Branding.DEFAULT : branding;
     }
 
     public static DAI_ExperienceDefinition parse(String id, JsonObject root) {
         JsonObject ui = object(root, "ui");
         JsonObject controls = object(root, "controls");
+        JsonObject addons = object(root, "addons");
+        if (addons == null) addons = object(root, "addon_policy");
+        JsonObject playerPresentation = object(root, "player_presentation");
         JsonObject branding = object(root, "branding");
         JsonObject earlyLoading = object(branding, "early_loading");
         JsonObject worldLoading = object(branding, "world_loading");
@@ -67,6 +78,18 @@ public record DAI_ExperienceDefinition(
                         bool(controls, "automation_world_editing", true),
                         integer(controls, "max_actions_per_second", 0),
                         integer(controls, "max_action_queue_size", 0)
+                ),
+                new AddonPolicy(
+                        bool(addons, "enabled", true),
+                        stringSet(addons, "whitelist")
+                ),
+                new PlayerPresentation(
+                        bool(playerPresentation, "enabled", playerPresentation != null),
+                        string(playerPresentation, "default", string(playerPresentation, "profile", "")),
+                        string(playerPresentation, "local", string(playerPresentation, "local_profile", "")),
+                        bool(playerPresentation, "allow_player_selection", false),
+                        stringMap(object(playerPresentation, "players")),
+                        stringMap(object(playerPresentation, "teams"))
                 ),
                 new Branding(
                         string(branding, "window_title", ""),
@@ -175,6 +198,84 @@ public record DAI_ExperienceDefinition(
 
 
     /**
+     * Experience-owned ADDON layering policy.
+     *
+     * enabled=false disables every DAI ADDON for this experience. When the
+     * whitelist is empty, enabled=true permits all globally installed ADDONs
+     * (legacy behavior). A non-empty whitelist permits only matching stable
+     * addon ids. Stable ids deliberately exclude versions, so an experience
+     * can allow "echo_time" once and continue accepting later releases.
+     */
+    public record AddonPolicy(
+            boolean enabled,
+            java.util.Set<String> whitelist
+    ) {
+        public static final AddonPolicy DEFAULT = new AddonPolicy(true, java.util.Set.of());
+
+        public AddonPolicy {
+            if (whitelist == null || whitelist.isEmpty()) {
+                whitelist = java.util.Set.of();
+            } else {
+                java.util.LinkedHashSet<String> normalized = new java.util.LinkedHashSet<>();
+                for (String value : whitelist) {
+                    String key = normalizeAddonId(value);
+                    if (!key.isBlank()) normalized.add(key);
+                }
+                whitelist = java.util.Set.copyOf(normalized);
+            }
+        }
+
+        public boolean allowsAll() {
+            return enabled && whitelist.isEmpty();
+        }
+
+        public boolean allows(String addonId) {
+            if (!enabled) return false;
+            if (whitelist.isEmpty()) return true;
+            String normalized = normalizeAddonId(addonId);
+            return !normalized.isBlank() && whitelist.contains(normalized);
+        }
+    }
+
+
+
+    /**
+     * Experience-owned player visual policy. Profiles themselves live in the
+     * resource pack under assets/<namespace>/dai/player_presentations/*.json.
+     * UUID and scoreboard-team mappings make individual/team operator models
+     * possible without replacing the underlying Minecraft Player entity.
+     */
+    public record PlayerPresentation(
+            boolean enabled,
+            String defaultProfile,
+            String localProfile,
+            boolean allowPlayerSelection,
+            Map<String, String> players,
+            Map<String, String> teams
+    ) {
+        public static final PlayerPresentation DEFAULT = new PlayerPresentation(
+                false, "", "", false, Map.of(), Map.of()
+        );
+
+        public PlayerPresentation {
+            defaultProfile = normalize(defaultProfile);
+            localProfile = normalize(localProfile);
+            players = normalizeMap(players);
+            teams = normalizeMap(teams);
+        }
+
+        private static Map<String, String> normalizeMap(Map<String, String> input) {
+            if (input == null || input.isEmpty()) return Map.of();
+            LinkedHashMap<String, String> out = new LinkedHashMap<>();
+            input.forEach((key, value) -> {
+                if (key == null || key.isBlank() || value == null || value.isBlank()) return;
+                out.put(key.trim().toLowerCase(Locale.ROOT), normalize(value));
+            });
+            return Map.copyOf(out);
+        }
+    }
+
+    /**
      * Optional application/startup branding for a MAIN experience.
      *
      * The resource-pack icon path intentionally defaults to the companion
@@ -281,6 +382,39 @@ public record DAI_ExperienceDefinition(
         if (root == null) return null;
         JsonElement value = root.get(key);
         return value != null && value.isJsonObject() ? value.getAsJsonObject() : null;
+    }
+
+
+    private static java.util.Set<String> stringSet(JsonObject root, String key) {
+        if (root == null || !root.has(key) || !root.get(key).isJsonArray()) return java.util.Set.of();
+        java.util.LinkedHashSet<String> result = new java.util.LinkedHashSet<>();
+        for (JsonElement element : root.getAsJsonArray(key)) {
+            try {
+                String value = normalizeAddonId(element.getAsString());
+                if (!value.isBlank()) result.add(value);
+            } catch (Exception ignored) { }
+        }
+        return java.util.Set.copyOf(result);
+    }
+
+    private static String normalizeAddonId(String value) {
+        if (value == null) return "";
+        String normalized = value.trim().toLowerCase(Locale.ROOT).replace('\\', '/');
+        if (normalized.startsWith("explicit:")) normalized = normalized.substring("explicit:".length());
+        if (normalized.startsWith("namespace:")) normalized = normalized.substring("namespace:".length());
+        return normalized.replaceAll("\\s+", "_");
+    }
+
+    private static Map<String, String> stringMap(JsonObject root) {
+        if (root == null || root.entrySet().isEmpty()) return Map.of();
+        LinkedHashMap<String, String> result = new LinkedHashMap<>();
+        for (var entry : root.entrySet()) {
+            try {
+                String value = entry.getValue().getAsString();
+                if (value != null && !value.isBlank()) result.put(entry.getKey(), value);
+            } catch (RuntimeException ignored) { }
+        }
+        return result;
     }
 
     private static String string(JsonObject root, String key, String fallback) {

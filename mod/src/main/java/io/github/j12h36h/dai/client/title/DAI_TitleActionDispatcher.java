@@ -1,8 +1,14 @@
 package io.github.j12h36h.dai.client.title;
 
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
+import io.github.j12h36h.dai.client.play.DAI_PlayScreen;
+import io.github.j12h36h.dai.client.creator.DAI_CreatorScreen;
+import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.packs.DAI_PackBrowserScreen;
+import io.github.j12h36h.dai.client.settings.DAI_SettingsScreen;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -42,9 +48,40 @@ public final class DAI_TitleActionDispatcher {
                     parent,
                     "net.neoforged.neoforge.client.gui.ModListScreen"
             );
-            case "open_official_packs" -> minecraft.gui.setScreen(
-                    new DAI_PackBrowserScreen(parent)
+            case "open_dai_play", "play" -> openShellStage(
+                    DAI_ShellScreenRouter.PLAY,
+                    parent,
+                    () -> new DAI_PlayScreen(parent),
+                    "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
             );
+            case "open_official_packs", "open_dai_worlds" -> openShellStage(
+                    DAI_ShellScreenRouter.WORLDS,
+                    parent,
+                    () -> new DAI_PackBrowserScreen(parent),
+                    "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
+            );
+            case "open_dai_library" -> openShellStage(
+                    DAI_ShellScreenRouter.LIBRARY,
+                    parent,
+                    () -> DAI_PackBrowserScreen.library(parent),
+                    "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
+            );
+            case "open_dai_settings" -> openShellStage(
+                    DAI_ShellScreenRouter.SETTINGS,
+                    parent,
+                    () -> new DAI_SettingsScreen(parent),
+                    "net.minecraft.client.gui.screens.options.OptionsScreen"
+            );
+            case "open_dai_creator", "open_creator" -> {
+                if (DAI_ClientConfig.creatorEnabled()) {
+                    openShellStage(
+                            DAI_ShellScreenRouter.CREATOR,
+                            parent,
+                            DAI_CreatorScreen::new,
+                            "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
+                    );
+                }
+            }
             case "launch_experience" -> DAI_ExperienceLauncher.launch(
                     parent,
                     definition.experience()
@@ -60,8 +97,14 @@ public final class DAI_TitleActionDispatcher {
             );
             case "open_url" -> openExternal(definition.url());
             case "reload_title_json" -> {
+                DAI_ShellPresentationRepository.reload();
                 DAI_TitleScreenDefinition refreshed = DAI_TitleScreenRepository.reload();
-                minecraft.gui.setScreen(new DAI_TitleScreen(refreshed));
+                minecraft.gui.setScreen(DAI_ShellScreenRouter.resolve(
+                        DAI_ShellScreenRouter.TITLE,
+                        parent,
+                        () -> new DAI_TitleScreen(refreshed),
+                        net.minecraft.client.gui.screens.TitleScreen::new
+                ));
             }
             case "quit" -> {
                 DAI_Core.LOGGER.info(
@@ -76,6 +119,20 @@ public final class DAI_TitleActionDispatcher {
                 if (action != null && !action.isBlank()) DAI_ActionQueue.enqueueDeferredReference(action.trim());
             }
         }
+    }
+
+
+    private static void openShellStage(
+            String stage,
+            Screen parent,
+            java.util.function.Supplier<Screen> defaultFactory,
+            String vanillaClass
+    ) {
+        if (DAI_ShellScreenRouter.vanilla(stage)) {
+            openReflective(parent, vanillaClass);
+            return;
+        }
+        DAI_ShellScreenRouter.open(stage, parent, defaultFactory, () -> parent);
     }
 
     public static void openExternal(String value) {
@@ -104,7 +161,7 @@ public final class DAI_TitleActionDispatcher {
         }
     }
 
-    private static void openReflective(Screen parent, String className) {
+    public static void openReflective(Screen parent, String className) {
         Minecraft minecraft = Minecraft.getInstance();
 
         try {

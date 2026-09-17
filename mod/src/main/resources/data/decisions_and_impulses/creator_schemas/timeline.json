@@ -3,28 +3,51 @@
   "folder": "dai_timelines",
   "rail": "experience",
   "category": "PRESENTATION",
-  "description": "Sequence actions, events and presentation over time.",
+  "description": "Sequence environment/presentation behavior over a world clock using time markers and visual tracks.",
   "priority": 74,
   "fields": [
     {
-      "path": "duration",
-      "label": "Duration",
-      "type": "number",
-      "default": "200",
+      "path": "clock",
+      "label": "Clock",
+      "type": "text",
+      "default": "minecraft:overworld",
       "level": 0
     },
     {
-      "path": "loop",
-      "label": "Loop",
-      "type": "boolean",
-      "default": "false",
-      "level": 1
+      "path": "period_ticks",
+      "label": "Period Ticks",
+      "type": "number",
+      "default": "24000",
+      "level": 0
+    },
+    {
+      "path": "time_markers",
+      "label": "Time Markers",
+      "type": "json",
+      "default": "{}",
+      "level": 0
+    },
+    {
+      "path": "tracks",
+      "label": "Visual Tracks",
+      "type": "json",
+      "default": "{}",
+      "level": 0
+    },
+    {
+      "path": "raw",
+      "label": "Raw Vanilla Timeline",
+      "type": "json",
+      "default": "{}",
+      "level": 2
     }
   ],
   "template": {
-    "duration": 200,
-    "loop": false,
-    "entries": []
+    "clock": "minecraft:overworld",
+    "period_ticks": 24000,
+    "time_markers": {},
+    "tracks": {},
+    "raw": {}
   },
   "variations": [],
   "preview": {

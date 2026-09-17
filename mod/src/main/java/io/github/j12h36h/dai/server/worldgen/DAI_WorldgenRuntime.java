@@ -12,6 +12,9 @@ import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_DatapackRole;
 import io.github.j12h36h.dai.packs.DAI_DatapackSync;
+import io.github.j12h36h.dai.packs.DAI_WorldAddonSelection;
+import io.github.j12h36h.dai.runtime.DAI_ShellSessionState;
+import io.github.j12h36h.dai.runtime.DAI_StandaloneLaunchState;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -29,7 +32,9 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -39,6 +44,10 @@ public final class DAI_WorldgenRuntime {
     private static volatile boolean firstStartScheduled;
     private static volatile Path currentWorldRoot;
     private static volatile DAI_ExperienceDefinition currentExperience;
+    private static volatile DAI_ExperienceLaunchState.Pending currentPendingLaunch;
+    private static volatile boolean packBootstrapPending;
+    private static volatile UUID firstStartPlayer;
+    private static volatile CompletableFuture<?> currentPackBootstrap = CompletableFuture.completedFuture(null);
 
     private DAI_WorldgenRuntime() {}
 
@@ -52,50 +61,109 @@ public final class DAI_WorldgenRuntime {
         Path root = server.getWorldPath(LevelResource.ROOT);
         DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
 
-        if (pending == null) {
-            // Global ADDON packs are useful outside a MAIN experience too.
-            // Standalone worlds therefore receive the same globally installed
-            // addon library, but without applying MAIN exclusivity or touching
-            // any datapack the world already selected itself.
-            installStandaloneAddonStack(server, root);
+        // The reserved shell is DAI Engine infrastructure. Never mutate its
+        // datapack stack, and never leave a deferred bootstrap armed for it.
+        if (pending == null && DAI_ShellSessionState.consumeForWorld(root)) {
+            currentWorldRoot = null;
+            currentExperience = null;
+            currentPendingLaunch = null;
+            firstStartScheduled = false;
+            packBootstrapPending = false;
+            firstStartPlayer = null;
+            currentPackBootstrap = CompletableFuture.completedFuture(null);
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Reserved shell world detected; skipping standalone ADDON synchronization and experience bootstrap."
+            );
             return;
         }
 
-        DAI_ExperienceDefinition experience = pending.definition();
         currentWorldRoot = root;
-        currentExperience = experience;
+        currentPendingLaunch = pending;
+        currentExperience = pending == null ? null : pending.definition();
         firstStartScheduled = false;
+        packBootstrapPending = true;
+        firstStartPlayer = null;
+        currentPackBootstrap = CompletableFuture.completedFuture(null);
 
-        // A launched DAI save owns exactly one MAIN experience datapack but may
-        // layer any number of ADDON datapacks from DAI's global library. Copy /
-        // update the full stack first, then perform one combined server reload.
-        CompletableFuture<?> packReload = installExperienceStack(server, root, pending.sourcePack());
-        DAI_ExperienceLaunchState.setPackReloadFuture(packReload);
-
-        writeMarker(root, experience, !pending.firstJoin(), !pending.firstJoin());
+        /*
+         * IMPORTANT: do not reload datapacks from ServerStartedEvent. On an
+         * integrated server the local client can already be inside its
+         * configuration/login protocol while this event fires. Reloading the
+         * selected pack set here can invalidate the registry snapshot being
+         * sent to the client and surface as "Network Protocol Error" around
+         * the late world-loading percentages. The exact same pack bootstrap is
+         * now performed from PlayerLoggedInEvent, after the connection is fully
+         * established, where Minecraft's normal live reload path is safe.
+         */
+        if (pending != null) {
+            writeMarker(root, pending.definition(), !pending.firstJoin(), !pending.firstJoin());
+        }
     }
 
     private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
-        if (pending == null || !pending.firstJoin() || firstStartScheduled) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-
         MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
-        firstStartScheduled = true;
+        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+        if (pending == null) pending = currentPendingLaunch;
+        DAI_ExperienceLaunchState.Pending launch = pending;
 
-        DAI_ExperienceLaunchState.packReloadFuture().whenComplete((ignored, reloadError) ->
-                server.execute(() -> {
+        /*
+         * Queue the reload after PlayerLoggedInEvent returns. This lets the
+         * integrated client's initial login/configuration packet sequence
+         * finish before any PackRepository change begins. A gate is published
+         * immediately so client-side experience activation cannot outrun it.
+         */
+        CompletableFuture<Void> loginSafeGate = new CompletableFuture<>();
+        if (launch != null) DAI_ExperienceLaunchState.setPackReloadFuture(loginSafeGate);
+
+        boolean runFirstStart = launch != null && launch.firstJoin() && !firstStartScheduled;
+        if (runFirstStart) {
+            firstStartScheduled = true;
+            firstStartPlayer = player.getUUID();
+        }
+
+        server.execute(() -> {
+            CompletableFuture<?> packReload = beginDeferredPackBootstrap(server, launch);
+            packReload.whenComplete((ignored, reloadError) -> server.execute(() -> {
+                if (reloadError == null) loginSafeGate.complete(null);
+                else loginSafeGate.completeExceptionally(reloadError);
+
+                if (runFirstStart) {
                     if (reloadError != null) {
                         DAI_Core.LOGGER.warn(
                                 "<DAI>: Experience datapack reload failed before first-start world bootstrap; continuing with safe world setup.",
                                 reloadError
                         );
                     }
-                    applyFirstStart(server, player, pending);
-                })
-        );
+                    applyFirstStart(server, player, launch);
+                }
+            }));
+        });
+    }
+
+    private static synchronized CompletableFuture<?> beginDeferredPackBootstrap(
+            MinecraftServer server,
+            DAI_ExperienceLaunchState.Pending pending
+    ) {
+        if (!packBootstrapPending) return currentPackBootstrap;
+        packBootstrapPending = false;
+
+        Path root = currentWorldRoot != null
+                ? currentWorldRoot
+                : server.getWorldPath(LevelResource.ROOT);
+        try {
+            currentPackBootstrap = pending == null
+                    ? installStandaloneAddonStack(server, root)
+                    : installExperienceStack(server, root, pending.sourcePack());
+        } catch (Throwable exception) {
+            DAI_Core.LOGGER.error("<DAI>: Deferred world datapack bootstrap failed.", exception);
+            CompletableFuture<Void> failed = new CompletableFuture<>();
+            failed.completeExceptionally(exception);
+            currentPackBootstrap = failed;
+        }
+        return currentPackBootstrap;
     }
 
     private static void applyFirstStart(
@@ -185,59 +253,50 @@ public final class DAI_WorldgenRuntime {
             Path datapacks = worldRoot.resolve("datapacks");
             Files.createDirectories(datapacks);
 
-            // Preserve the world owner's existing selection across filename-
-            // version updates. Example: ACMS_v0.5.2.zip in the save becomes
-            // ACMS_v0.5.3.zip from the global library without requiring the
-            // player to revisit the datapack screen.
             Set<String> selectedBefore = selectedWorldPackFilenames(server, datapacks);
-            DAI_DatapackSync.SyncResult sync =
-                    DAI_DatapackSync.reconcileExistingWorldPacks(datapacks);
-            List<Path> preservedSelections = selectedReplacementTargets(
-                    sync,
-                    selectedBefore,
-                    null
-            );
+            DAI_DatapackSync.SyncResult sync = DAI_DatapackSync.reconcileExistingWorldPacks(datapacks);
+            List<Path> preservedSelections = selectedReplacementTargets(sync, selectedBefore, null);
             Set<String> staleNames = replacedOldFileNames(sync);
             boolean forceReload = intersects(selectedBefore, sync.changedFileNames());
 
+            DAI_StandaloneLaunchState.Selection explicitSelection = DAI_StandaloneLaunchState.consume();
+            Optional<DAI_WorldAddonSelection.Selection> persisted = DAI_WorldAddonSelection.read(worldRoot);
+
+            // A one-shot creation selection becomes the world's persistent,
+            // version-independent selection as soon as the new server joins.
+            if (explicitSelection != null) {
+                LinkedHashSet<String> stableIds = new LinkedHashSet<>();
+                for (Path addon : DAI_DatapackMetadata.globalAddons()) {
+                    if (addon == null || addon.getFileName() == null) continue;
+                    if (!explicitSelection.includes(addon.getFileName().toString())) continue;
+                    String stableId = DAI_WorldAddonSelection.normalize(DAI_DatapackMetadata.stableId(addon));
+                    if (!stableId.isBlank()) stableIds.add(stableId);
+                }
+                DAI_WorldAddonSelection.write(worldRoot, stableIds);
+                persisted = Optional.of(new DAI_WorldAddonSelection.Selection(Set.copyOf(stableIds)));
+            }
+
+            DAI_WorldAddonSelection.Selection exactSelection = persisted.orElse(null);
+            boolean useConfiguredAutomaticSet = exactSelection == null && DAI_Config.autoEnableAddons();
             List<Path> installedAddons = new ArrayList<>();
-            if (DAI_Config.autoEnableAddons()) {
+
+            if (exactSelection != null || useConfiguredAutomaticSet) {
                 for (Path addon : DAI_DatapackMetadata.globalAddons()) {
                     if (addon == null || !Files.exists(addon)) continue;
-
+                    if (exactSelection != null && !exactSelection.includes(addon)) continue;
                     Path target = installPackFile(datapacks, addon, "standalone addon");
-                    if (target != null && !installedAddons.contains(target)) {
-                        installedAddons.add(target);
-                    }
+                    if (target != null && !installedAddons.contains(target)) installedAddons.add(target);
                 }
-            } else {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Automatic ADDON datapack inclusion is disabled; existing managed-pack version synchronization remains active."
-                );
-            }
-
-            if (installedAddons.isEmpty() && preservedSelections.isEmpty() && !forceReload) {
-                DAI_Core.LOGGER.debug(
-                        "<DAI>: No global DAI datapack changes were required for standalone world '{}'.",
-                        worldRoot.getFileName()
-                );
-                return CompletableFuture.completedFuture(null);
-            }
-
-            if (!installedAddons.isEmpty()) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Prepared {} standalone DAI ADDON datapack(s) for world '{}'.",
-                        installedAddons.size(),
-                        worldRoot.getFileName()
-                );
             }
 
             return enableStandaloneAddons(
                     server,
+                    worldRoot,
                     installedAddons,
                     preservedSelections,
                     staleNames,
-                    forceReload
+                    forceReload,
+                    exactSelection
             );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
@@ -251,17 +310,14 @@ public final class DAI_WorldgenRuntime {
         }
     }
 
-    /**
-     * Enables global ADDONs plus any selected pack whose versioned filename
-     * was replaced by the global synchronization pass. Unrelated selections
-     * remain untouched.
-     */
     private static CompletableFuture<?> enableStandaloneAddons(
             MinecraftServer server,
+            Path worldRoot,
             List<Path> addons,
             List<Path> preservedSelections,
             Set<String> staleFileNames,
-            boolean forceReload
+            boolean forceReload,
+            DAI_WorldAddonSelection.Selection exactSelection
     ) {
         try {
             Object repository = invokeNoArg(server, "getPackRepository");
@@ -278,30 +334,45 @@ public final class DAI_WorldgenRuntime {
                 requested.removeIf(id -> matchesAnyFilename(id, staleFileNames));
             }
 
+            // An explicit per-world marker is authoritative. Deselect DAI
+            // ADDONs not present in it, but never touch ordinary datapacks.
+            if (exactSelection != null) {
+                Path worldDatapacks = worldRoot.resolve("datapacks");
+                if (Files.isDirectory(worldDatapacks)) {
+                    try (Stream<Path> entries = Files.list(worldDatapacks)) {
+                        for (Path pack : entries.sorted().toList()) {
+                            if (DAI_DatapackMetadata.role(pack) != DAI_DatapackRole.ADDON) continue;
+                            if (exactSelection.includes(pack)) continue;
+                            String id = findPackIdByFilename(available, pack.getFileName().toString());
+                            if (id != null && requested.remove(id)) {
+                                DAI_Core.LOGGER.info(
+                                        "<DAI>: Disabled world ADDON '{}' because it is not selected for this save.",
+                                        id
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
             for (Path replacement : preservedSelections) {
                 if (replacement == null) continue;
+                if (exactSelection != null && DAI_DatapackMetadata.role(replacement) == DAI_DatapackRole.ADDON
+                        && !exactSelection.includes(replacement)) continue;
                 String packId = findPackIdByFilename(available, replacement.getFileName().toString());
-                if (packId == null) {
-                    throw new IllegalStateException(
-                            "Synchronized datapack was not exposed by PackRepository: "
-                                    + replacement.getFileName()
-                    );
-                }
+                if (packId == null) continue;
                 requested.add(packId);
             }
 
             int enabledAddons = 0;
             for (Path addon : addons) {
                 if (addon == null) continue;
-
                 String packId = findPackIdByFilename(available, addon.getFileName().toString());
                 if (packId == null) {
                     throw new IllegalStateException(
-                            "Installed standalone addon was not exposed by PackRepository: "
-                                    + addon.getFileName()
+                            "Installed standalone addon was not exposed by PackRepository: " + addon.getFileName()
                     );
                 }
-
                 if (requested.add(packId)) enabledAddons++;
             }
 
@@ -318,31 +389,19 @@ public final class DAI_WorldgenRuntime {
                 future.whenComplete((ignored, error) -> {
                     if (error == null) {
                         DAI_Core.LOGGER.info(
-                                "<DAI>: Reloaded standalone DAI datapacks ({} newly enabled addon(s), {} preserved replacement selection(s)).",
-                                addonTotal,
-                                preservedSelections.size()
+                                "<DAI>: Reloaded standalone DAI datapacks after player join ({} newly enabled addon(s)).",
+                                addonTotal
                         );
                     } else {
-                        DAI_Core.LOGGER.error(
-                                "<DAI>: Standalone DAI datapack reload failed.",
-                                error
-                        );
+                        DAI_Core.LOGGER.error("<DAI>: Standalone DAI datapack reload failed.", error);
                     }
                 });
                 return future;
             }
 
-            DAI_Core.LOGGER.info(
-                    "<DAI>: Reloaded standalone DAI datapacks ({} newly enabled addon(s), {} preserved replacement selection(s)).",
-                    enabledAddons,
-                    preservedSelections.size()
-            );
             return CompletableFuture.completedFuture(null);
         } catch (Throwable exception) {
-            DAI_Core.LOGGER.error(
-                    "<DAI>: Could not enable standalone DAI datapacks.",
-                    exception
-            );
+            DAI_Core.LOGGER.error("<DAI>: Could not enable standalone DAI datapacks.", exception);
             CompletableFuture<Void> failed = new CompletableFuture<>();
             failed.completeExceptionally(exception);
             return failed;
@@ -370,11 +429,21 @@ public final class DAI_WorldgenRuntime {
             List<Path> installedTargets = new ArrayList<>();
             // Preserve selected ADDONs whose versioned filename was replaced.
             // MAIN ownership is handled separately by the one-main rule below.
-            installedTargets.addAll(selectedReplacementTargets(
+            DAI_ExperienceDefinition.AddonPolicy addonPolicy = currentExperience == null
+                    ? DAI_ExperienceDefinition.AddonPolicy.DEFAULT
+                    : currentExperience.addons();
+            DAI_WorldAddonSelection.Selection exactSelection =
+                    DAI_WorldAddonSelection.read(worldRoot).orElse(null);
+            for (Path replacement : selectedReplacementTargets(
                     sync,
                     selectedBefore,
                     DAI_DatapackRole.ADDON
-            ));
+            )) {
+                if (addonPolicyAllows(addonPolicy, replacement)
+                        && (exactSelection == null || exactSelection.includes(replacement))) {
+                    installedTargets.add(replacement);
+                }
+            }
 
             Path mainTarget = null;
 
@@ -394,15 +463,25 @@ public final class DAI_WorldgenRuntime {
             }
 
             int addonCount = 0;
-            if (DAI_Config.autoEnableAddons()) {
+            if ((exactSelection != null || DAI_Config.autoEnableAddons()) && addonPolicy.enabled()) {
                 for (Path addon : DAI_DatapackMetadata.globalAddons()) {
                     if (addon == null || !Files.exists(addon)) continue;
+                    if (exactSelection != null && !exactSelection.includes(addon)) continue;
 
                     Path normalizedAddon = addon.toAbsolutePath().normalize();
                     Path normalizedMain = sourceMainPack == null
                             ? null
                             : sourceMainPack.toAbsolutePath().normalize();
                     if (normalizedMain != null && normalizedMain.equals(normalizedAddon)) continue;
+                    if (!addonPolicyAllows(addonPolicy, addon)) {
+                        DAI_Core.LOGGER.debug(
+                                "<DAI>: Experience '{}' rejected ADDON '{}' (stable id='{}').",
+                                currentExperience == null ? "<unknown>" : currentExperience.id(),
+                                addon.getFileName(),
+                                DAI_DatapackMetadata.stableId(addon)
+                        );
+                        continue;
+                    }
 
                     Path target = installPackFile(datapacks, addon, "addon");
                     if (target != null) {
@@ -410,9 +489,14 @@ public final class DAI_WorldgenRuntime {
                         addonCount++;
                     }
                 }
+            } else if (!addonPolicy.enabled()) {
+                DAI_Core.LOGGER.info(
+                        "<DAI>: Experience '{}' disables DAI ADDON layering.",
+                        currentExperience == null ? "<unknown>" : currentExperience.id()
+                );
             } else {
                 DAI_Core.LOGGER.info(
-                        "<DAI>: Automatic ADDON datapack inclusion is disabled by configuration; preparing the main experience only."
+                        "<DAI>: Automatic ADDON datapack inclusion is disabled by player configuration; preparing the main experience only."
                 );
             }
 
@@ -428,7 +512,9 @@ public final class DAI_WorldgenRuntime {
                     worldRoot,
                     mainTarget,
                     installedTargets,
-                    forceReload
+                    forceReload,
+                    addonPolicy,
+                    exactSelection
             );
         } catch (Exception exception) {
             DAI_Core.LOGGER.error(
@@ -543,7 +629,9 @@ public final class DAI_WorldgenRuntime {
             Path worldRoot,
             Path selectedMain,
             List<Path> prepared,
-            boolean forceReload
+            boolean forceReload,
+            DAI_ExperienceDefinition.AddonPolicy addonPolicy,
+            DAI_WorldAddonSelection.Selection exactSelection
     ) {
         try {
             Object repository = invokeNoArg(server, "getPackRepository");
@@ -561,24 +649,43 @@ public final class DAI_WorldgenRuntime {
                     : selectedMain.toAbsolutePath().normalize();
 
             // Enforce at most one DAI MAIN pack. Ordinary/non-DAI datapacks
-            // and every ADDON remain untouched by this exclusivity rule. A
-            // config-authored experience has no source MAIN pack, so in that
-            // case every installed DAI MAIN is deselected.
+            // remain untouched. DAI ADDONs are additionally filtered through
+            // the active experience policy; a disabled or non-whitelisted addon
+            // is deselected without deleting its files. A config-authored
+            // experience has no source MAIN pack, so every installed DAI MAIN
+            // is deselected in that case.
             Path worldDatapacks = worldRoot.resolve("datapacks");
             if (Files.isDirectory(worldDatapacks)) {
                 try (Stream<Path> entries = Files.list(worldDatapacks)) {
                     for (Path pack : entries.sorted().toList()) {
-                        if (DAI_DatapackMetadata.role(pack) != DAI_DatapackRole.MAIN) continue;
-                        Path normalized = pack.toAbsolutePath().normalize();
-                        if (selectedMainNormalized != null && normalized.equals(selectedMainNormalized)) continue;
+                        DAI_DatapackRole role = DAI_DatapackMetadata.role(pack);
+                        if (role == DAI_DatapackRole.MAIN) {
+                            Path normalized = pack.toAbsolutePath().normalize();
+                            if (selectedMainNormalized != null && normalized.equals(selectedMainNormalized)) continue;
 
-                        String id = findPackIdByFilename(available, pack.getFileName().toString());
-                        if (id != null && requested.remove(id)) {
-                            DAI_Core.LOGGER.info(
-                                    "<DAI>: Disabled alternate MAIN datapack '{}' while launching '{}'.",
-                                    id,
-                                    selectedMain == null ? "<config experience>" : selectedMain.getFileName()
-                            );
+                            String id = findPackIdByFilename(available, pack.getFileName().toString());
+                            if (id != null && requested.remove(id)) {
+                                DAI_Core.LOGGER.info(
+                                        "<DAI>: Disabled alternate MAIN datapack '{}' while launching '{}'.",
+                                        id,
+                                        selectedMain == null ? "<config experience>" : selectedMain.getFileName()
+                                );
+                            }
+                            continue;
+                        }
+
+                        if (role == DAI_DatapackRole.ADDON
+                                && (!addonPolicyAllows(addonPolicy, pack)
+                                || (exactSelection != null && !exactSelection.includes(pack)))) {
+                            String id = findPackIdByFilename(available, pack.getFileName().toString());
+                            if (id != null && requested.remove(id)) {
+                                DAI_Core.LOGGER.info(
+                                        "<DAI>: Disabled ADDON '{}' for experience '{}' (stable id='{}').",
+                                        id,
+                                        currentExperience == null ? "<unknown>" : currentExperience.id(),
+                                        DAI_DatapackMetadata.stableId(pack)
+                                );
+                            }
                         }
                     }
                 }
@@ -638,6 +745,18 @@ public final class DAI_WorldgenRuntime {
             failed.completeExceptionally(exception);
             return failed;
         }
+    }
+
+    private static boolean addonPolicyAllows(
+            DAI_ExperienceDefinition.AddonPolicy policy,
+            Path addon
+    ) {
+        DAI_ExperienceDefinition.AddonPolicy effective = policy == null
+                ? DAI_ExperienceDefinition.AddonPolicy.DEFAULT
+                : policy;
+        if (!effective.enabled()) return false;
+        if (effective.whitelist().isEmpty()) return true;
+        return effective.allows(DAI_DatapackMetadata.stableId(addon));
     }
 
     private static Set<String> selectedWorldPackFilenames(
@@ -805,22 +924,48 @@ public final class DAI_WorldgenRuntime {
      * and dispatched its startup action. Keeping this separate from worldgen
      * lets interrupted/restart-gated first launches repair themselves.
      */
-    public static void markFirstJoinDispatched(String experienceId) {
+    public static boolean markFirstJoinDispatched(ServerPlayer sender, String experienceId) {
         Path root = currentWorldRoot;
         DAI_ExperienceDefinition experience = currentExperience;
-        if (root == null || experience == null) return;
+        DAI_ExperienceLaunchState.Pending launch = currentPendingLaunch;
+        if (sender == null || root == null || experience == null || launch == null || !launch.firstJoin()) return false;
+
+        /*
+         * This acknowledgement is intentionally NOT a generic file-write
+         * capability. Only the exact player selected by the server as the
+         * first-start bootstrap actor may acknowledge the active experience,
+         * and only after server-side world bootstrap has completed. The file
+         * path and contents remain entirely server-derived.
+         */
+        if (firstStartPlayer == null || !firstStartPlayer.equals(sender.getUUID())) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Rejected first-join marker acknowledgement from non-bootstrap player '{}'.",
+                    sender.getUUID()
+            );
+            return false;
+        }
+        if (!DAI_ExperienceLaunchState.worldReady()) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Rejected early first-join marker acknowledgement from '{}'; world bootstrap is not complete.",
+                    sender.getUUID()
+            );
+            return false;
+        }
         if (experienceId != null && !experienceId.isBlank() && !experience.id().equals(experienceId.trim())) {
             DAI_Core.LOGGER.warn(
                     "<DAI>: Ignored first-join marker for '{}' while '{}' is active.",
                     experienceId, experience.id()
             );
-            return;
+            return false;
         }
+
         writeMarker(root, experience, true, true);
+        firstStartPlayer = null;
         DAI_Core.LOGGER.info(
-                "<DAI>: Marked experience '{}' first-join startup as dispatched.",
-                experience.id()
+                "<DAI>: Marked experience '{}' first-join startup as dispatched by authorized bootstrap player '{}'.",
+                experience.id(), sender.getUUID()
         );
+        return true;
     }
 
     private static void writeMarker(
@@ -843,11 +988,17 @@ public final class DAI_WorldgenRuntime {
             // repair themselves once instead of being permanently treated as
             // initialized.
             json.addProperty("handoff_version", 2);
+            Path temporary = target.resolveSibling(target.getFileName() + ".tmp");
             Files.writeString(
-                    target,
+                    temporary,
                     new GsonBuilder().setPrettyPrinting().create().toJson(json),
                     StandardCharsets.UTF_8
             );
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception ignored) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn("<DAI>: Could not write experience marker for '{}'.", experience.id(), exception);
         }

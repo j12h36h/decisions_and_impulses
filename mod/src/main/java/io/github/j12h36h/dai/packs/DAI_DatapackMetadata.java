@@ -68,6 +68,67 @@ public final class DAI_DatapackMetadata {
         return role(pack) == DAI_DatapackRole.ADDON;
     }
 
+
+    /**
+     * Stable public ADDON id used by experience whitelists. Versions are never
+     * part of this value. New packs should declare dai.id (or dai.pack_id) in
+     * pack.mcmeta. Legacy packs fall back to DAI's stable namespace identity.
+     */
+    public static String stableId(Path pack) {
+        if (pack == null || !Files.exists(pack)) return "";
+
+        try {
+            JsonObject root = readPackMeta(pack);
+            JsonObject dai = root != null && root.has("dai") && root.get("dai").isJsonObject()
+                    ? root.getAsJsonObject("dai")
+                    : null;
+            if (dai != null) {
+                String[] keys = {
+                        "addon_id", "addonId", "pack_id", "packId",
+                        "id", "identity", "project_id", "projectId"
+                };
+                for (String key : keys) {
+                    if (!dai.has(key) || !dai.get(key).isJsonPrimitive()) continue;
+                    String value = normalizeStableId(dai.get(key).getAsString());
+                    if (!value.isBlank()) return value;
+                }
+            }
+        } catch (Exception ignored) { }
+
+        String identity = DAI_DatapackSync.identity(pack);
+        if (identity.startsWith("explicit:")) identity = identity.substring("explicit:".length());
+        else if (identity.startsWith("namespace:")) identity = identity.substring("namespace:".length());
+        identity = normalizeStableId(identity);
+        if (!identity.isBlank()) return identity;
+
+        String fileName = pack.getFileName() == null ? "" : pack.getFileName().toString();
+        fileName = fileName.replaceFirst("(?i)\\.(zip|jar)$", "");
+        // Last-resort compatibility for old versioned filenames. This is only
+        // used when the pack provides neither DAI metadata nor an authored
+        // namespace identity.
+        fileName = fileName.replaceFirst(
+                "(?i)(?:[_\\-.])v?\\d+(?:\\.\\d+){1,4}(?=$|[_\\-.]).*$",
+                ""
+        );
+        return normalizeStableId(fileName);
+    }
+
+    public static boolean matchesStableId(Path pack, String requested) {
+        String actual = stableId(pack);
+        String expected = normalizeStableId(requested);
+        if (expected.startsWith("explicit:")) expected = expected.substring("explicit:".length());
+        if (expected.startsWith("namespace:")) expected = expected.substring("namespace:".length());
+        return !actual.isBlank() && actual.equals(expected);
+    }
+
+    private static String normalizeStableId(String value) {
+        if (value == null) return "";
+        return value.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace('\\', '/')
+                .replaceAll("\\s+", "_");
+    }
+
     /** All globally installed DAI addons, deterministically ordered. */
     public static List<Path> globalAddons() {
         Path root = DAI_GlobalDatapackLibrary.initialize();

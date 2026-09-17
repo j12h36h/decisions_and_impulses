@@ -21,5 +21,25 @@
     "automation_world_editing": true,
     "max_actions_per_second": 10,
     "max_action_queue_size": 128
+  },
+  "addons": {
+    "enabled": true,
+    "whitelist": [
+      "example:weather_addon",
+      "example:combat_fx"
+    ]
+  },
+  "player_presentation": {
+    "enabled": true,
+    "default": "example:operator",
+    "local_profile": "example:operator_local",
+    "allow_player_selection": false,
+    "teams": {
+      "red": "example:operator_red",
+      "blue": "example:operator_blue"
+    },
+    "players": {
+      "00000000-0000-0000-0000-000000000000": "example:operator_special"
+    }
   }
 }

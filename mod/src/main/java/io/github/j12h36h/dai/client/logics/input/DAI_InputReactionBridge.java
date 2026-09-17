@@ -35,7 +35,7 @@ public final class DAI_InputReactionBridge {
         }
 
         DAI_ReactionDispatchSession session =
-                DAI_ReactionDispatcher.begin(
+                DAI_ReactionDispatcher.beginHook(
                         DAI_ReactionEventRegistry.PLAYER_INPUT_TICK,
                         null,
                         null,

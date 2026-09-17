@@ -12,6 +12,8 @@ import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.reactions.DAI_ReactionEventLoader;
 import io.github.j12h36h.dai.reactions.DAI_ReactionLoader;
 import io.github.j12h36h.dai.state.DAI_StateLoader;
+import io.github.j12h36h.dai.sync.DAI_ClientDatapackSyncLoader;
+import io.github.j12h36h.dai.sync.DAI_ClientDatapackSyncRepository;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -98,6 +100,19 @@ public final class DAI_ServerDataBootstrap {
                 new DAI_ReactionLoader()
         );
 
+        // Raw client-visible JSON snapshots. These are side-neutral loaders so
+        // a dedicated server can distribute its datapack-authored UI/events
+        // without loading any net.minecraft.client classes.
+        registerClientSync(event, "sync_objectives", DAI_ClientDatapackSyncRepository.OBJECTIVES, "objectives/definitions");
+        registerClientSync(event, "sync_logics", DAI_ClientDatapackSyncRepository.LOGICS, "logics/definitions");
+        registerClientSync(event, "sync_reaction_events", DAI_ClientDatapackSyncRepository.REACTION_EVENTS, "reaction_events");
+        registerClientSync(event, "sync_reactions", DAI_ClientDatapackSyncRepository.REACTIONS, "reactions");
+        registerClientSync(event, "sync_data_screens", DAI_ClientDatapackSyncRepository.DATA_SCREENS, "dai_screens");
+        registerClientSync(event, "sync_screen_overrides", DAI_ClientDatapackSyncRepository.SCREEN_OVERRIDES, "screen_overrides");
+        registerClientSync(event, "sync_scenes", DAI_ClientDatapackSyncRepository.SCENES, "scene_environments");
+        registerClientSync(event, "sync_shell_presentations", DAI_ClientDatapackSyncRepository.SHELL_PRESENTATIONS, "dai_shell_presentations");
+        registerClientSync(event, "sync_title_screens", DAI_ClientDatapackSyncRepository.TITLE_SCREENS, "dai_title_screens");
+
         // Registry compatibility is authoritative server state and must be
         // evaluated even on a headless dedicated server.
         event.addListener(
@@ -107,6 +122,18 @@ public final class DAI_ServerDataBootstrap {
 
         DAI_Core.LOGGER.info(
                 "<DAI>: Server datapack reload listeners registered."
+        );
+    }
+
+    private static void registerClientSync(
+            AddServerReloadListenersEvent event,
+            String listenerId,
+            String kind,
+            String folder
+    ) {
+        event.addListener(
+                Identifier.fromNamespaceAndPath(DAI_Core.MODID, listenerId),
+                new DAI_ClientDatapackSyncLoader(kind, folder)
         );
     }
 }

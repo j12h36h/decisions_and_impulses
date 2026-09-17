@@ -4,7 +4,7 @@
   "folder": "scene_environments",
   "rail": "experience",
   "category": "PRESENTATION",
-  "description": "Animated screen/story environment with data-defined camera and layered scene elements.",
+  "description": "Full animated presentation environment: background, overlay, camera path/motion, 2D/3D scene elements, items, blocks, text, sprites and voxel structures.",
   "priority": 110,
   "fields": [
     {
@@ -15,84 +15,654 @@
       "level": 0
     },
     {
+      "path": "priority",
+      "label": "Priority",
+      "type": "number",
+      "default": "0",
+      "level": 2
+    },
+    {
       "path": "background.type",
       "label": "Background Type",
       "type": "text",
       "default": "gradient",
-      "level": 0
+      "level": 0,
+      "options": [
+        "gradient",
+        "solid",
+        "texture",
+        "transparent"
+      ]
+    },
+    {
+      "path": "background.color",
+      "label": "Solid Color",
+      "type": "color",
+      "default": "#17101f",
+      "level": 0,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
     },
     {
       "path": "background.top",
-      "label": "Top Color",
+      "label": "Gradient Top",
       "type": "color",
       "default": "#17101f",
-      "level": 0
+      "level": 0,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
     },
     {
       "path": "background.bottom",
-      "label": "Bottom Color",
+      "label": "Gradient Bottom",
       "type": "color",
       "default": "#05070d",
-      "level": 0
+      "level": 0,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
+    },
+    {
+      "path": "background.texture",
+      "label": "Background Texture",
+      "type": "text",
+      "default": "",
+      "level": 1
+    },
+    {
+      "path": "background.texture_width",
+      "label": "Texture Source Width",
+      "type": "number",
+      "default": "1920",
+      "level": 2
+    },
+    {
+      "path": "background.texture_height",
+      "label": "Texture Source Height",
+      "type": "number",
+      "default": "1080",
+      "level": 2
+    },
+    {
+      "path": "background.tint",
+      "label": "Background Tint",
+      "type": "color",
+      "default": "#ffffff",
+      "level": 1,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
     },
     {
       "path": "camera.duration_ticks",
       "label": "Camera Duration",
       "type": "number",
       "default": "1200",
-      "level": 1
+      "level": 0
     },
     {
       "path": "camera.loop",
       "label": "Loop Camera",
       "type": "boolean",
       "default": "true",
-      "level": 1
+      "level": 0
     },
     {
       "path": "camera.fov",
-      "label": "FOV",
+      "label": "Camera FOV",
       "type": "number",
       "default": "60",
+      "level": 0
+    },
+    {
+      "path": "camera.roll",
+      "label": "Camera Roll",
+      "type": "number",
+      "default": "0",
+      "level": 1
+    },
+    {
+      "path": "camera.interpolation",
+      "label": "Camera Interpolation",
+      "type": "text",
+      "default": "smooth",
+      "level": 1,
+      "options": [
+        "smooth",
+        "smoothstep",
+        "linear",
+        "step"
+      ]
+    },
+    {
+      "path": "camera.position",
+      "label": "Camera Position",
+      "type": "json",
+      "default": "[0,1,10]",
+      "level": 1
+    },
+    {
+      "path": "camera.look_at",
+      "label": "Camera Look At",
+      "type": "json",
+      "default": "[0,0,0]",
       "level": 1
     },
     {
       "path": "camera.motion.drift",
-      "label": "Drift",
+      "label": "Camera Drift",
       "type": "number",
       "default": "0.02",
       "level": 1
     },
     {
+      "path": "camera.motion.drift_speed",
+      "label": "Drift Speed",
+      "type": "number",
+      "default": "0.1",
+      "level": 1
+    },
+    {
       "path": "camera.motion.shake",
-      "label": "Shake",
+      "label": "Camera Shake",
       "type": "number",
       "default": "0.0",
+      "level": 1
+    },
+    {
+      "path": "camera.motion.shake_speed",
+      "label": "Shake Speed",
+      "type": "number",
+      "default": "1.0",
       "level": 2
     },
     {
-      "path": "camera.interpolation",
-      "label": "Interpolation",
+      "path": "camera.keyframes",
+      "label": "Camera Keyframes",
+      "type": "json",
+      "default": "[]",
+      "level": 1
+    },
+    {
+      "path": "elements",
+      "label": "Scene Elements",
+      "type": "json",
+      "default": "[]",
+      "level": 0
+    },
+    {
+      "path": "overlay.type",
+      "label": "Overlay Type",
       "type": "text",
-      "default": "smooth",
+      "default": "transparent",
+      "level": 2,
+      "options": [
+        "transparent",
+        "gradient",
+        "solid",
+        "texture"
+      ]
+    },
+    {
+      "path": "overlay.color",
+      "label": "Overlay Solid Color",
+      "type": "color",
+      "default": "#00000000",
+      "level": 2,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
+    },
+    {
+      "path": "overlay.top",
+      "label": "Overlay Top",
+      "type": "color",
+      "default": "#00000000",
+      "level": 2,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
+    },
+    {
+      "path": "overlay.bottom",
+      "label": "Overlay Bottom",
+      "type": "color",
+      "default": "#00000000",
+      "level": 2,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
+    },
+    {
+      "path": "overlay.texture",
+      "label": "Overlay Texture",
+      "type": "text",
+      "default": "",
       "level": 2
+    },
+    {
+      "path": "overlay.tint",
+      "label": "Overlay Tint",
+      "type": "color",
+      "default": "#ffffff",
+      "level": 2,
+      "palette": [
+        {
+          "value": "#17101f",
+          "label": "Deep"
+        },
+        {
+          "value": "#05070d",
+          "label": "Night"
+        },
+        {
+          "value": "#000000",
+          "label": "Black"
+        },
+        {
+          "value": "#ffffff",
+          "label": "White"
+        },
+        {
+          "value": "#ff5a82",
+          "label": "Rose"
+        },
+        {
+          "value": "#ff8a2a",
+          "label": "Orange"
+        },
+        {
+          "value": "#f0cf58",
+          "label": "Gold"
+        },
+        {
+          "value": "#55c979",
+          "label": "Green"
+        },
+        {
+          "value": "#4a87e8",
+          "label": "Blue"
+        },
+        {
+          "value": "#8758b8",
+          "label": "Violet"
+        },
+        {
+          "value": "#00c7d9",
+          "label": "Cyan"
+        },
+        {
+          "value": "#7f8794",
+          "label": "Slate"
+        }
+      ]
     }
   ],
   "template": {
     "enabled": true,
+    "priority": 0,
     "background": {
       "type": "gradient",
+      "color": "#17101f",
       "top": "#17101f",
-      "bottom": "#05070d"
+      "bottom": "#05070d",
+      "texture": "",
+      "texture_width": 1920,
+      "texture_height": 1080,
+      "tint": "#ffffff"
     },
     "camera": {
       "duration_ticks": 1200,
       "loop": true,
       "fov": 60,
+      "roll": 0,
       "interpolation": "smooth",
+      "position": [
+        0,
+        1,
+        10
+      ],
+      "look_at": [
+        0,
+        0,
+        0
+      ],
       "motion": {
         "drift": 0.02,
-        "shake": 0.0
+        "drift_speed": 0.1,
+        "shake": 0.0,
+        "shake_speed": 1.0
       },
       "keyframes": [
         {
@@ -123,7 +693,8 @@
         }
       ]
     },
-    "elements": []
+    "elements": [],
+    "overlay": {}
   },
   "variations": [],
   "preview": {

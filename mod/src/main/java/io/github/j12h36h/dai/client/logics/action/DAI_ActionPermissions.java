@@ -96,7 +96,9 @@ public final class DAI_ActionPermissions {
                 || type.startsWith("mine_")
                 || type.startsWith("place_")) return enabled("world_editing");
         if (type.startsWith("overlay_")) return enabled("overlays");
-        if (type.equals("screen_open") || type.equals("open_data_screen")) return enabled("data_screens");
+        if (type.equals("screen_open") || type.equals("open_data_screen")
+                || type.equals("open_screen_class") || type.equals("open_shell_stage")
+                || type.equals("reload_presentation")) return enabled("data_screens");
         if (type.startsWith("animation_")) return enabled("animations");
         if (type.startsWith("cinematic_") || type.startsWith("eras_")) return enabled("cinematics");
         if (type.startsWith("learning_") || type.startsWith("companion_")) return enabled("learning");

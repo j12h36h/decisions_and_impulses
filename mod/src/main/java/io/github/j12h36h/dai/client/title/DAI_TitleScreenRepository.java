@@ -3,6 +3,9 @@ package io.github.j12h36h.dai.client.title;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
+import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
+import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.packs.DAI_DatapackMetadata;
 import io.github.j12h36h.dai.packs.DAI_GlobalDatapackLibrary;
@@ -39,6 +42,7 @@ public final class DAI_TitleScreenRepository {
     );
 
     private static volatile DAI_TitleScreenDefinition cached;
+    private static Map<String, JsonObject> serverDefinitions = Map.of();
 
     private DAI_TitleScreenRepository() {}
 
@@ -61,6 +65,65 @@ public final class DAI_TitleScreenRepository {
         }
     }
 
+    /** Session-scoped title definitions supplied by the connected server datapack. */
+    public static DAI_TitleScreenDefinition replaceServerDefinitions(Map<String, JsonObject> definitions) {
+        synchronized (DAI_TitleScreenRepository.class) {
+            Map<String, JsonObject> copy = new HashMap<>();
+            if (definitions != null) definitions.forEach((id, json) -> {
+                if (id != null && json != null) copy.put(id, json.deepCopy());
+            });
+            serverDefinitions = Map.copyOf(copy);
+            cached = reloadInternal();
+            return cached;
+        }
+    }
+
+    private static void loadServerDefinitions(Map<String, DAI_TitleScreenDefinition> output) {
+        serverDefinitions.forEach((id, json) -> register(output, id, json));
+    }
+
+    /**
+     * Resolves the highest-priority title definition authored by one specific
+     * Experience namespace without making that Experience globally active.
+     *
+     * This is used by DAI 4.1's Experience handoff: selecting a MAIN
+     * Experience may enter its own title/menu loop first, while START/CONTINUE
+     * buttons on that title still own the actual world launch. Installed MAIN
+     * packs therefore do not hijack the global DAI shell until selected.
+     */
+    public static DAI_TitleScreenDefinition forExperience(String experienceId) {
+        if (experienceId == null || experienceId.isBlank()) return null;
+        String normalized = experienceId.trim().toLowerCase(java.util.Locale.ROOT);
+        int colon = normalized.indexOf(':');
+        if (colon <= 0) return null;
+        String namespace = normalized.substring(0, colon);
+
+        Map<String, DAI_TitleScreenDefinition> definitions = new HashMap<>();
+        loadBuiltins(definitions);
+        scanModDatapacks(definitions);
+        scanWorldDatapacks(definitions);
+        scanGlobalDatapacks(definitions);
+        scanConfig(definitions);
+        loadServerDefinitions(definitions);
+
+        return definitions.values().stream()
+                .filter(DAI_TitleScreenDefinition::enabled)
+                .filter(definition -> authoredByNamespace(definition.id(), namespace))
+                .max(Comparator
+                        .comparingInt(DAI_TitleScreenDefinition::priority)
+                        .thenComparing(DAI_TitleScreenDefinition::id))
+                .orElse(null);
+    }
+
+    private static boolean authoredByNamespace(String definitionId, String namespace) {
+        if (definitionId == null || namespace == null || namespace.isBlank()) return false;
+        int provenance = definitionId.indexOf('@');
+        String resourceId = provenance < 0 ? definitionId : definitionId.substring(0, provenance);
+        int colon = resourceId.indexOf(':');
+        if (colon <= 0) return false;
+        return resourceId.substring(0, colon).equalsIgnoreCase(namespace);
+    }
+
     private static DAI_TitleScreenDefinition reloadInternal() {
         Map<String, DAI_TitleScreenDefinition> definitions = new HashMap<>();
 
@@ -69,9 +132,12 @@ public final class DAI_TitleScreenRepository {
         scanWorldDatapacks(definitions);
         scanGlobalDatapacks(definitions);
         scanConfig(definitions);
+        loadServerDefinitions(definitions);
 
+        String selectedNamespace = selectedExperienceNamespace();
         DAI_TitleScreenDefinition selected = definitions.values().stream()
                 .filter(DAI_TitleScreenDefinition::enabled)
+                .filter(definition -> allowedForCurrentExperience(definition.id(), selectedNamespace))
                 .max(Comparator
                         .comparingInt(DAI_TitleScreenDefinition::priority)
                         .thenComparing(DAI_TitleScreenDefinition::id))
@@ -86,6 +152,42 @@ public final class DAI_TitleScreenRepository {
         );
 
         return selected;
+    }
+
+
+    /**
+     * Installed experiences are selectable templates. Their early-scanned title
+     * definitions must not become the application shell merely because the pack
+     * exists in the global library or in another save. Once an experience is
+     * explicitly pending/active, definitions from that experience namespace are
+     * eligible again alongside built-in/config shell definitions.
+     */
+    private static String selectedExperienceNamespace() {
+        DAI_ExperienceDefinition definition = DAI_ExperienceRuntime.active();
+        if (definition == null) {
+            DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
+            if (pending != null) definition = pending.definition();
+        }
+        if (definition == null || definition.id() == null) return "";
+
+        String id = definition.id().trim();
+        int colon = id.indexOf(':');
+        return colon <= 0 ? "" : id.substring(0, colon);
+    }
+
+    private static boolean allowedForCurrentExperience(String definitionId, String selectedNamespace) {
+        if (definitionId == null || definitionId.isBlank()) return false;
+
+        // Built-in and explicit config shell definitions have no provenance
+        // suffix and remain eligible regardless of the selected experience.
+        int provenance = definitionId.indexOf('@');
+        if (provenance < 0) return true;
+        if (selectedNamespace == null || selectedNamespace.isBlank()) return false;
+
+        String resourceId = definitionId.substring(0, provenance);
+        int colon = resourceId.indexOf(':');
+        if (colon <= 0) return false;
+        return resourceId.substring(0, colon).equals(selectedNamespace);
     }
 
     private static void loadBuiltins(Map<String, DAI_TitleScreenDefinition> output) {

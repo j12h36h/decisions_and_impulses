@@ -6,6 +6,7 @@ import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
 import io.github.j12h36h.dai.logics.action.DAI_ActionDefinition;
 import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
+import io.github.j12h36h.dai.client.packs.DAI_ExperienceResourcePackLifecycle;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -51,6 +52,9 @@ public final class DAI_ExperienceRuntime {
     ) {
         if (definition == null) return;
         DAI_ExperienceLaunchState.prepare(definition, firstJoin, sourcePack, worldgenOverride);
+        // Resource packs are applied by DAI_ExperienceLauncher through the
+        // pre-world-open barrier. Keeping prepare() state-only prevents the
+        // old asynchronous reload/world-open race.
         active = null;
         clientReady = false;
         activationWaitTicks = 0;
@@ -343,6 +347,7 @@ public final class DAI_ExperienceRuntime {
 
     public static void clearActive() {
         active = null;
+        DAI_ExperienceResourcePackLifecycle.applyAfterWorldUnload();
         clientReady = false;
         activationWaitTicks = 0;
         missingActionLogged = false;

@@ -9,11 +9,14 @@ import io.github.j12h36h.dai.client.menus.DAI_MenuCore;
 import io.github.j12h36h.dai.client.creator.DAI_CreatorScreen;
 import io.github.j12h36h.dai.client.creator.DAI_CreatorRuntime;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
+import io.github.j12h36h.dai.client.settings.DAI_SettingsScreen;
+import io.github.j12h36h.dai.client.menus.DAI_GameMenuScreen;
+import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
+import io.github.j12h36h.dai.client.title.DAI_TitleActionDispatcher;
 import io.github.j12h36h.dai.client.logics.input.DAI_InputState;
 import io.github.j12h36h.dai.client.menus.DAI_ScreenManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -31,7 +34,35 @@ public final class DAI_MenuLogic {
             return;
         }
         Screen current = minecraft.gui.screen();
-        DAI_ScreenManager.openTemporary(current, new DAI_CreatorScreen());
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.CREATOR)) {
+            DAI_TitleActionDispatcher.openReflective(current, "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen");
+        } else {
+            DAI_ScreenManager.openTemporary(
+                    current,
+                    DAI_ShellScreenRouter.resolve(
+                            DAI_ShellScreenRouter.CREATOR,
+                            current,
+                            DAI_CreatorScreen::new,
+                            () -> current
+                    )
+            );
+        }
+    }
+
+    public static void openSettings(DAI_ActionDefinition action) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Screen current = minecraft.gui.screen();
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.SETTINGS)) {
+            DAI_TitleActionDispatcher.openReflective(current, "net.minecraft.client.gui.screens.options.OptionsScreen");
+        } else {
+            minecraft.gui.setScreen(DAI_ShellScreenRouter.resolve(
+                    DAI_ShellScreenRouter.SETTINGS,
+                    current,
+                    () -> new DAI_SettingsScreen(current),
+                    () -> current
+            ));
+        }
+        DAI_ActionStatus.set(DAI_ActionResult.SUCCESS);
     }
 
     public static void openAutomationCreator(DAI_ActionDefinition action) {
@@ -42,7 +73,19 @@ public final class DAI_MenuLogic {
         }
         Screen current = minecraft.gui.screen();
         DAI_CreatorRuntime.selectSchema("decisions_and_impulses:action");
-        DAI_ScreenManager.openTemporary(current, new DAI_CreatorScreen());
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.CREATOR)) {
+            DAI_TitleActionDispatcher.openReflective(current, "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen");
+        } else {
+            DAI_ScreenManager.openTemporary(
+                    current,
+                    DAI_ShellScreenRouter.resolve(
+                            DAI_ShellScreenRouter.CREATOR,
+                            current,
+                            DAI_CreatorScreen::new,
+                            () -> current
+                    )
+            );
+        }
     }
 
     public static void openPauseMenu(
@@ -53,13 +96,23 @@ public final class DAI_MenuLogic {
                 Minecraft.getInstance();
 
         DAI_Core.debug(
-                "<DAI>: Opening pause screen."
+                "<DAI>: Opening DAI Engine system universe."
         );
 
-        DAI_ScreenManager.openTemporary(
-                minecraft.gui.screen(),
-                new PauseScreen(true)
-        );
+        Screen current = minecraft.gui.screen();
+        if (DAI_ShellScreenRouter.vanilla(DAI_ShellScreenRouter.PAUSE)) {
+            DAI_TitleActionDispatcher.openReflective(current, "net.minecraft.client.gui.screens.PauseScreen");
+        } else {
+            DAI_ScreenManager.openTemporary(
+                    current,
+                    DAI_ShellScreenRouter.resolve(
+                            DAI_ShellScreenRouter.PAUSE,
+                            current,
+                            DAI_GameMenuScreen::new,
+                            () -> current
+                    )
+            );
+        }
     }
 
     public static void openChat(

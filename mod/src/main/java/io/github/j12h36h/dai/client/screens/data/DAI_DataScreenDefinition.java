@@ -14,6 +14,7 @@ public record DAI_DataScreenDefinition(
         boolean closeOnEscape,
         boolean pauseGame,
         String backgroundScene,
+        Style style,
         List<Widget> widgets
 ) {
     public static final Codec<DAI_DataScreenDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -23,15 +24,51 @@ public record DAI_DataScreenDefinition(
             Codec.BOOL.optionalFieldOf("close_on_escape", true).forGetter(DAI_DataScreenDefinition::closeOnEscape),
             Codec.BOOL.optionalFieldOf("pause_game", false).forGetter(DAI_DataScreenDefinition::pauseGame),
             Codec.STRING.optionalFieldOf("background_scene", "").forGetter(DAI_DataScreenDefinition::backgroundScene),
+            Style.CODEC.optionalFieldOf("style", Style.DEFAULT).forGetter(DAI_DataScreenDefinition::style),
             Widget.CODEC.listOf().optionalFieldOf("widgets", List.of()).forGetter(DAI_DataScreenDefinition::widgets)
     ).apply(instance, DAI_DataScreenDefinition::new));
 
     public DAI_DataScreenDefinition {
         title = title == null ? "DAI Screen" : title;
-        width = Math.max(80, Math.min(4096, width));
-        height = Math.max(60, Math.min(4096, height));
+        width = Math.max(1, Math.min(4096, width));
+        height = Math.max(1, Math.min(4096, height));
         backgroundScene = backgroundScene == null ? "" : backgroundScene.trim();
+        style = style == null ? Style.DEFAULT : style;
         widgets = widgets == null ? List.of() : List.copyOf(widgets);
+    }
+
+    /**
+     * Pure presentation policy. The defaults preserve the historic DAI panel,
+     * but every part of that frame can be disabled/recolored by JSON.
+     */
+    public record Style(
+            boolean drawPanel,
+            boolean drawBorder,
+            boolean drawTitle,
+            boolean sceneFullscreen,
+            int panelColor,
+            int borderColor,
+            int titleColor,
+            int titleX,
+            int titleY
+    ) {
+        public static final Style DEFAULT = new Style(
+                true, true, true, false,
+                0xD00B0710, 0xFFFF8B32, 0xFFFFB06A,
+                8, 7
+        );
+
+        public static final Codec<Style> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.BOOL.optionalFieldOf("draw_panel", DEFAULT.drawPanel()).forGetter(Style::drawPanel),
+                Codec.BOOL.optionalFieldOf("draw_border", DEFAULT.drawBorder()).forGetter(Style::drawBorder),
+                Codec.BOOL.optionalFieldOf("draw_title", DEFAULT.drawTitle()).forGetter(Style::drawTitle),
+                Codec.BOOL.optionalFieldOf("scene_fullscreen", DEFAULT.sceneFullscreen()).forGetter(Style::sceneFullscreen),
+                Codec.INT.optionalFieldOf("panel_color", DEFAULT.panelColor()).forGetter(Style::panelColor),
+                Codec.INT.optionalFieldOf("border_color", DEFAULT.borderColor()).forGetter(Style::borderColor),
+                Codec.INT.optionalFieldOf("title_color", DEFAULT.titleColor()).forGetter(Style::titleColor),
+                Codec.INT.optionalFieldOf("title_x", DEFAULT.titleX()).forGetter(Style::titleX),
+                Codec.INT.optionalFieldOf("title_y", DEFAULT.titleY()).forGetter(Style::titleY)
+        ).apply(instance, Style::new));
     }
 
     public record Widget(

@@ -1,7 +1,11 @@
 package io.github.j12h36h.dai.client.title;
 
+import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
 import io.github.j12h36h.dai.client.presentation.scene.DAI_SceneRenderer;
+import io.github.j12h36h.dai.client.presentation.DAI_PresentationProfileService;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseButton;
+import io.github.j12h36h.dai.client.presentation.DAI_UniverseShellRenderer;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -44,22 +48,16 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
     @Override
     protected void init() {
         int y = height / 2 + 30;
-        addRenderableWidget(Button.builder(
-                        Component.literal("CANCEL"),
-                        button -> Minecraft.getInstance().gui.setScreen(cancelTarget)
-                )
-                .bounds(width / 2 - 108, y, 100, 24)
-                .build());
-        addRenderableWidget(Button.builder(
-                        Component.literal("DELETE"),
-                        button -> {
-                            if (save != null && DAI_ExperienceLauncher.deleteSave(experienceId, save.saveId())) {
-                                Minecraft.getInstance().gui.setScreen(successTarget);
-                            }
-                        }
-                )
-                .bounds(width / 2 + 8, y, 100, 24)
-                .build());
+        var profile = DAI_PresentationProfileService.selected();
+        addRenderableWidget(new DAI_UniverseButton(width / 2 - 108, y, 100, 24, Component.literal("CANCEL"),
+                button -> Minecraft.getInstance().gui.setScreen(cancelTarget),
+                DAI_UniverseButton.Shape.CHIP, profile.secondary()));
+        addRenderableWidget(new DAI_UniverseButton(width / 2 + 8, y, 100, 24, Component.literal("DELETE"),
+                button -> {
+                    if (save != null && DAI_ExperienceLauncher.deleteSave(experienceId, save.saveId())) {
+                        Minecraft.getInstance().gui.setScreen(successTarget);
+                    }
+                }, DAI_UniverseButton.Shape.CHIP, 0xFFFF5F70));
     }
 
     @Override
@@ -102,6 +100,8 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
     private void renderPackBackground(GuiGraphicsExtractor graphics, float partialTick) {
         if (DAI_Config.featureModuleEnabled("scene_environments") && !titleDefinition.backgroundScene().isBlank()) {
             DAI_SceneRenderer.render(graphics, titleDefinition.backgroundScene(), 0, 0, width, height, partialTick, java.util.Map.of("title.id", titleDefinition.id()));
+        } else if ("decisions_and_impulses:default".equals(titleDefinition.id())) {
+            DAI_UniverseShellRenderer.render(graphics, width, height, DAI_PresentationProfileService.selected(), System.nanoTime());
         } else {
             graphics.fillGradient(0, 0, width, height, titleDefinition.backgroundTop(), titleDefinition.backgroundBottom());
         }
@@ -124,6 +124,6 @@ public final class DAI_ExperienceDeleteConfirmScreen extends Screen {
 
     @Override
     public boolean isPauseScreen() {
-        return false;
+        return DAI_ShellWorldRuntime.isShellActive();
     }
 }

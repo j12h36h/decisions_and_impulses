@@ -18,6 +18,7 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.network.DAI_CreatorActionPayload;
 import io.github.j12h36h.dai.physics.DAI_PhysicsProfile;
 import io.github.j12h36h.dai.server.runtime.DAI_RuntimeDispatch;
+import io.github.j12h36h.dai.server.network.DAI_CreatorAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -67,6 +69,16 @@ public final class DAI_CreatorServerRuntime {
 
     public static void handle(ServerPlayer player, DAI_CreatorActionPayload payload) {
         if (player == null || payload == null) return;
+        boolean automationCreator = "automation".equalsIgnoreCase(payload.kind());
+        if (DAI_CreatorAccess.requiresPrivileged(payload)
+                && !DAI_CreatorAccess.allowsPrivileged(player, automationCreator)) {
+            DAI_Core.LOGGER.warn(
+                    "<DAI>: Defense-in-depth rejection of privileged Creator operation '{}' from '{}'.",
+                    payload.operation(), player.getUUID()
+            );
+            message(player, "This Creator operation requires server-owner/explicit privileged authority.");
+            return;
+        }
         Session session = SESSIONS.computeIfAbsent(player.getUUID(), ignored -> new Session());
         String op = norm(payload.operation());
 
@@ -295,7 +307,13 @@ public final class DAI_CreatorServerRuntime {
         Path path = exportPath(player.level().getServer(), session.kind, session.id);
         try {
             Files.createDirectories(path.getParent());
-            Files.writeString(path, GSON.toJson(session.draft) + System.lineSeparator(), StandardCharsets.UTF_8);
+            Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+            Files.writeString(temporary, GSON.toJson(session.draft) + System.lineSeparator(), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception ignored) {
+                Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
+            }
             Path readme = player.level().getServer().getWorldPath(LevelResource.ROOT)
                     .resolve("dai").resolve("creator").resolve("export").resolve("DAI_CREATOR_README.txt");
             if (!Files.exists(readme)) {
@@ -321,13 +339,19 @@ public final class DAI_CreatorServerRuntime {
     }
 
     private static Path exportPath(MinecraftServer server, String kind, String rawId) {
+        Path root = server.getWorldPath(LevelResource.ROOT)
+                .resolve("dai").resolve("creator").resolve("export")
+                .toAbsolutePath().normalize();
         Identifier id = Identifier.tryParse(safeId(rawId));
         if (id == null) id = Identifier.fromNamespaceAndPath("creator", "untitled");
         String folder = folder(kind);
-        return server.getWorldPath(LevelResource.ROOT)
-                .resolve("dai").resolve("creator").resolve("export")
-                .resolve("data").resolve(id.getNamespace()).resolve(folder)
-                .resolve(id.getPath() + ".json");
+        Path candidate = root.resolve("data").resolve(id.getNamespace()).resolve(folder)
+                .resolve(id.getPath() + ".json").toAbsolutePath().normalize();
+        if (!candidate.startsWith(root)) {
+            DAI_Core.LOGGER.warn("<DAI>: Rejected Creator export path escaping export root: '{}'.", candidate);
+            return root.resolve("data/creator/creator_documents/untitled.json").normalize();
+        }
+        return candidate;
     }
 
     private static void renderHologram(ServerPlayer player, Session session) {

@@ -55,7 +55,7 @@ public final class DAI_ConfigBootstrap {
      * Upgrades older DAI configs while preserving existing choices.
      * v2 added diagnostics, v3 added player/creator controls, v4 introduced
      * feature modules, and v5 replaces project-specific module switches with
-     * generic presentation/story capability switches. Missing v4 module values intentionally
+     * generic presentation/story capability switches, and v6 exposes the same settings through the DAI 4.0 in-game settings UI. Missing v4 module values intentionally
      * use the enabled defaults from DAI_Config so old installations behave
      * exactly as before until a creator opts out of modules.
      */
@@ -108,6 +108,7 @@ public final class DAI_ConfigBootstrap {
          * forcing every new optional key into it. */
         if (loadedVersion < 4) loadedVersion = 4;
         if (loadedVersion < 5) loadedVersion = 5;
+        if (loadedVersion < 6) loadedVersion = 6;
 
         data.set("configVersion", DAI_Config.CURRENT_CONFIG_VERSION);
 
