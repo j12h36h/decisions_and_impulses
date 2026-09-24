@@ -27,8 +27,10 @@ import java.util.stream.Stream;
  *   "dai": { "role": "main" }
  *   "dai": { "role": "addon" }
  *
- * Legacy inference intentionally keeps old packs working:
- * - a DAI pack containing dai_experiences or dai_title_screens is MAIN;
+ * Legacy inference intentionally keeps old packs working while applying the
+ * DAI 4.3 ownership boundary:
+ * - a DAI pack containing dai_experiences is MAIN;
+ * - title-screen definitions alone no longer make a pack MAIN;
  * - another DAI pack is ADDON;
  * - a pack with no DAI content is UNMANAGED.
  */
@@ -36,7 +38,6 @@ public final class DAI_DatapackMetadata {
 
     private static final String PACK_META = "pack.mcmeta";
     private static final String EXPERIENCE_FOLDER = "/dai_experiences/";
-    private static final String TITLE_FOLDER = "/dai_title_screens/";
 
     private DAI_DatapackMetadata() {}
 
@@ -251,8 +252,7 @@ public final class DAI_DatapackMetadata {
     }
 
     private static boolean isMainResource(String path) {
-        return path != null
-                && (path.contains(EXPERIENCE_FOLDER) || path.contains(TITLE_FOLDER));
+        return path != null && path.contains(EXPERIENCE_FOLDER);
     }
 
     private static boolean isPackCandidate(Path path) {

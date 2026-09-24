@@ -447,9 +447,6 @@ public final class DAI_ActionQueue {
 
         return normalized.startsWith(
                 DAI_Core.MODID + ":fp_"
-        )
-                || normalized.startsWith(
-                DAI_Core.MODID + ":vg_"
         );
     }
 

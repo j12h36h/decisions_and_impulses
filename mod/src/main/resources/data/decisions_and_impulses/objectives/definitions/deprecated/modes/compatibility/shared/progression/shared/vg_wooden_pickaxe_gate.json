@@ -1,8 +1,0 @@
-{
-  "type": "sequence",
-  "sequence": [
-    {
-      "action": "decisions_and_impulses:ensure_wooden_pickaxe"
-    }
-  ]
-}

@@ -1,0 +1,58 @@
+{
+  "display_name": "Recipe",
+  "folder": "dai_recipes",
+  "rail": "standalone",
+  "category": "CORE",
+  "description": "Author DAI processing and fallback recipes used by gameplay worlds.",
+  "priority": 48,
+  "fields": [
+    {
+      "path": "type",
+      "label": "Recipe Type",
+      "type": "text",
+      "default": "crafting_shaped",
+      "level": 0
+    },
+    {
+      "path": "container",
+      "label": "Container",
+      "type": "text",
+      "default": "minecraft:inventory",
+      "level": 1
+    },
+    {
+      "path": "result.item",
+      "label": "Result Item",
+      "type": "text",
+      "default": "minecraft:stone",
+      "level": 0
+    },
+    {
+      "path": "result.count",
+      "label": "Result Count",
+      "type": "number",
+      "default": "1",
+      "level": 0
+    }
+  ],
+  "template": {
+    "type": "crafting_shaped",
+    "pattern": [
+      "S"
+    ],
+    "key": {
+      "S": {
+        "item": "minecraft:stone"
+      }
+    },
+    "result": {
+      "item": "minecraft:stone",
+      "count": 1
+    },
+    "container": "minecraft:inventory"
+  },
+  "variations": [],
+  "preview": {
+    "type": "json"
+  }
+}

@@ -1,12 +1,11 @@
 package io.github.j12h36h.dai.client.title;
 
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceLauncher;
-import io.github.j12h36h.dai.client.play.DAI_PlayScreen;
-import io.github.j12h36h.dai.client.creator.DAI_CreatorScreen;
+import io.github.j12h36h.dai.client.navigation.DAI_ShellHubScreen;
+import io.github.j12h36h.dai.client.play.DAI_ExperienceCreateScreen;
+import io.github.j12h36h.dai.client.play.DAI_WorldLibraryScreen;
 import io.github.j12h36h.dai.client.config.DAI_ClientConfig;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
-import io.github.j12h36h.dai.client.packs.DAI_PackBrowserScreen;
-import io.github.j12h36h.dai.client.settings.DAI_SettingsScreen;
 import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellScreenRouter;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
@@ -51,33 +50,33 @@ public final class DAI_TitleActionDispatcher {
             case "open_dai_play", "play" -> openShellStage(
                     DAI_ShellScreenRouter.PLAY,
                     parent,
-                    () -> new DAI_PlayScreen(parent),
+                    () -> new DAI_ShellHubScreen(parent, DAI_ShellHubScreen.Hub.PLAY),
                     "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
             );
             case "open_official_packs", "open_dai_worlds" -> openShellStage(
-                    DAI_ShellScreenRouter.WORLDS,
+                    DAI_ShellScreenRouter.LOADED,
                     parent,
-                    () -> new DAI_PackBrowserScreen(parent),
+                    () -> new DAI_ExperienceCreateScreen(parent),
                     "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
             );
             case "open_dai_library" -> openShellStage(
-                    DAI_ShellScreenRouter.LIBRARY,
+                    DAI_ShellScreenRouter.CONTINUE,
                     parent,
-                    () -> DAI_PackBrowserScreen.library(parent),
+                    () -> new DAI_WorldLibraryScreen(parent),
                     "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
             );
             case "open_dai_settings" -> openShellStage(
                     DAI_ShellScreenRouter.SETTINGS,
                     parent,
-                    () -> new DAI_SettingsScreen(parent),
+                    () -> new DAI_ShellHubScreen(parent, DAI_ShellHubScreen.Hub.SETTINGS),
                     "net.minecraft.client.gui.screens.options.OptionsScreen"
             );
-            case "open_dai_creator", "open_creator" -> {
+            case "open_dai_creator", "open_creator", "open_dai_create" -> {
                 if (DAI_ClientConfig.creatorEnabled()) {
                     openShellStage(
-                            DAI_ShellScreenRouter.CREATOR,
+                            DAI_ShellScreenRouter.CREATE,
                             parent,
-                            DAI_CreatorScreen::new,
+                            () -> new DAI_ShellHubScreen(parent, DAI_ShellHubScreen.Hub.CREATE),
                             "net.minecraft.client.gui.screens.worldselection.SelectWorldScreen"
                     );
                 }

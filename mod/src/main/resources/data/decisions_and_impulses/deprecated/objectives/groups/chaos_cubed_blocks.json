@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "entries": [
-    "@cinnabar_blocks",
-    "@sulfur_blocks",
-    "minecraft:magma_block"
-  ]
-}

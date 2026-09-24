@@ -3,13 +3,9 @@ package io.github.j12h36h.dai.client.branding;
 import io.github.j12h36h.dai.client.experience.DAI_ExperienceRuntime;
 import io.github.j12h36h.dai.client.packs.DAI_CompanionResourcePackPreferences;
 import io.github.j12h36h.dai.experience.DAI_ExperienceDefinition;
-import io.github.j12h36h.dai.experience.DAI_ExperienceRepository;
-import io.github.j12h36h.dai.experience.DAI_ExperienceLaunchState;
-import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
 import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.stb.STBImage;
@@ -27,12 +23,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Application-level branding owned by the active/primary MAIN experience.
- *
- * This deliberately uses GLFW for the OS window title/icon so branding stays
- * independent from Mojang's internal Window implementation. The icon is read
- * from the companion resource pack's root pack.png; no image is copied into
- * the DAI mod and versioned resource-pack filenames remain transparent.
+ * Optional OS-window branding for the Experience that owns the currently
+ * attached gameplay world. DAI 4.3 never exposes Experience branding during
+ * bootstrap or the launcher shell.
  */
 public final class DAI_ClientBranding {
 
@@ -50,7 +43,7 @@ public final class DAI_ClientBranding {
         applyNow();
     }
 
-    /** Applies MAIN branding immediately, including during the startup reload overlay. */
+    /** Applies gameplay-world branding immediately. */
     public static void applyNow() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) return;
@@ -59,7 +52,13 @@ public final class DAI_ClientBranding {
         if (experience == null) {
             DAI_FmlEarlyBranding.sync(null, null);
             long handle = windowHandle(minecraft);
-            if (handle != 0L) GLFW.glfwSetWindowTitle(handle, "D.A.I. Engine");
+            if (handle != 0L) {
+                GLFW.glfwSetWindowTitle(handle, "D.A.I. Engine");
+                if (!appliedKey.isEmpty()) {
+                    byte[] icon = readClasspathEntry("logo.png");
+                    if (icon != null && icon.length > 0) applyWindowIcon(handle, icon);
+                }
+            }
             appliedKey = "";
             return;
         }
@@ -74,9 +73,8 @@ public final class DAI_ClientBranding {
         long handle = windowHandle(minecraft);
         if (handle == 0L) return;
 
-        // Minecraft may update its own title when connection/screen state
-        // changes. Reassert the authored MAIN title periodically so it stays
-        // stable for the whole experience, while keeping icon decoding cached.
+        // Minecraft may update its title as gameplay screens change. Reassert
+        // the active world owner's title while that Experience remains active.
         if (!branding.windowTitle().isBlank()) {
             GLFW.glfwSetWindowTitle(handle, branding.windowTitle());
         }
@@ -91,75 +89,22 @@ public final class DAI_ClientBranding {
 
             appliedKey = key;
             DAI_Core.LOGGER.info(
-                    "<DAI>: Applied application branding for MAIN experience '{}'.",
+                    "<DAI>: Applied gameplay-world branding for experience '{}'.",
                     experience.id()
             );
         }
     }
 
     public static DAI_ExperienceDefinition preferredExperience() {
-        DAI_ExperienceDefinition active = DAI_ExperienceRuntime.active();
-        if (active != null) return active;
-
-        // Installed MAIN packs are templates, not globally active experiences.
-        // Only the experience explicitly being launched may brand the app before
-        // its ClientLevel activates. Without this guard, installing one MAIN pack
-        // could hijack the DAI shell branding/title before the player selected it.
-        DAI_ExperienceLaunchState.Pending pending = DAI_ExperienceLaunchState.pending();
-        if (pending != null) return pending.definition();
-
         /*
-         * A MAIN datapack may explicitly own the application shell before any
-         * gameplay world is active. That owner must also own bootstrap/loading
-         * branding; otherwise the shell route can be pack-defined while the
-         * loading presentation still falls back to DAI.
-         *
-         * Never apply this fallback over a real unrelated gameplay world.
+         * DAI 4.3 ownership boundary: an Experience may brand the application
+         * only while its gameplay world is actually active. Pending launches,
+         * bootstrap and the 3-D launcher shell are always DAI-owned.
          */
         Minecraft minecraft = Minecraft.getInstance();
-        boolean shellContext = minecraft == null
-                || minecraft.level == null
-                || DAI_ShellWorldRuntime.isShellActive()
-                || DAI_ShellWorldRuntime.isBootstrapping();
-        if (!shellContext) return null;
-
-        String shellExperience = DAI_ShellPresentationRepository.ownerExperienceId();
-        return shellExperience.isBlank()
-                ? null
-                : DAI_ExperienceRepository.get(shellExperience);
-    }
-
-    public static DAI_ExperienceDefinition.Branding currentBranding() {
-        DAI_ExperienceDefinition experience = preferredExperience();
-        return experience == null ? DAI_ExperienceDefinition.Branding.DEFAULT : experience.branding();
-    }
-
-    public static String loadingTitle() {
-        DAI_ExperienceDefinition experience = preferredExperience();
-        if (experience == null) return "Minecraft";
-        String authored = experience.branding().loadingTitle();
-        return authored.isBlank() ? experience.saveName() : authored;
-    }
-
-    public static String loadingSubtitle() {
-        DAI_ExperienceDefinition experience = preferredExperience();
-        if (experience == null) return "";
-        return experience.branding().loadingSubtitle();
-    }
-
-    public static Identifier loadingBackgroundTexture() {
-        return safeTextureId(currentBranding().loadingBackgroundTexture());
-    }
-
-    public static Identifier loadingLogo() {
-        return safeTextureId(currentBranding().loadingLogo());
-    }
-
-    private static Identifier safeTextureId(String raw) {
-        if (raw == null) return null;
-        String value = raw.trim();
-        if (value.isEmpty() || value.endsWith(":")) return null;
-        return Identifier.tryParse(value);
+        if (minecraft == null || minecraft.level == null || minecraft.player == null) return null;
+        if (DAI_ShellWorldRuntime.isShellActive() || DAI_ShellWorldRuntime.isBootstrapping()) return null;
+        return DAI_ExperienceRuntime.active();
     }
 
     /**
@@ -241,6 +186,20 @@ public final class DAI_ClientBranding {
         } finally {
             if (pixels != null) STBImage.stbi_image_free(pixels);
             MemoryUtil.memFree(encoded);
+        }
+    }
+
+    private static byte[] readClasspathEntry(String entryName) {
+        if (entryName == null || entryName.isBlank()) return null;
+        try (InputStream input = DAI_ClientBranding.class.getClassLoader().getResourceAsStream(entryName)) {
+            if (input == null) return null;
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                input.transferTo(output);
+                return output.toByteArray();
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.debug("<DAI>: Could not read built-in branding resource '{}'.", entryName, exception);
+            return null;
         }
     }
 

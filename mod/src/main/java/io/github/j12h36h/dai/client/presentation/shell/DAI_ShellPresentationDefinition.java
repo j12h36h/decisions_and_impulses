@@ -10,10 +10,10 @@ import java.util.Map;
 /**
  * Data-driven routing definition for the DAI application shell.
  *
- * The engine owns only stable lifecycle stage names. What those stages look
- * like is pack data: DAI built-ins, data screens, vanilla Minecraft, or no
- * screen at all. A pack may also select a fallback policy for stages it does
- * not define, making partial total-conversion shells possible.
+ * The engine owns the launcher lifecycle and selects its built-in definition.
+ * The data model remains capable of routing a stage to a DAI screen, vanilla
+ * screen, authored data screen, or no screen so 4.2 definitions still parse,
+ * but Experience packs no longer select or replace this global shell.
  */
 public final class DAI_ShellPresentationDefinition {
 

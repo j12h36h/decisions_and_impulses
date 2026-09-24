@@ -156,8 +156,8 @@ public final class DAI_MenuLogic {
     }
 
     /**
-     * Cleanly leaves the current gameplay world and returns to the active
-     * Experience-owned title shell without releasing that shell ownership.
+     * DAI 4.2 compatibility action. In 4.3 Experiences do not own title
+     * shells, so this returns to the engine-owned DAI Universe launcher.
      */
     public static void returnToExperienceTitle(
             DAI_ActionDefinition action

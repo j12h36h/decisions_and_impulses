@@ -186,7 +186,7 @@ public final class DAI_WorldCreationThemeRuntime {
         int text = profile.text() & 0x00FFFFFF;
         int inactive = withAlpha(profile.text(), 0x88) & 0x00FFFFFF;
 
-        List<AbstractWidget> widgets = collectWidgets(event.getListenersList());
+        List<AbstractWidget> widgets = collectWidgets(screen, event.getListenersList());
         for (AbstractWidget widget : widgets) {
             if (widget instanceof EditBox editBox) {
                 editBox.setBordered(false);
@@ -203,7 +203,10 @@ public final class DAI_WorldCreationThemeRuntime {
         }
     }
 
-    private static List<AbstractWidget> collectWidgets(List<? extends GuiEventListener> listeners) {
+    private static List<AbstractWidget> collectWidgets(
+            Screen screen,
+            List<? extends GuiEventListener> listeners
+    ) {
         Set<AbstractWidget> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         List<AbstractWidget> output = new ArrayList<>();
         Consumer<AbstractWidget> add = widget -> {
@@ -212,26 +215,90 @@ public final class DAI_WorldCreationThemeRuntime {
 
         for (GuiEventListener listener : listeners) {
             if (listener instanceof AbstractWidget widget) add.accept(widget);
+            visitWidgets(listener, add);
+        }
 
-            // TabNavigationBar and a few 26.x container widgets expose their
-            // children only through visitWidgets. Probe that public layout
-            // contract reflectively so this remains tolerant of minor mappings.
-            try {
-                Method visit = listener.getClass().getMethod("visitWidgets", Consumer.class);
-                visit.invoke(listener, add);
-            } catch (Throwable ignored) {
-                // Direct AbstractWidget children were already captured.
+        // Minecraft 26.2 keeps CreateWorldScreen's TabNavigationBar as a
+        // controller field rather than a normal Screen child. Without probing
+        // the screen-owned containers, its World/More tab buttons remain on
+        // Mojang's top strip and DAI's CONFIGURATION rail is empty.
+        if (screen != null) {
+            Class<?> type = screen.getClass();
+            while (type != null && type != Object.class) {
+                for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                    try {
+                        if (!field.canAccess(screen) && !field.trySetAccessible()) continue;
+                        Object value = field.get(screen);
+                        if (value == null || value == screen) continue;
+                        visitWidgets(value, add);
+                    } catch (Throwable ignored) {
+                        // Mapping-private controller fields are optional.
+                    }
+                }
+                type = type.getSuperclass();
             }
         }
         return output;
     }
 
+    private static void visitWidgets(Object owner, Consumer<AbstractWidget> add) {
+        if (owner == null || add == null) return;
+        try {
+            Method visit = owner.getClass().getMethod("visitWidgets", Consumer.class);
+            visit.invoke(owner, add);
+            return;
+        } catch (Throwable ignored) {
+            // Probe non-public mapped declarations below.
+        }
+
+        Class<?> type = owner.getClass();
+        while (type != null && type != Object.class) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (!method.getName().equals("visitWidgets") || method.getParameterCount() != 1) continue;
+                if (!Consumer.class.isAssignableFrom(method.getParameterTypes()[0])) continue;
+                try {
+                    if (!method.canAccess(owner) && !method.trySetAccessible()) continue;
+                    method.invoke(owner, add);
+                    return;
+                } catch (Throwable ignored) {
+                    // Continue probing inherited/mapped declarations.
+                }
+            }
+            type = type.getSuperclass();
+        }
+    }
+
+    private static boolean widgetVisible(AbstractWidget widget) {
+        if (widget == null) return false;
+        try {
+            Method method = widget.getClass().getMethod("isVisible");
+            Object result = method.invoke(widget);
+            if (result instanceof Boolean visible) return visible;
+        } catch (Throwable ignored) {
+            // Most AbstractWidget implementations expose a field instead.
+        }
+
+        Class<?> type = widget.getClass();
+        while (type != null && type != Object.class) {
+            try {
+                java.lang.reflect.Field field = type.getDeclaredField("visible");
+                if (!field.canAccess(widget) && !field.trySetAccessible()) return true;
+                return field.getBoolean(widget);
+            } catch (NoSuchFieldException ignored) {
+                type = type.getSuperclass();
+            } catch (Throwable ignored) {
+                return true;
+            }
+        }
+        return true;
+    }
+
     private static void layoutCreateWorld(Screen screen, List<AbstractWidget> widgets) {
-        int margin = Math.max(10, Math.min(16, screen.width / 36));
-        int top = 46;
-        int bottom = screen.height - 38;
-        int railWidth = Math.max(108, Math.min(156, screen.width / 4));
-        int contentX = margin + railWidth + 14;
+        int margin = Math.max(8, Math.min(14, screen.width / 42));
+        int top = 42;
+        int bottom = screen.height - margin;
+        int railWidth = Math.max(104, Math.min(136, screen.width / 5));
+        int contentX = margin + railWidth + 10;
         int contentWidth = Math.max(120, screen.width - contentX - margin);
 
         List<WidgetSnapshot> navigation = new ArrayList<>();
@@ -239,6 +306,7 @@ public final class DAI_WorldCreationThemeRuntime {
         List<WidgetSnapshot> content = new ArrayList<>();
 
         for (AbstractWidget widget : widgets) {
+            if (!widgetVisible(widget)) continue;
             WidgetSnapshot snapshot = new WidgetSnapshot(widget);
             String label = label(widget);
             String simple = widget.getClass().getSimpleName().toLowerCase(Locale.ROOT);
@@ -252,35 +320,49 @@ public final class DAI_WorldCreationThemeRuntime {
         }
 
         navigation.sort(Comparator.comparingInt(WidgetSnapshot::originalY).thenComparingInt(WidgetSnapshot::originalX));
-        int navY = top + 26;
+        int navY = top + 24;
         for (WidgetSnapshot snapshot : navigation) {
             AbstractWidget widget = snapshot.widget();
-            widget.setRectangle(Math.max(86, railWidth - 18), Math.max(20, snapshot.height()), margin + 8, navY);
-            navY += Math.max(25, snapshot.height() + 6);
+            int height = Math.max(20, Math.min(24, snapshot.height()));
+            widget.setRectangle(Math.max(78, railWidth - 16), height, margin + 8, navY);
+            navY += height + 6;
         }
 
-        layoutRows(content, contentX + 8, top + 24, contentWidth - 16, bottom - 8);
-        layoutActionRail(actions, contentX + 8, Math.max(top + 24, bottom - 28), contentWidth - 16);
+        int actionHeight = 22;
+        for (WidgetSnapshot snapshot : actions) {
+            actionHeight = Math.max(actionHeight, Math.min(26, snapshot.height()));
+        }
+        int actionY = Math.max(top + 54, bottom - actionHeight - 8);
+        int contentBottom = Math.max(top + 50, actionY - 12);
+
+        layoutRows(content, contentX + 8, top + 54, contentWidth - 16, contentBottom);
+        layoutActionRail(actions, contentX + 8, actionY, contentWidth - 16, actionHeight);
     }
 
     private static void layoutAuxiliary(Screen screen, List<AbstractWidget> widgets) {
-        int margin = Math.max(12, Math.min(22, screen.width / 24));
-        int top = 48;
-        int bottom = screen.height - 38;
-        int contentX = margin + 10;
-        int contentWidth = Math.max(120, screen.width - (margin + 10) * 2);
+        int margin = Math.max(10, Math.min(18, screen.width / 28));
+        int top = 44;
+        int bottom = screen.height - margin;
+        int contentX = margin + 8;
+        int contentWidth = Math.max(120, screen.width - (margin + 8) * 2);
 
         List<WidgetSnapshot> actions = new ArrayList<>();
         List<WidgetSnapshot> content = new ArrayList<>();
         for (AbstractWidget widget : widgets) {
+            if (!widgetVisible(widget)) continue;
             WidgetSnapshot snapshot = new WidgetSnapshot(widget);
             String label = label(widget);
             if (isCreateAction(label) || isCancelAction(label) || label.equals("done")) actions.add(snapshot);
             else content.add(snapshot);
         }
 
-        layoutRows(content, contentX, top + 10, contentWidth, bottom - 8);
-        layoutActionRail(actions, contentX, Math.max(top + 10, bottom - 28), contentWidth);
+        int actionHeight = 22;
+        for (WidgetSnapshot snapshot : actions) {
+            actionHeight = Math.max(actionHeight, Math.min(26, snapshot.height()));
+        }
+        int actionY = Math.max(top + 48, bottom - actionHeight - 8);
+        layoutRows(content, contentX, top + 14, contentWidth, actionY - 12);
+        layoutActionRail(actions, contentX, actionY, contentWidth, actionHeight);
     }
 
     private static void layoutRows(
@@ -290,6 +372,7 @@ public final class DAI_WorldCreationThemeRuntime {
             int width,
             int maxY
     ) {
+        snapshots.removeIf(snapshot -> !widgetVisible(snapshot.widget()));
         snapshots.sort(Comparator.comparingInt(WidgetSnapshot::originalY).thenComparingInt(WidgetSnapshot::originalX));
         List<List<WidgetSnapshot>> rows = new ArrayList<>();
         for (WidgetSnapshot snapshot : snapshots) {
@@ -302,36 +385,54 @@ public final class DAI_WorldCreationThemeRuntime {
             else rows.add(new ArrayList<>(List.of(snapshot)));
         }
 
+        if (rows.isEmpty() || maxY <= startY) return;
+
+        int[] heights = new int[rows.size()];
+        int requiredHeight = 0;
+        for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+            int rowHeight = 0;
+            for (WidgetSnapshot snapshot : rows.get(rowIndex)) {
+                rowHeight = Math.max(rowHeight, Math.max(9, Math.min(26, snapshot.height())));
+            }
+            heights[rowIndex] = rowHeight;
+            requiredHeight += rowHeight;
+        }
+
+        int available = Math.max(0, maxY - startY);
+        int gap = rows.size() <= 1
+                ? 0
+                : Math.max(3, Math.min(8, (available - requiredHeight) / (rows.size() - 1)));
+
         int y = startY;
-        for (List<WidgetSnapshot> row : rows) {
-            if (y >= maxY) break;
+        for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+            List<WidgetSnapshot> row = rows.get(rowIndex);
+            int rowHeight = heights[rowIndex];
+            if (y + rowHeight > maxY) break;
+
             row.sort(Comparator.comparingInt(WidgetSnapshot::originalX));
             int count = row.size();
-            int gap = 8;
-            int cell = Math.max(48, (width - gap * Math.max(0, count - 1)) / Math.max(1, count));
-            int rowHeight = 0;
+            int horizontalGap = 8;
+            int cell = Math.max(48, (width - horizontalGap * Math.max(0, count - 1)) / Math.max(1, count));
 
             for (int i = 0; i < count; i++) {
                 WidgetSnapshot snapshot = row.get(i);
                 AbstractWidget widget = snapshot.widget();
-                int h = Math.max(9, snapshot.height());
-                int targetWidth;
-                if (widget instanceof EditBox && count == 1) {
-                    targetWidth = width;
-                } else if (count == 1) {
-                    targetWidth = Math.min(width, Math.max(snapshot.width(), Math.min(width, 300)));
-                } else {
-                    targetWidth = cell;
-                }
-                int targetX = count == 1 ? x : x + i * (cell + gap);
-                widget.setRectangle(targetWidth, h, targetX, y);
-                rowHeight = Math.max(rowHeight, h);
+                int targetWidth = count == 1 ? width : cell;
+                int targetX = count == 1 ? x : x + i * (cell + horizontalGap);
+                widget.setRectangle(targetWidth, rowHeight, targetX, y);
             }
-            y += Math.max(24, rowHeight + 8);
+            y += rowHeight + gap;
         }
     }
 
-    private static void layoutActionRail(List<WidgetSnapshot> actions, int x, int y, int width) {
+    private static void layoutActionRail(
+            List<WidgetSnapshot> actions,
+            int x,
+            int y,
+            int width,
+            int height
+    ) {
+        actions.removeIf(snapshot -> !widgetVisible(snapshot.widget()));
         if (actions.isEmpty()) return;
         actions.sort((a, b) -> {
             String la = label(a.widget());
@@ -345,15 +446,23 @@ public final class DAI_WorldCreationThemeRuntime {
 
         int gap = 8;
         int count = actions.size();
-        int cell = Math.min(170, Math.max(82, (width - gap * Math.max(0, count - 1)) / Math.max(1, count)));
-        int total = cell * count + gap * Math.max(0, count - 1);
+        if (count == 1) {
+            int cell = Math.min(180, width);
+            actions.get(0).widget().setRectangle(cell, height, x + width - cell, y);
+            return;
+        }
+
+        int cell = Math.min(170, Math.max(86, (width - gap * (count - 1)) / count));
+        int total = cell * count + gap * (count - 1);
         int startX = x + Math.max(0, width - total);
         if (count == 2) startX = x;
 
         for (int i = 0; i < count; i++) {
             WidgetSnapshot snapshot = actions.get(i);
-            int targetX = count == 2 && i == 1 ? x + width - cell : startX + i * (cell + gap);
-            snapshot.widget().setRectangle(cell, Math.max(22, snapshot.height()), targetX, y);
+            int targetX = count == 2 && i == 1
+                    ? x + width - cell
+                    : startX + i * (cell + gap);
+            snapshot.widget().setRectangle(cell, height, targetX, y);
         }
     }
 
@@ -396,19 +505,19 @@ public final class DAI_WorldCreationThemeRuntime {
 
         DAI_UniverseShellRenderer.render(graphics, width, height, profile, System.nanoTime());
 
-        int margin = Math.max(10, Math.min(16, width / 36));
+        int margin = Math.max(8, Math.min(14, width / 42));
         int top = 38;
-        int bottom = height - 34;
+        int bottom = height - margin;
         if ("CreateWorldScreen".equals(screen.getClass().getSimpleName())) {
-            int railWidth = Math.max(108, Math.min(156, width / 4));
-            int contentX = margin + railWidth + 14;
+            int railWidth = Math.max(104, Math.min(136, width / 5));
+            int contentX = margin + railWidth + 10;
 
-            graphics.fill(margin, top, margin + railWidth, bottom, 0xC2070A10);
-            graphics.outline(margin, top, railWidth, Math.max(1, bottom - top), withAlpha(profile.secondary(), 0x80));
-            graphics.fill(margin, top, margin + 3, bottom, withAlpha(profile.primary(), 0xD0));
+            graphics.fill(margin, top, margin + railWidth, bottom, 0xEC070A10);
+            graphics.outline(margin, top, railWidth, Math.max(1, bottom - top), withAlpha(profile.secondary(), 0x88));
+            graphics.fill(margin, top, margin + 3, bottom, withAlpha(profile.primary(), 0xD8));
 
-            graphics.fill(contentX, top, width - margin, bottom, 0xB9070A10);
-            graphics.outline(contentX, top, Math.max(1, width - margin - contentX), Math.max(1, bottom - top), withAlpha(profile.secondary(), 0x55));
+            graphics.fill(contentX, top, width - margin, bottom, 0xE3090D14);
+            graphics.outline(contentX, top, Math.max(1, width - margin - contentX), Math.max(1, bottom - top), withAlpha(profile.secondary(), 0x66));
 
             Minecraft minecraft = Minecraft.getInstance();
             if (minecraft != null && minecraft.font != null) {
@@ -429,8 +538,10 @@ public final class DAI_WorldCreationThemeRuntime {
         GuiGraphicsExtractor graphics = event.getGuiGraphics();
         DAI_PresentationProfileService.Profile profile = DAI_PresentationProfileService.selected();
 
-        graphics.fill(0, 0, screen.width, 34, 0xE507090E);
-        graphics.fill(0, 33, screen.width, 34, withAlpha(profile.primary(), 0xA0));
+        // Fully opaque so Minecraft's original top TabNavigationBar cannot
+        // ghost through the DAI hierarchy after its buttons are relocated.
+        graphics.fill(0, 0, screen.width, 38, 0xFF07090E);
+        graphics.fill(0, 37, screen.width, 38, withAlpha(profile.primary(), 0xB8));
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.font == null) return;

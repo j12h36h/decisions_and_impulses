@@ -1,5 +1,0 @@
-{
-  "type": "config_value",
-  "target": "automation_combat",
-  "operator": "is_true"
-}

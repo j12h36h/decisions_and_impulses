@@ -56,7 +56,7 @@ public final class DAI_ExperienceCreateScreen extends Screen {
             int labelWidth = rowWidth - actionWidth * 2 - 8;
             addRenderableWidget(button(left, y, labelWidth, 28, display(experience), b -> {}, false));
             addRenderableWidget(button(left + labelWidth + 4, y, actionWidth, 28, "CREATE",
-                    b -> DAI_ExperienceLauncher.launchNew(this, experience.id()), true));
+                    b -> Minecraft.getInstance().gui.setScreen(new DAI_ExperienceSetupScreen(this, experience.id())), true));
             addRenderableWidget(button(left + labelWidth + actionWidth + 8, y, actionWidth, 28, "CONTINUE",
                     b -> DAI_ExperienceLauncher.continueLast(this, experience.id()), false));
             y += 38;
@@ -96,7 +96,7 @@ public final class DAI_ExperienceCreateScreen extends Screen {
         DAI_PresentationProfileService.Profile profile = DAI_PresentationProfileService.selected();
         DAI_UniverseShellRenderer.render(graphics, width, height, profile, System.nanoTime());
         graphics.centeredText(font, Component.literal("CREATE FROM INSTALLED EXPERIENCE"), width / 2, 14, profile.text());
-        graphics.centeredText(font, Component.literal("One installed experience is selected for each new world"), width / 2, 28, 0xFF9FB2BE);
+        graphics.centeredText(font, Component.literal("Choose an Experience, then configure its allowed addons"), width / 2, 28, 0xFF9FB2BE);
         if (experiences.isEmpty()) graphics.centeredText(font, Component.literal("No installed DAI experiences found · use DISCOVER to install one"), width / 2, 86, 0xFFB7C7D0);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }

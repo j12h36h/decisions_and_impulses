@@ -4,7 +4,7 @@
   "folder": "logics/definitions",
   "rail": "experience",
   "category": "SYSTEMS",
-  "description": "Author reusable DAI actions/sequences without changing engine code. DAI 4.2 includes the client action `return_to_dai_universe` for a clean world disconnect and explicit escape from a datapack-owned shell. `return_to_experience_title` cleanly leaves gameplay while preserving the active Experience shell.",
+  "description": "Author reusable DAI actions/sequences without changing engine code. DAI 4.3 uses `return_to_dai_universe` to leave any gameplay world and restore the engine-owned launcher. `return_to_experience_title` remains a compatibility alias and now performs the same return because Experiences no longer own pre-world title shells.",
   "priority": 92,
   "fields": [
     {

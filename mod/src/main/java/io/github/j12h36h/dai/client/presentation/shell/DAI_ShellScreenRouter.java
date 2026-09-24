@@ -9,12 +9,47 @@ import net.minecraft.client.gui.screens.Screen;
 
 import java.util.function.Supplier;
 
-/** Central stage router used by the default DAI shell and pack-defined replacements. */
+/**
+ * Central DAI 4.3 launcher/world-stage router.
+ *
+ * The launcher stages are engine-owned. Legacy 4.2 stage constants remain as
+ * aliases so older authored actions can still resolve while packs migrate.
+ */
 public final class DAI_ShellScreenRouter {
     public static final String SAFE_LOADING = "safe_loading";
     public static final String TITLE = "title";
     public static final String PAUSE = "pause";
+
     public static final String PLAY = "play";
+    public static final String SOLO = "solo";
+    public static final String START = "start";
+    public static final String VANILLA = "vanilla";
+    public static final String LOADED = "loaded";
+    public static final String CONTINUE = "continue";
+    public static final String CONNECT = "connect";
+    public static final String PUBLIC = "public";
+    public static final String SAVED = "saved";
+
+    public static final String CREATE = "create";
+    public static final String CONTENT = "content";
+    public static final String ASSET = "asset";
+    public static final String OBJECT = "object";
+    public static final String LOGIC = "logic";
+    public static final String VISUAL = "visual";
+    public static final String CORE = "core";
+
+    public static final String SETTINGS = "settings";
+    public static final String CONTROLS = "controls";
+    public static final String OPTIONS = "options";
+    public static final String AUDIO = "audio";
+    public static final String DISPLAY = "display";
+
+    public static final String WORLD_TRANSITION = "world_transition";
+    public static final String WORLD_LOADING = "world_loading";
+    public static final String RETURN_TO_SHELL = "return_to_shell";
+
+    // Literal 4.2 route names retained for authored-action compatibility.
+    // canonicalStage() maps them onto the single 4.3 launcher hierarchy.
     public static final String PLAY_WORLDS = "play_worlds";
     public static final String SINGLEPLAYER_CREATE = "singleplayer_create";
     public static final String MINECRAFT_DAI_CREATE = "minecraft_dai_create";
@@ -26,22 +61,33 @@ public final class DAI_ShellScreenRouter {
     public static final String WORLDS = "worlds";
     public static final String LIBRARY = "library";
     public static final String CREATOR = "creator";
-    public static final String SETTINGS = "settings";
-    public static final String WORLD_LOADING = "world_loading";
-    public static final String RETURN_TO_SHELL = "return_to_shell";
 
     private DAI_ShellScreenRouter() {}
 
+    public static String canonicalStage(String stage) {
+        if (stage == null) return "";
+        String normalized = stage.trim().toLowerCase(java.util.Locale.ROOT);
+        return switch (normalized) {
+            case PLAY_WORLDS, LIBRARY -> CONTINUE;
+            case SINGLEPLAYER_CREATE -> START;
+            case MINECRAFT_DAI_CREATE, ADDON_SELECTION, WORLD_OPTIONS -> VANILLA;
+            case EXPERIENCE_CREATE, EXPERIENCE_SETUP, WORLDS -> LOADED;
+            case LAUNCH_TRANSITION -> WORLD_TRANSITION;
+            case CREATOR -> CREATE;
+            default -> normalized;
+        };
+    }
+
     public static DAI_ShellPresentationDefinition.Route route(String stage) {
-        return DAI_ShellPresentationRepository.current().route(stage);
+        return DAI_ShellPresentationRepository.current().route(canonicalStage(stage));
     }
 
     public static boolean vanilla(String stage) {
-        return DAI_ShellPresentationRepository.current().vanilla(stage);
+        return DAI_ShellPresentationRepository.current().vanilla(canonicalStage(stage));
     }
 
     public static boolean none(String stage) {
-        return DAI_ShellPresentationRepository.current().none(stage);
+        return DAI_ShellPresentationRepository.current().none(canonicalStage(stage));
     }
 
     public static String scene(String stage, String fallback) {

@@ -18,6 +18,7 @@ import io.github.j12h36h.dai.client.play.DAI_PlayWorldAccess;
 import io.github.j12h36h.dai.client.play.DAI_VanillaWorldScreens;
 import io.github.j12h36h.dai.client.play.DAI_WorldCreationThemeRuntime;
 import io.github.j12h36h.dai.client.play.DAI_ConnectionScreenRuntime;
+import io.github.j12h36h.dai.client.runtime.DAI_WorldScreenOwnership;
 import io.github.j12h36h.dai.client.logics.core.DAI_ClientTick;
 import io.github.j12h36h.dai.logics.core.DAI_Config;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -195,6 +196,7 @@ public final class DAI_ClientBootstrap {
         DAI_PlayWorldAccess.tickWorldOpen();
         DAI_VanillaWorldScreens.tickCreateFlow();
         DAI_ConnectionScreenRuntime.tick();
+        DAI_WorldScreenOwnership.tick();
 
         if (DAI_Config.featureModuleEnabled("experience")) DAI_ExperienceLauncher.tickFreshLaunch();
 

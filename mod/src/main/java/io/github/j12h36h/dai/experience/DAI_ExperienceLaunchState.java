@@ -1,6 +1,7 @@
 package io.github.j12h36h.dai.experience;
 
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -30,9 +31,37 @@ public final class DAI_ExperienceLaunchState {
             Path sourcePack,
             String worldgenOverride
     ) {
+        prepare(definition, firstJoin, sourcePack, worldgenOverride, Set.of(), false);
+    }
+
+    /**
+     * Prepares a launch with an explicit per-save ADDON selection. An empty set
+     * with explicitAddonSelection=true means "no addons", not "use defaults".
+     */
+    public static void prepare(
+            DAI_ExperienceDefinition definition,
+            boolean firstJoin,
+            Path sourcePack,
+            String worldgenOverride,
+            Set<String> selectedAddonIds,
+            boolean explicitAddonSelection
+    ) {
+        Set<String> normalized = selectedAddonIds == null
+                ? Set.of()
+                : selectedAddonIds.stream()
+                        .map(value -> value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT))
+                        .filter(value -> !value.isBlank())
+                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
         pending = definition == null
                 ? null
-                : new Pending(definition, firstJoin, sourcePack, worldgenOverride == null ? "" : worldgenOverride.trim().toLowerCase());
+                : new Pending(
+                        definition,
+                        firstJoin,
+                        sourcePack,
+                        worldgenOverride == null ? "" : worldgenOverride.trim().toLowerCase(java.util.Locale.ROOT),
+                        normalized,
+                        explicitAddonSelection
+                );
         packReloadFuture = CompletableFuture.completedFuture(null);
         packReloadFailed = false;
         worldReady = definition != null && !firstJoin;
@@ -97,6 +126,12 @@ public final class DAI_ExperienceLaunchState {
             DAI_ExperienceDefinition definition,
             boolean firstJoin,
             Path sourcePack,
-            String worldgenOverride
-    ) {}
+            String worldgenOverride,
+            Set<String> selectedAddonIds,
+            boolean explicitAddonSelection
+    ) {
+        public Pending {
+            selectedAddonIds = selectedAddonIds == null ? Set.of() : Set.copyOf(selectedAddonIds);
+        }
+    }
 }

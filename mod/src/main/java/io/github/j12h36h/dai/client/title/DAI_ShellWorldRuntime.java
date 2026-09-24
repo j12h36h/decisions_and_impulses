@@ -30,17 +30,16 @@ import java.util.Locale;
 /**
  * Boots DAI Engine's full game shell through a tiny reserved singleplayer world.
  *
- * Before this world exists DAI deliberately renders only the safe vanilla village
- * splash. Once the shell level/player are attached, Minecraft's block
- * and item component registries are fully bound and the JSON 3-D scene system
- * may use vanilla, modded and DAI-provided models on title/editor surfaces.
+ * Before this world exists DAI renders only its resource-independent 2-D intro
+ * splash. Once the shell level/player are attached and scene-safe, the splash
+ * disappears directly into the fully ready 3-D DAI title environment.
  */
 public final class DAI_ShellWorldRuntime {
 
     private static final String SHELL_SAVE_BASE = "DAI_Engine_Shell";
     private static final String SHELL_DISPLAY_NAME = "DAI Engine Shell";
     private static final String MARKER = "dai/shell.json";
-    private static final int SHELL_MARKER_SCHEMA = 2;
+    private static final int SHELL_MARKER_SCHEMA = 3;
 
     private enum State {
         IDLE,
@@ -53,6 +52,23 @@ public final class DAI_ShellWorldRuntime {
 
     private static final int STALLED_OPEN_TICKS = 240;
     private static final int SERVER_START_GRACE_TICKS = 600;
+
+    /*
+     * The reserved shell is infrastructure, not a playable Minecraft world.
+     * Its visible 3-D presentation is rendered by DAI's scene system, so there
+     * is no reason to stream a normal player-sized chunk radius behind it.
+     * Keep the shell deliberately tiny, then restore the player's options
+     * before any real world is opened. This is especially important on UMA
+     * GPUs where chunk UBO allocation competes with system commit memory.
+     */
+    private static final int SHELL_RENDER_DISTANCE = 4;
+    private static final int SHELL_SIMULATION_DISTANCE = 5;
+
+    private static Integer savedRenderDistance;
+    private static Integer savedSimulationDistance;
+    private static boolean shellPerformanceGuardApplied;
+    private static boolean shellServerDistanceCapped;
+    private static boolean shellWorldRenderSuppressed;
 
     private static State state = State.IDLE;
     private static Screen bootParent;
@@ -114,6 +130,8 @@ public final class DAI_ShellWorldRuntime {
                 // gameplay after the destination level is attached.
                 if (shellRevealTicks > 0) DAI_SafeLoadingVeil.complete();
                 shellRevealTicks = 0;
+                shellWorldRenderSuppressed = false;
+                restoreShellPerformanceGuard(minecraft);
                 state = State.LEAVING;
                 shellLevel = null;
                 return;
@@ -121,7 +139,7 @@ public final class DAI_ShellWorldRuntime {
 
             // Never expose the reserved shell world's HUD/gameplay if a child
             // DAI screen closes without an explicit parent (including the OS X
-            // button). Raise the resource-safe village splash veil *before* restoring
+            // button). Raise the resource-safe DAI intro veil *before* restoring
             // the title and hold it briefly so no raw shell-world frame leaks.
             if (screen == null) {
                 if (shellRevealTicks <= 0) {
@@ -166,7 +184,7 @@ public final class DAI_ShellWorldRuntime {
             if (!(screen instanceof TitleScreen)) return;
             // LoadingOverlay can sit above TitleScreen while registries and
             // resources are still being finalized. Never start world creation
-            // underneath that bootstrap overlay; the bootstrap-safe DAI village splash owns
+            // underneath that bootstrap overlay; the bootstrap-safe DAI intro splash owns
             // this interval instead.
             if (hasBlockingOverlay(minecraft)) return;
             // A normal world may have temporarily auto-activated per-world
@@ -194,8 +212,7 @@ public final class DAI_ShellWorldRuntime {
                 && !DAI_ShellPresentationDefinition.MODE_NONE.equals(title.mode());
         return shellOwnsTitle
                 && DAI_ClientConfig.fullGameShell()
-                && DAI_ClientConfig.autoShellWorld()
-                && DAI_Config.customTitleScreens();
+                && DAI_ClientConfig.autoShellWorld();
     }
 
     public static boolean shouldBootstrapTitle() {
@@ -210,6 +227,17 @@ public final class DAI_ShellWorldRuntime {
         return state == State.OPENING_CREATE
                 || state == State.CONFIGURING_CREATE
                 || state == State.WAITING_FOR_WORLD;
+    }
+
+    /**
+     * The shell ClientLevel exists only to provide a registry-backed runtime
+     * host. DAI renders its title/navigation environment itself, so vanilla
+     * terrain rendering behind those screens is pure cost and can exhaust
+     * chunk-section GPU/commit buffers on constrained or UMA systems.
+     */
+    public static boolean shouldSuppressWorldRender() {
+        return shellWorldRenderSuppressed
+                && (isBootstrapping() || state == State.ACTIVE || state == State.LEAVING);
     }
 
     /**
@@ -237,6 +265,7 @@ public final class DAI_ShellWorldRuntime {
         if (minecraft.level == null
                 && !hasIntegratedServer(minecraft)
                 && invokeNoArg(minecraft, "getConnection") == null) {
+            restoreShellPerformanceGuard(minecraft);
             try {
                 launch.run();
                 return true;
@@ -246,6 +275,9 @@ public final class DAI_ShellWorldRuntime {
             }
         }
 
+        // Keep the shell's low-memory distances active until its connection is
+        // fully gone. Restoring them earlier can make Minecraft send a larger
+        // ClientInformation radius to the shell during the disconnect window.
         pendingWorldHandoff = launch;
         pendingWorldHandoffFallback = fallback;
         worldHandoffTicks = 0;
@@ -263,6 +295,9 @@ public final class DAI_ShellWorldRuntime {
             );
             clearPendingWorldHandoff();
             DAI_SafeLoadingVeil.cancel();
+            state = State.ACTIVE;
+            shellLevel = minecraft.level;
+            shellWorldRenderSuppressed = true;
             return false;
         }
 
@@ -290,47 +325,16 @@ public final class DAI_ShellWorldRuntime {
     }
 
     /**
-     * Leaves the current gameplay world and returns to the currently-owned
-     * Experience title shell. Unlike returnToDaiUniverse(), this deliberately
-     * preserves datapack shell ownership, so a full-takeover Experience lands
-     * back on its own title screen after Minecraft completes save/disconnect.
+     * DAI 4.2 compatibility alias. Experiences no longer own a title shell, so
+     * leaving gameplay always returns to DAI's engine-owned Universe shell.
      */
     public static boolean returnToExperienceTitle() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null || minecraft.gui == null) return false;
-
-        shellRevealTicks = 0;
-        state = State.LEAVING;
-        shellLevel = null;
-        DAI_SafeLoadingVeil.beginBootstrap("RETURNING TO TITLE");
-
-        boolean connected = minecraft.level != null
-                || hasIntegratedServer(minecraft)
-                || invokeNoArg(minecraft, "getConnection") != null;
-
-        if (!connected) {
-            minecraft.gui.setScreen(new TitleScreen());
-            DAI_Core.LOGGER.info("<DAI>: Returning to Experience title from an already-detached client.");
-            return true;
-        }
-
-        if (disconnectForWorldHandoff(minecraft)) {
-            DAI_Core.LOGGER.info("<DAI>: Return to Experience title disconnect started.");
-            return true;
-        }
-
-        DAI_Core.LOGGER.warn("<DAI>: Return to Experience title could not disconnect the active world.");
-        DAI_SafeLoadingVeil.cancel();
-        state = State.IDLE;
-        shellLevel = null;
-        return false;
+        return returnToDaiUniverse();
     }
 
     /**
-     * Leaves the current world/session and explicitly returns to DAI's built-in
-     * Universe shell, even when a MAIN datapack currently owns the application
-     * shell. This is the client-side primitive datapacks should invoke instead
-     * of trying to kick the local player from an integrated server.
+     * Leaves the current world/session and returns to DAI's engine-owned
+     * Universe shell. Experiences own gameplay worlds only in DAI 4.3.
      */
     public static boolean returnToDaiUniverse() {
         Minecraft minecraft = Minecraft.getInstance();
@@ -432,6 +436,8 @@ public final class DAI_ShellWorldRuntime {
 
     private static void startShell(Minecraft minecraft, Screen parent) {
         DAI_SafeLoadingVeil.beginBootstrap("INITIALIZING DAI");
+        shellWorldRenderSuppressed = true;
+        applyShellPerformanceGuard(minecraft);
         // The first shell-world server start happens before its persistent
         // marker can be written. Arm the common-side bridge so worldgen knows
         // this is infrastructure, not an ordinary standalone playthrough.
@@ -511,6 +517,9 @@ public final class DAI_ShellWorldRuntime {
         if (uiState != null) {
             invokeCompatibleSetter(uiState, "setName", SHELL_SAVE_BASE);
             invokeEnumSetter(uiState, "setGameMode", "CREATIVE");
+            // This is an invisible infrastructure world. Peaceful prevents the
+            // shell from spending memory/ticks on hostile entity population.
+            invokeEnumSetter(uiState, "setDifficulty", "PEACEFUL");
         }
 
         if (invokeCreate(screen)) {
@@ -589,6 +598,7 @@ public final class DAI_ShellWorldRuntime {
         }
 
         waitTicks = 0;
+        capShellServerDistances(minecraft);
         if (++readyTicks < 6) return;
 
         DAI_SceneRenderSafety.markReady();
@@ -627,7 +637,7 @@ public final class DAI_ShellWorldRuntime {
             DAI_Core.LOGGER.error("<DAI>: Shell world loaded, but the DAI shell screen could not be opened.", exception);
         }
 
-        DAI_Core.LOGGER.info("<DAI>: DAI shell world is ready; full registry-backed 3-D presentation enabled.");
+        DAI_Core.LOGGER.info("<DAI>: DAI shell world is ready; full registry-backed 3-D DAI title presentation enabled.");
     }
 
 
@@ -666,6 +676,8 @@ public final class DAI_ShellWorldRuntime {
 
         Runnable launch = pendingWorldHandoff;
         clearPendingWorldHandoff();
+        restoreShellPerformanceGuard(minecraft);
+        shellWorldRenderSuppressed = false;
         // Keep LEAVING armed while the target flow is opening so the title
         // controller cannot immediately bootstrap another shell in the gap.
         state = State.LEAVING;
@@ -723,6 +735,7 @@ public final class DAI_ShellWorldRuntime {
         Screen fallback = pendingWorldHandoffFallback;
         clearPendingWorldHandoff();
         DAI_SafeLoadingVeil.cancel();
+        shellWorldRenderSuppressed = false;
         state = State.IDLE;
         shellLevel = null;
         DAI_Core.LOGGER.warn("<DAI>: {}", reason);
@@ -877,11 +890,27 @@ public final class DAI_ShellWorldRuntime {
 
         Path canonical = root.resolve(SHELL_SAVE_BASE);
 
-        // The canonical folder is authoritative even if an earlier interrupted
-        // bootstrap never got far enough to write dai/shell.json.
+        // The shell is disposable engine infrastructure. Schema 3 introduces
+        // the low-memory 4.3 host profile; older shell saves may contain a
+        // normal-world chunk radius generated by 4.2 and should not be reused.
+        // Rebuild the one canonical internal slot rather than carrying that
+        // render/memory history forward or producing a sibling shell save.
         if (Files.isDirectory(canonical) && Files.isRegularFile(canonical.resolve("level.dat"))) {
-            ensureShellMarker(SHELL_SAVE_BASE);
-            return SHELL_SAVE_BASE;
+            if (isCompatibleShellSave(canonical)) {
+                return SHELL_SAVE_BASE;
+            }
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Rebuilding legacy reserved shell '{}' for shell schema {}.",
+                    SHELL_SAVE_BASE,
+                    SHELL_MARKER_SCHEMA
+            );
+            if (!deleteReservedShellSave(SHELL_SAVE_BASE)) {
+                // Preserve the world if Windows has it locked; open it with the
+                // performance guard rather than risking another numbered shell.
+                ensureShellMarker(SHELL_SAVE_BASE);
+                return SHELL_SAVE_BASE;
+            }
+            return null;
         }
 
         // A marker-only/partial canonical directory from a failed first create
@@ -897,6 +926,7 @@ public final class DAI_ShellWorldRuntime {
                     .filter(path -> isReservedShellName(path.getFileName().toString()))
                     .filter(path -> !path.getFileName().toString().equals(SHELL_SAVE_BASE))
                     .filter(path -> Files.isRegularFile(path.resolve("level.dat")))
+                    .filter(DAI_ShellWorldRuntime::isCompatibleShellSave)
                     .sorted((left, right) -> {
                         boolean leftMarked = isCompatibleShellSave(left);
                         boolean rightMarked = isCompatibleShellSave(right);
@@ -971,6 +1001,8 @@ public final class DAI_ShellWorldRuntime {
             rootJson.addProperty("schema", SHELL_MARKER_SCHEMA);
             rootJson.addProperty("dai_shell", true);
             rootJson.addProperty("display_name", SHELL_DISPLAY_NAME);
+            rootJson.addProperty("feature_level", "4.3");
+            rootJson.addProperty("host_profile", "low_memory_scene_host");
             Files.writeString(marker, rootJson.toString(), StandardCharsets.UTF_8);
             expectedSaveId = candidate.getFileName().toString();
         } catch (Exception exception) {
@@ -1160,6 +1192,98 @@ public final class DAI_ShellWorldRuntime {
         return false;
     }
 
+    private static void applyShellPerformanceGuard(Minecraft minecraft) {
+        if (minecraft == null || minecraft.options == null || shellPerformanceGuardApplied) return;
+
+        Integer render = readIntOption(minecraft.options, "renderDistance");
+        Integer simulation = readIntOption(minecraft.options, "simulationDistance");
+        savedRenderDistance = render;
+        savedSimulationDistance = simulation;
+
+        boolean renderChanged = render != null
+                && render > SHELL_RENDER_DISTANCE
+                && writeIntOption(minecraft.options, "renderDistance", SHELL_RENDER_DISTANCE);
+        boolean simulationChanged = simulation != null
+                && simulation > SHELL_SIMULATION_DISTANCE
+                && writeIntOption(minecraft.options, "simulationDistance", SHELL_SIMULATION_DISTANCE);
+
+        shellPerformanceGuardApplied = true;
+        shellServerDistanceCapped = false;
+        DAI_Core.LOGGER.info(
+                "<DAI>: Shell performance guard active (render {} -> {}, simulation {} -> {}); player settings remain unsaved and will be restored before gameplay.",
+                render == null ? "?" : render,
+                renderChanged ? SHELL_RENDER_DISTANCE : (render == null ? "?" : render),
+                simulation == null ? "?" : simulation,
+                simulationChanged ? SHELL_SIMULATION_DISTANCE : (simulation == null ? "?" : simulation)
+        );
+    }
+
+    private static void restoreShellPerformanceGuard(Minecraft minecraft) {
+        if (!shellPerformanceGuardApplied) return;
+        if (minecraft != null && minecraft.options != null) {
+            if (savedRenderDistance != null) {
+                writeIntOption(minecraft.options, "renderDistance", savedRenderDistance);
+            }
+            if (savedSimulationDistance != null) {
+                writeIntOption(minecraft.options, "simulationDistance", savedSimulationDistance);
+            }
+        }
+        shellPerformanceGuardApplied = false;
+        shellServerDistanceCapped = false;
+        savedRenderDistance = null;
+        savedSimulationDistance = null;
+        DAI_Core.LOGGER.info("<DAI>: Restored player render/simulation distances after leaving the DAI shell.");
+    }
+
+    private static void capShellServerDistances(Minecraft minecraft) {
+        if (shellServerDistanceCapped || minecraft == null) return;
+        Object server = invokeNoArg(minecraft, "getSingleplayerServer");
+        Object playerList = invokeNoArg(server, "getPlayerList");
+        if (playerList == null) return;
+
+        boolean view = invokeIntSetter(playerList, "setViewDistance", SHELL_RENDER_DISTANCE);
+        boolean simulation = invokeIntSetter(playerList, "setSimulationDistance", SHELL_SIMULATION_DISTANCE);
+        if (view || simulation) {
+            shellServerDistanceCapped = true;
+            DAI_Core.LOGGER.info(
+                    "<DAI>: Reserved shell server distances capped at view={} simulation={}.",
+                    SHELL_RENDER_DISTANCE,
+                    SHELL_SIMULATION_DISTANCE
+            );
+        }
+    }
+
+    private static Integer readIntOption(Object options, String accessor) {
+        Object option = invokeNoArg(options, accessor);
+        Object value = invokeNoArg(option, "get");
+        return value instanceof Number number ? number.intValue() : null;
+    }
+
+    private static boolean writeIntOption(Object options, String accessor, int value) {
+        Object option = invokeNoArg(options, accessor);
+        if (option == null) return false;
+        return invokeIntSetter(option, "set", value);
+    }
+
+    private static boolean invokeIntSetter(Object target, String methodName, int value) {
+        if (target == null) return false;
+        for (Method method : target.getClass().getMethods()) {
+            if (!method.getName().equals(methodName) || method.getParameterCount() != 1) continue;
+            Class<?> type = method.getParameterTypes()[0];
+            if (type != int.class
+                    && type != Integer.class
+                    && type != Object.class
+                    && !Number.class.isAssignableFrom(type)) continue;
+            try {
+                method.invoke(target, value);
+                return true;
+            } catch (Throwable ignored) {
+                // Try another bridge/mapped overload.
+            }
+        }
+        return false;
+    }
+
     private static Object invokeNoArg(Object target, String methodName) {
         if (target == null) return null;
         try {
@@ -1176,6 +1300,7 @@ public final class DAI_ShellWorldRuntime {
     }
 
     private static void reset(boolean keepLevel) {
+        restoreShellPerformanceGuard(Minecraft.getInstance());
         if (pendingWorldHandoff != null) clearPendingWorldHandoff();
         state = State.IDLE;
         bootParent = null;
@@ -1183,6 +1308,7 @@ public final class DAI_ShellWorldRuntime {
         readyTicks = 0;
         waitTicks = 0;
         shellRevealTicks = 0;
+        shellWorldRenderSuppressed = false;
         createInvoked = false;
         shellConfirmationAccepted = false;
         waitingFromExisting = false;

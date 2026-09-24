@@ -69,7 +69,11 @@ public record DAI_ExperienceDefinition(
                         string(ui, "grave_close_action", ""),
                         string(ui, "grave_anchor_overlay", ""),
                         string(ui, "grave_menu", ""),
-                        string(ui, "grave_menu_open", "")
+                        string(ui, "grave_menu_open", ""),
+                        string(ui, "pause_screen", ""),
+                        string(ui, "inventory_screen", ""),
+                        string(ui, "death_screen", ""),
+                        string(ui, "hud_profile", "")
                 ),
                 new Controls(
                         bool(controls, "automation", true),
@@ -157,9 +161,13 @@ public record DAI_ExperienceDefinition(
             String graveCloseAction,
             String graveAnchorOverlay,
             String graveMenu,
-            String graveMenuOpen
+            String graveMenuOpen,
+            String pauseScreen,
+            String inventoryScreen,
+            String deathScreen,
+            String hudProfile
     ) {
-        public static final Ui DEFAULT = new Ui(true, true, false, "", "", "", "", "");
+        public static final Ui DEFAULT = new Ui(true, true, false, "", "", "", "", "", "", "", "", "");
 
         public Ui {
             graveOpenAction = normalize(graveOpenAction);
@@ -167,6 +175,10 @@ public record DAI_ExperienceDefinition(
             graveAnchorOverlay = normalize(graveAnchorOverlay);
             graveMenu = normalize(graveMenu);
             graveMenuOpen = normalize(graveMenuOpen);
+            pauseScreen = normalize(pauseScreen);
+            inventoryScreen = normalize(inventoryScreen);
+            deathScreen = normalize(deathScreen);
+            hudProfile = normalize(hudProfile);
         }
     }
 

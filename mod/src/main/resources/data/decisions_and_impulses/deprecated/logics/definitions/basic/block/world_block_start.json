@@ -1,8 +1,0 @@
-{
-  "type": "break_start",
-  "conditions": [
-    {
-      "type": "always"
-    }
-  ]
-}

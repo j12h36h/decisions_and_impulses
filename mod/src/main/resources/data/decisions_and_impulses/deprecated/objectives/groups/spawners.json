@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "entries": [
-    "minecraft:spawner",
-    "minecraft:trial_spawner",
-    "minecraft:vault"
-  ]
-}

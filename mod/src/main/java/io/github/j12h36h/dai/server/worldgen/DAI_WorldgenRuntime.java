@@ -97,6 +97,8 @@ public final class DAI_WorldgenRuntime {
          */
         if (pending != null) {
             writeMarker(root, pending.definition(), !pending.firstJoin(), !pending.firstJoin());
+        } else {
+            writeRuntimeMarker(root, "vanilla", "");
         }
     }
 
@@ -156,7 +158,7 @@ public final class DAI_WorldgenRuntime {
         try {
             currentPackBootstrap = pending == null
                     ? installStandaloneAddonStack(server, root)
-                    : installExperienceStack(server, root, pending.sourcePack());
+                    : installExperienceStack(server, root, pending);
         } catch (Throwable exception) {
             DAI_Core.LOGGER.error("<DAI>: Deferred world datapack bootstrap failed.", exception);
             CompletableFuture<Void> failed = new CompletableFuture<>();
@@ -411,13 +413,14 @@ public final class DAI_WorldgenRuntime {
     private static CompletableFuture<?> installExperienceStack(
             MinecraftServer server,
             Path worldRoot,
-            Path sourceMainPack
+            DAI_ExperienceLaunchState.Pending pending
     ) {
         if (server == null || worldRoot == null) {
             return CompletableFuture.completedFuture(null);
         }
 
         try {
+            Path sourceMainPack = pending == null ? null : pending.sourcePack();
             Path datapacks = worldRoot.resolve("datapacks");
             Files.createDirectories(datapacks);
 
@@ -434,6 +437,21 @@ public final class DAI_WorldgenRuntime {
                     : currentExperience.addons();
             DAI_WorldAddonSelection.Selection exactSelection =
                     DAI_WorldAddonSelection.read(worldRoot).orElse(null);
+
+            // A DAI 4.3 Loaded-screen selection is authoritative for a new
+            // Experience save. Persist stable ADDON ids before pack enabling
+            // so version changes do not alter the user's world configuration.
+            if (pending != null && pending.explicitAddonSelection()) {
+                LinkedHashSet<String> selectedIds = new LinkedHashSet<>();
+                for (String stableId : pending.selectedAddonIds()) {
+                    String normalized = DAI_WorldAddonSelection.normalize(stableId);
+                    if (normalized.isBlank()) continue;
+                    if (!addonPolicy.allows(normalized)) continue;
+                    selectedIds.add(normalized);
+                }
+                DAI_WorldAddonSelection.write(worldRoot, selectedIds);
+                exactSelection = new DAI_WorldAddonSelection.Selection(Set.copyOf(selectedIds));
+            }
             for (Path replacement : selectedReplacementTargets(
                     sync,
                     selectedBefore,
@@ -978,6 +996,8 @@ public final class DAI_WorldgenRuntime {
             Path target = root.resolve("dai").resolve("experience.json");
             Files.createDirectories(target.getParent());
             JsonObject json = new JsonObject();
+            json.addProperty("runtime", "experience");
+            json.addProperty("engine_feature_level", DAI_Core.FEATURE_LEVEL);
             json.addProperty("experience", experience.id());
             json.addProperty("save_id", experience.saveId());
             json.addProperty("worldgen", experience.worldgen());
@@ -999,8 +1019,38 @@ public final class DAI_WorldgenRuntime {
             } catch (Exception ignored) {
                 Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
             }
+            writeRuntimeMarker(root, "experience", experience.id());
         } catch (Exception exception) {
             DAI_Core.LOGGER.warn("<DAI>: Could not write experience marker for '{}'.", experience.id(), exception);
+        }
+    }
+
+    /**
+     * Small engine-owned save identity. Gameplay systems can distinguish a
+     * normal Minecraft+ADDON world from an Experience without inspecting the
+     * installed global pack library. Experience-specific state remains in
+     * experience.json.
+     */
+    private static void writeRuntimeMarker(Path root, String runtime, String experienceId) {
+        if (root == null) return;
+        try {
+            Path target = root.resolve("dai").resolve("runtime.json");
+            Files.createDirectories(target.getParent());
+            JsonObject json = new JsonObject();
+            json.addProperty("runtime", runtime == null || runtime.isBlank() ? "vanilla" : runtime);
+            json.addProperty("engine_feature_level", DAI_Core.FEATURE_LEVEL);
+            if (experienceId != null && !experienceId.isBlank()) {
+                json.addProperty("experience", experienceId);
+            }
+            Path temporary = target.resolveSibling(target.getFileName() + ".tmp");
+            Files.writeString(temporary, new GsonBuilder().setPrettyPrinting().create().toJson(json), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception ignored) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception exception) {
+            DAI_Core.LOGGER.warn("<DAI>: Could not write world runtime marker for '{}'.", root.getFileName(), exception);
         }
     }
 

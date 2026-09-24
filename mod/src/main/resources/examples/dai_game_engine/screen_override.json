@@ -1,9 +1,0 @@
-{
-  "enabled": true,
-  "priority": 100,
-  "mode": "replace",
-  "target": {
-    "class": "net.minecraft.client.gui.screens.*"
-  },
-  "screen": "your_pack:your_screen"
-}

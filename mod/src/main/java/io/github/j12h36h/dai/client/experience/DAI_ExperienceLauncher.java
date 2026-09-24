@@ -8,9 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
 import io.github.j12h36h.dai.client.title.DAI_ShellWorldRuntime;
-import io.github.j12h36h.dai.client.title.DAI_TitleScreen;
-import io.github.j12h36h.dai.client.title.DAI_TitleScreenDefinition;
-import io.github.j12h36h.dai.client.title.DAI_TitleScreenRepository;
 import io.github.j12h36h.dai.client.play.DAI_WorldLaunchConfirmation;
 import io.github.j12h36h.dai.client.play.DAI_ExperimentalFeaturesScreen;
 import io.github.j12h36h.dai.client.play.DAI_WorldCreationThemeRuntime;
@@ -65,6 +62,24 @@ public final class DAI_ExperienceLauncher {
      * collision-safe save folder, so previous runs are never deleted here.
      */
     public static void launchNew(Screen parent, String experienceId) {
+        launchNew(parent, experienceId, java.util.Set.of(), false);
+    }
+
+    /** Starts a fresh Experience with a user-selected, version-independent ADDON set. */
+    public static void launchNew(
+            Screen parent,
+            String experienceId,
+            java.util.Set<String> selectedAddonIds
+    ) {
+        launchNew(parent, experienceId, selectedAddonIds, true);
+    }
+
+    private static void launchNew(
+            Screen parent,
+            String experienceId,
+            java.util.Set<String> selectedAddonIds,
+            boolean explicitAddonSelection
+    ) {
         DAI_ExperienceRepository.reloadSelectable();
         DAI_WorldgenRepository.reload();
 
@@ -83,7 +98,10 @@ public final class DAI_ExperienceLauncher {
 
         Path sourcePack = findExperienceSourcePack(experience);
         beginTransition(experience, experience.autoCreate());
-        DAI_ExperienceRuntime.prepare(experience, true, sourcePack);
+        DAI_ExperienceRuntime.prepare(
+                experience, true, sourcePack, "",
+                selectedAddonIds, explicitAddonSelection
+        );
         DAI_WorldgenDefinition worldgen = DAI_WorldgenRepository.get(experience.worldgen());
 
         if (worldgen != null) {
@@ -308,24 +326,6 @@ public final class DAI_ExperienceLauncher {
         if (experience == null) {
             DAI_Core.LOGGER.error("<DAI>: Unknown experience '{}'.", experienceId);
             return;
-        }
-
-        // MAIN Experiences may own their entire front-end loop. Selecting one
-        // from DAI first enters its authored title screen; START/CONTINUE on
-        // that screen call launchNew/continueLast and perform the real world
-        // handoff. Experiences without a custom title keep the legacy direct
-        // launch behavior.
-        DAI_TitleScreenDefinition experienceTitle = DAI_TitleScreenRepository.forExperience(experience.id());
-        if (experienceTitle != null) {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft != null && minecraft.gui != null) {
-                DAI_Core.LOGGER.info(
-                        "<DAI>: Entering authored title loop '{}' for experience '{}'.",
-                        experienceTitle.id(), experience.id()
-                );
-                minecraft.gui.setScreen(new DAI_TitleScreen(experienceTitle));
-                return;
-            }
         }
 
         Path save = findExperienceSave(experience);

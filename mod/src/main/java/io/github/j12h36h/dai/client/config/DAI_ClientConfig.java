@@ -19,11 +19,11 @@ public final class DAI_ClientConfig {
             .define("fullGameShell", true);
 
     public static final ModConfigSpec.BooleanValue DAI_LOADING_SCREENS = BUILDER
-            .comment("Use DAI's selected fallback loading presentation whenever an Experience does not provide its own loading screen.")
+            .comment("Legacy fallback switch. In fullGameShell mode DAI 4.3 always owns the bootstrap/world-transition splash.")
             .define("daiLoadingScreens", true);
 
     public static final ModConfigSpec.BooleanValue AUTO_SHELL_WORLD = BUILDER
-            .comment("Automatically create/load the reserved DAI shell world so the full 3-D universe UI has a fully initialized Minecraft runtime.")
+            .comment("Legacy shell-world switch. In fullGameShell mode DAI 4.3 always loads the reserved base world before revealing the 3-D title.")
             .define("autoShellWorld", true);
 
     public static final ModConfigSpec.ConfigValue<String> PRESENTATION_PROFILE = BUILDER
@@ -39,8 +39,8 @@ public final class DAI_ClientConfig {
     public static boolean creatorEnabled() { return bool(CREATOR_ENABLED, true); }
     public static boolean automationCreatorEnabled() { return bool(AUTOMATION_CREATOR_ENABLED, true); }
     public static boolean fullGameShell() { return bool(FULL_GAME_SHELL, true); }
-    public static boolean loadingScreens() { return bool(DAI_LOADING_SCREENS, true); }
-    public static boolean autoShellWorld() { return bool(AUTO_SHELL_WORLD, true); }
+    public static boolean loadingScreens() { return fullGameShell() || bool(DAI_LOADING_SCREENS, true); }
+    public static boolean autoShellWorld() { return fullGameShell() || bool(AUTO_SHELL_WORLD, true); }
     public static String presentationProfile() {
         try {
             String value = PRESENTATION_PROFILE.get();

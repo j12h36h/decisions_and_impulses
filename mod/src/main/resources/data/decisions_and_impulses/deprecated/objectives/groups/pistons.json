@@ -1,9 +1,0 @@
-{
-  "replace": false,
-  "entries": [
-    "minecraft:piston",
-    "minecraft:sticky_piston",
-    "minecraft:moving_piston",
-    "minecraft:piston_head"
-  ]
-}

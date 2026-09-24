@@ -83,8 +83,6 @@ public final class DAI_SettingsScreen extends Screen {
                 setCommon(DAI_Config.AUTO_ENABLE_ADDONS, !DAI_Config.autoEnableAddons(), "Addon layering updated."));
         y = toggle(y, "Auto-enable managed resource packs", DAI_Config.autoEnableManagedResourcePacks(), () ->
                 setCommon(DAI_Config.AUTO_ENABLE_MANAGED_RESOURCE_PACKS, !DAI_Config.autoEnableManagedResourcePacks(), "Managed pack policy updated."));
-        y = toggle(y, "Custom DAI title screens", DAI_Config.customTitleScreens(), () ->
-                setCommon(DAI_Config.CUSTOM_TITLE_SCREENS, !DAI_Config.customTitleScreens(), "Title-screen policy updated."));
         y = cyclePosition(y, "System menu position", DAI_Config.SYSTEM_MENU_POSITION);
         y = cyclePosition(y, "Action menu position", DAI_Config.ACTION_MENU_POSITION);
 
@@ -114,10 +112,7 @@ public final class DAI_SettingsScreen extends Screen {
 
     private void buildPresentation() {
         int y = contentTop();
-        y = toggle(y, "DAI loading screens", DAI_ClientConfig.loadingScreens(), () ->
-                setClient(DAI_ClientConfig.DAI_LOADING_SCREENS, !DAI_ClientConfig.loadingScreens(), "Loading presentation updated."));
-        y = toggle(y, "3-D universe shell world", DAI_ClientConfig.autoShellWorld(), () ->
-                setClient(DAI_ClientConfig.AUTO_SHELL_WORLD, !DAI_ClientConfig.autoShellWorld(), "Shell-world policy updated. Restart or return to title to apply."));
+        y = rowButton(y, "DAI bootstrap", "2-D SPLASH → 3-D SHELL", () -> {});
         y = toggle(y, "Refresh ERAS Worlds catalog", DAI_ClientConfig.worldCatalogRefresh(), () ->
                 setClient(DAI_ClientConfig.WORLD_CATALOG_REFRESH, !DAI_ClientConfig.worldCatalogRefresh(), "Catalog refresh policy updated."));
         y = toggle(y, "DAI Creator", DAI_ClientConfig.creatorEnabled(), () ->

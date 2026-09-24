@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
-/** Installs the DAI Engine 4.2 shell over vanilla title and pause entry points. */
+/** Installs the DAI Engine 4.3 engine-owned launcher shell over vanilla title entry points. */
 public final class DAI_TitleScreenController {
 
     private static final int TITLE_STABLE_TICKS_BEFORE_REPLACE = 4;
@@ -23,11 +23,6 @@ public final class DAI_TitleScreenController {
     public static void tick() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.gui == null || replacing) return;
-
-        if (!DAI_Config.customTitleScreens()) {
-            vanillaTitleTicks = 0;
-            return;
-        }
 
         /*
          * Full-shell mode owns the normal Esc pause entry point. Other vanilla

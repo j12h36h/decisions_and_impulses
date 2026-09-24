@@ -8,8 +8,6 @@ import io.github.j12h36h.dai.logics.action.DAI_ActionLibrary;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionQueue;
 import io.github.j12h36h.dai.client.packs.DAI_ExperienceResourcePackLifecycle;
 import io.github.j12h36h.dai.client.data.DAI_ClientDataBootstrap;
-import io.github.j12h36h.dai.client.presentation.shell.DAI_ShellPresentationRepository;
-import io.github.j12h36h.dai.client.title.DAI_TitleScreenRepository;
 import io.github.j12h36h.dai.client.logics.action.DAI_ActionResolver;
 import io.github.j12h36h.dai.client.overlays.DAI_OverlayManager;
 import io.github.j12h36h.dai.logics.core.DAI_Core;
@@ -53,20 +51,23 @@ public final class DAI_ExperienceRuntime {
             java.nio.file.Path sourcePack,
             String worldgenOverride
     ) {
+        prepare(definition, firstJoin, sourcePack, worldgenOverride, java.util.Set.of(), false);
+    }
+
+    public static void prepare(
+            DAI_ExperienceDefinition definition,
+            boolean firstJoin,
+            java.nio.file.Path sourcePack,
+            String worldgenOverride,
+            java.util.Set<String> selectedAddonIds,
+            boolean explicitAddonSelection
+    ) {
         if (definition == null) return;
 
-        /*
-         * If this Experience previously owned the application shell and the
-         * player explicitly returned to DAI Universe, selecting the same
-         * Experience again is the point at which its full takeover becomes
-         * eligible again.
-         */
-        if (DAI_ShellPresentationRepository.resumeForExperience(definition.id())) {
-            DAI_TitleScreenRepository.reload();
-            DAI_ClientDataBootstrap.reloadLocalData();
-        }
-
-        DAI_ExperienceLaunchState.prepare(definition, firstJoin, sourcePack, worldgenOverride);
+        DAI_ExperienceLaunchState.prepare(
+                definition, firstJoin, sourcePack, worldgenOverride,
+                selectedAddonIds, explicitAddonSelection
+        );
         // Resource packs are applied by DAI_ExperienceLauncher through the
         // pre-world-open barrier. Keeping prepare() state-only prevents the
         // old asynchronous reload/world-open race.
@@ -156,6 +157,22 @@ public final class DAI_ExperienceRuntime {
                     DAI_ActionQueue.enqueueAll(DAI_ActionResolver.resolve(actionId));
                 }
             }
+        }
+
+        // A world may declare a default HUD profile. This is activated only
+        // after the Experience world owns the session; pre-world launcher and
+        // loading presentation remain engine-owned. Intro/on-join logic can
+        // still hide or replace this HUD immediately when authored to do so.
+        if (!definition.ui().hudProfile().isBlank()) {
+            DAI_ActionQueue.enqueue(new DAI_ActionDefinition(
+                    "hud_show",
+                    definition.ui().hudProfile(),
+                    java.util.List.of(),
+                    java.util.List.of(),
+                    "", "",
+                    0.0F, 0.0F,
+                    "", 0, 0
+            ));
         }
 
         if (!action.isBlank()) {

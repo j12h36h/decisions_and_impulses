@@ -165,13 +165,11 @@ public final class DAI_ClientDataBootstrap {
         Map<Identifier, DAI_ActionDefinition> objectives =
                 decodeFolder(builtIn, "objectives/definitions", DAI_ActionDefinition.CODEC);
         mergeExternal(objectives, "objectives/definitions", DAI_ActionDefinition.CODEC);
-        mergeShellOwnerExternal(objectives, "objectives/definitions", DAI_ActionDefinition.CODEC);
         DAI_ActionLoader.applyDefinitions(objectives, true, "client:objectives/definitions");
 
         Map<Identifier, DAI_ActionDefinition> logics =
                 decodeFolder(builtIn, "logics/definitions", DAI_ActionDefinition.CODEC);
         mergeExternal(logics, "logics/definitions", DAI_ActionDefinition.CODEC);
-        mergeShellOwnerExternal(logics, "logics/definitions", DAI_ActionDefinition.CODEC);
         DAI_ActionLoader.applyDefinitions(logics, false, "client:logics/definitions");
 
         loadReactionEvents(builtIn);
@@ -321,7 +319,6 @@ public final class DAI_ClientDataBootstrap {
         Map<Identifier, DAI_DataScreenDefinition> definitions =
                 decodeFolder(builtIn, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
         mergeExternal(definitions, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
-        mergeShellOwnerExternal(definitions, DAI_DataScreenLoader.FOLDER, DAI_DataScreenDefinition.CODEC);
         DAI_DataScreenRegistry.clear();
         definitions.forEach(DAI_DataScreenRegistry::register);
     }
@@ -330,7 +327,6 @@ public final class DAI_ClientDataBootstrap {
         Map<Identifier, DAI_SceneDefinition> definitions =
                 decodeFolder(builtIn, DAI_SceneLoader.FOLDER, DAI_SceneDefinition.CODEC);
         mergeExternal(definitions, DAI_SceneLoader.FOLDER, DAI_SceneDefinition.CODEC);
-        mergeShellOwnerExternal(definitions, DAI_SceneLoader.FOLDER, DAI_SceneDefinition.CODEC);
         DAI_SceneRegistry.replaceData(definitions);
     }
 
@@ -338,7 +334,6 @@ public final class DAI_ClientDataBootstrap {
         Map<Identifier, DAI_ScreenOverrideDefinition> definitions =
                 decodeFolder(builtIn, DAI_ScreenOverrideLoader.FOLDER, DAI_ScreenOverrideDefinition.CODEC);
         mergeExternal(definitions, DAI_ScreenOverrideLoader.FOLDER, DAI_ScreenOverrideDefinition.CODEC);
-        mergeShellOwnerExternal(definitions, DAI_ScreenOverrideLoader.FOLDER, DAI_ScreenOverrideDefinition.CODEC);
         DAI_ScreenOverrideRegistry.replace(definitions);
     }
 
@@ -370,38 +365,6 @@ public final class DAI_ClientDataBootstrap {
         DAI_CreatorPresetRegistry.replaceData(definitions);
     }
 
-
-    /**
-     * Before a world exists, normal client-data discovery intentionally omits
-     * save-local datapacks. A MAIN pack that explicitly owns the application
-     * shell is the one exception: its presentation must be available early or
-     * data_screen/scene routes would resolve to missing registries and silently
-     * fall back to DAI's built-in shell.
-     *
-     * Only definitions from the selected shell owner's namespace are merged.
-     * Unrelated saves/addons remain excluded from client bootstrap.
-     */
-    private static <T> void mergeShellOwnerExternal(
-            Map<Identifier, T> destination,
-            String folder,
-            Codec<T> codec
-    ) {
-        String ownerNamespace = DAI_ShellPresentationRepository.ownerNamespace();
-        if (ownerNamespace == null || ownerNamespace.isBlank()) return;
-
-        Map<String, JsonObject> external =
-                DAI_EarlyJsonRepository.scanMainPacks(folder, folder);
-
-        external.forEach((rawId, json) -> {
-            if (rawId == null) return;
-            int colon = rawId.indexOf(':');
-            if (colon <= 0 || !ownerNamespace.equals(rawId.substring(0, colon))) return;
-
-            Identifier id = Identifier.tryParse(rawId);
-            T value = decode(codec, json, rawId);
-            if (id != null && value != null) destination.put(id, value);
-        });
-    }
 
     private static <T> void mergeExternal(
             Map<Identifier, T> destination,
